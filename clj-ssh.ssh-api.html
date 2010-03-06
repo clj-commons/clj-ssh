@@ -1,0 +1,354 @@
+<html>
+  <head>
+    <title>clj-ssh.ssh API reference (clj-ssh)</title>
+    <link href="static/favicon.png" rel="icon" />
+    <link href="static/favicon.png" rel="shortcut icon" />
+    <link media="all" type="text/css" href="static/clojure.css" rel="stylesheet" />
+    <link media="all" type="text/css" href="static/wiki.css" rel="stylesheet" />
+    <link media="all" type="text/css" href="static/internal.css" rel="stylesheet" />
+    <!-- TODO: are we using these (from clojure.org)? If so, add the files -->
+    <script src="file/view/code_highlighter.js" type="text/javascript"></script>
+    <script src="file/view/clojure.js" type="text/javascript"></script>
+    <style>.menuWrapper{height: 36px;}</style>
+    <!--[if lte IE 6]>
+    <link rel="stylesheet" href="http://www.wikispaces.com/_/2009051601/s/internal_ie.css" type="text/css" />
+    <![endif]-->
+  </head>
+<!--
+This document was auto-generated from the source by the clojure autodoc system.
+To report errors or ask questions about the overall documentation structure, formatting,
+etc., contact Tom Faulhaber (google mail name: tomfaulhaber).
+For errors in the documentation of a particular namespace, contact the author of that
+namespace.
+-->
+  <body>
+    <div id="AllContentContainer">
+      <div id="Header">
+	<a id="Logo" href="index.html"><img alt="Clojure" height="100" width="100" src="static/clojure-icon.gif" /></a>
+	<h1><a title="page header title" id="page-header" href="index.html">clj-ssh</a></h1>
+      </div>
+      <div id="leftcolumn"><div style="text-align: center;"></div>
+<div class="menu">
+  <div class="WikiCustomNav WikiElement wiki">
+    <a class="wiki_link" href="index.html">Overview</a><br />
+    <a class="wiki_link" href="api-index.html">API Index</a><br />
+    <a class="wiki_link" href="#">Namespaces:</a>
+    <ul id="left-sidebar-list">
+      <li><a href="clj-ssh.ssh-api.html" class="wiki_link">clj-ssh.ssh</a></li>
+    </ul>
+  </div>
+</div>
+</div>
+      <div id="rightcolumn">
+	<div id="Content">
+	  <div class="contentBox"><div class="innerContentBox">
+              <div id="content_view" class="wiki wikiPage">
+                <div id="right-sidebar"><div id="toc">
+  <h1 class="nopad">Table of Contents</h1>
+  <div style="margin-left: 1em;" class="toc-section">
+    <a href="#toc0">Overview</a>
+    <div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/*ssh-agent*">*ssh-agent*</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/add-identity">add-identity</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/connect">connect</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/connected?">connected?</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/create-ssh-agent">create-ssh-agent</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/default-session-options">default-session-options</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/disconnect">disconnect</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/exec-channel">exec-channel</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/open-channel">open-channel</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/session">session</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/sftp-channel">sftp-channel</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/shell-channel">shell-channel</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/ssh">ssh</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/ssh-agent?">ssh-agent?</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/ssh-exec">ssh-exec</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/ssh-shell">ssh-shell</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/with-connection">with-connection</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/with-default-session-options">with-default-session-options</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/with-ssh-agent">with-ssh-agent</a>
+    </div>
+    <br />
+  </div>
+</div>
+</div>
+                <div id="content-tag"><h1 id="overview">API for <span id="namespace-name">clj-ssh.ssh</span></h1>
+by <span id="author">Hugo Duncan</span><br />
+<br />Usage:
+<pre>
+(ns your-namespace
+  (:require <span id="long-name">clj-ssh.ssh</span>))
+</pre><pre>
+</pre><h2>Overview</h2>
+<pre id="namespace-docstr">
+SSH in clojure.  Uses jsch.  Provides a ssh function that tries to look similar
+to clojure.contrib.shell/sh.
+
+## Usage
+
+The top level namespace is `clj-ssh.ssh`
+
+    (use 'clj-ssh)
+
+There is a simple `ssh` function, which by default, will try and use a id_rsa
+key in your $HOME/.ssh directory.
+
+    (ssh hostname cmd)
+
+More advance usage is possible.
+
+    (with-ssh-agent []
+      (add-identity path-to-private-key)
+      (let [session (session hostname :strict-host-key-checking :no)]
+        (with-connection session
+          (let [result (ssh session :in commands-string :result-map true)]
+            (println (result :out)))
+          (let [result (ssh session some-cmd-string)]
+            (println (second result))))))
+
+## Installation
+
+Via maven and the clojars (<a href="http://clojars.org),">http://clojars.org),</a> or
+Leiningen (http://github.com/technomancy/leiningen).
+
+## License
+
+Licensed under EPL (<a href="http://www.eclipse.org/legal/epl-v10.html)">http://www.eclipse.org/legal/epl-v10.html)</a></pre>
+<br />
+<h2>Public Variables and Functions</h2>
+<div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/*ssh-agent*">*ssh-agent*</h2>
+  <span id="var-type">var</span><br />
+  <pre id="var-usage"></pre>
+  <pre id="var-docstr">SSH agent used to manage identities.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/add-identity">add-identity</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (add-identity)
+       (add-identity private-key)
+       (add-identity agent private-key)
+       (add-identity agent private-key passphrase)
+</pre>
+  <pre id="var-docstr">Add an identity to the agent.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/connect">connect</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (connect session)
+       (connect session timeout)
+</pre>
+  <pre id="var-docstr">Connect a session.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/connected?">connected?</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (connected? session)
+</pre>
+  <pre id="var-docstr">Predicate used to test for a connected session.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/create-ssh-agent">create-ssh-agent</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (create-ssh-agent)
+       (create-ssh-agent add-default-identity?)
+       (create-ssh-agent private-key passphrase?)
+</pre>
+  <pre id="var-docstr">Create an ssh-agent. By default try and add the current user's id_rsa key.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/default-session-options">default-session-options</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (default-session-options options)
+</pre>
+  <pre id="var-docstr">Set the default session options</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/disconnect">disconnect</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (disconnect session)
+</pre>
+  <pre id="var-docstr">Disconnect a session.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/exec-channel">exec-channel</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (exec-channel session)
+</pre>
+  <pre id="var-docstr">Open an Exec channel in the session.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/open-channel">open-channel</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (open-channel session session-type)
+</pre>
+  <pre id="var-docstr">Open a channel of the specified type in the session.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/session">session</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (session agent? &amp; options)
+</pre>
+  <pre id="var-docstr">Start a SSH session.
+Requires hostname.  you can also pass values for :username, :password and :port
+keys.  All other option key pairs will be passed as SSH config options.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/sftp-channel">sftp-channel</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (sftp-channel session)
+</pre>
+  <pre id="var-docstr">Open a SFTP channel in the session.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/shell-channel">shell-channel</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (shell-channel session)
+</pre>
+  <pre id="var-docstr">Open a Shell channel in the session.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/ssh">ssh</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (ssh session-or-hostname &amp; args)
+</pre>
+  <pre id="var-docstr">Execute commands over ssh.
+
+  ssh host-or-session cmd? &amp; options
+
+cmd specifies a command to exec.  If no cmd is given, a shell is started and input is taken from :in.
+
+Options are
+
+:in         specifies input to the remote shell. A string or a stream.
+:out        specify :bytes or a string with an encoding specification.
+:return-map when followed by boolean true, sh returns a map of
+              :exit =&gt; sub-process's exit code
+              :out  =&gt; sub-process's stdout (as byte[] or String)
+              :err  =&gt; sub-process's stderr (as byte[] or String)
+            when not given or followed by false, ssh returns a vector
+            of the remote shell's stdout followed by its stderr
+:username   username to use for authentication
+:password   password to use for authentication
+:port       port to use if no session specified</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/ssh-agent?">ssh-agent?</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (ssh-agent? object)
+</pre>
+  <pre id="var-docstr">Predicate to test for an ssh-agent.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/ssh-exec">ssh-exec</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (ssh-exec session cmd in out)
+</pre>
+  <pre id="var-docstr">Run a command via ssh-exec.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/ssh-shell">ssh-shell</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (ssh-shell session in out)
+</pre>
+  <pre id="var-docstr">Run a ssh-shell.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/with-connection">with-connection</h2>
+  <span id="var-type">macro</span><br />
+  <pre id="var-usage">Usage: (with-connection session &amp; body)
+</pre>
+  <pre id="var-docstr">Creates a context in which the session is connected. Ensures the session is
+disconnected on exit.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/with-default-session-options">with-default-session-options</h2>
+  <span id="var-type">macro</span><br />
+  <pre id="var-usage">Usage: (with-default-session-options options &amp; body)
+</pre>
+  <pre id="var-docstr">Set the default session options</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/with-ssh-agent">with-ssh-agent</h2>
+  <span id="var-type">macro</span><br />
+  <pre id="var-usage">Usage: (with-ssh-agent [&amp; agent] &amp; body)
+</pre>
+  <pre id="var-docstr">Bind an ssh-agent for use as identity manager.
+The argument vector can be empty, in which case a new agent is created.  If passed a String or File, then this is passed to the new agent as an identity to be added.
+An existing agent instance can alternatively be passed.</pre>
+  
+</div>
+
+
+</div>
+              </div>
+            </div>
+          </div>
+	</div>
+	<div id="foot">
+	  <div style="text-align: center;" id="copyright">No copyright info </div>
+	</div>
+      </div>
+      <div id="DesignedBy">Logo &amp; site design by <a title="Visit Tom Hickey's website." href="http://www.tomhickey.com">Tom Hickey</a>.<br />
+      Clojure auto-documentation system by Tom Faulhaber.</div>
+    </div>
+    <!-- /AllContentContainer -->
+  </body>
+
+</html>
