@@ -54,7 +54,7 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)
 (defn default-session-options
   "Set the default session options"
   [options]
-  (alter-var-root *default-session-options* second options))
+  (alter-var-root #'*default-session-options* #(identity %2) options))
 
 (defn- file-path [string-or-file]
   (if (string? string-or-file)
