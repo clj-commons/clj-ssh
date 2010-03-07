@@ -14,6 +14,10 @@ key in your $HOME/.ssh directory.
 
     (ssh hostname cmd)
 
+Strict host key checking can be turned off.
+
+    (default-session-options {:strict-host-key-checking :no})
+
 More advance usage is possible.
 
     (with-ssh-agent []

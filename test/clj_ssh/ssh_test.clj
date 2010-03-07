@@ -29,6 +29,14 @@ list, Alan Dipert and MeikelBrandmeyer."
 (deftest default-identity-test
   (is (= (private-key-path) (.getPath (default-identity)))))
 
+(deftest default-session-options-test
+  (let [old *default-session-options*
+        new {:strict-host-key-checking :no}]
+    (default-session-options new)
+    (is (= new *default-session-options*))
+    (default-session-options old)
+    (is (= old *default-session-options*))))
+
 (deftest ssh-agent?-test
   (is (ssh-agent? (com.jcraft.jsch.JSch.)))
   (is (not (ssh-agent? "i'm not an ssh-agent"))))
