@@ -310,11 +310,11 @@ Options are
        (connect session))
      (if (empty? (:cmd opts))
        (let [result (ssh-shell session (:in opts) (:out opts))]
-         (if (:return-map opts)
+         (if (opts :return-map)
            {:exit (first result) :out (second result)}
            result))
        (let [result (ssh-exec session (string/join " " (:cmd opts)) (:in opts) (:out opts))]
-         (if (:return-map opts)
+         (if (opts :return-map)
            {:exit (first result) :out (second result) :err (last result)}
            result)))
      (finally

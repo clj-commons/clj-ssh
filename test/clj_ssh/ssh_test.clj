@@ -168,8 +168,15 @@ list, Alan Dipert and MeikelBrandmeyer."
     (let [result (ssh "localhost" :in "echo hello")]
       (is (= 0 (first result)))
       (is (.contains (second result) "hello")))
+    (let [result (ssh "localhost" :in "echo hello" :return-map true)]
+      (is (= 0 (result :exit)))
+      (is (.contains (result :out) "hello")))
     (let [result (ssh "localhost" "/bin/bash -c 'ls' '/'")]
       (is (= 0 (first result)))
       (is (.contains (second result) "bin"))
-      (is (= "" (last result))))))
+      (is (= "" (last result))))
+    (let [result (ssh "localhost" "/bin/bash -c 'ls' '/'" :return-map true)]
+      (is (= 0 (result :exit)))
+      (is (.contains (result :out) "bin"))
+      (is (= "" (result :err))))))
 
