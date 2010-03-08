@@ -66,7 +66,11 @@ namespace.
     </div><div style="margin-left: 1em;" class="toc-entry">
       <a href="#clj-ssh.ssh/open-channel">open-channel</a>
     </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/scp">scp</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
       <a href="#clj-ssh.ssh/session">session</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/sftp">sftp</a>
     </div><div style="margin-left: 1em;" class="toc-entry">
       <a href="#clj-ssh.ssh/sftp-channel">sftp-channel</a>
     </div><div style="margin-left: 1em;" class="toc-entry">
@@ -77,6 +81,10 @@ namespace.
       <a href="#clj-ssh.ssh/ssh-agent?">ssh-agent?</a>
     </div><div style="margin-left: 1em;" class="toc-entry">
       <a href="#clj-ssh.ssh/ssh-exec">ssh-exec</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/ssh-sftp">ssh-sftp</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/ssh-sftp-cmd">ssh-sftp-cmd</a>
     </div><div style="margin-left: 1em;" class="toc-entry">
       <a href="#clj-ssh.ssh/ssh-shell">ssh-shell</a>
     </div><div style="margin-left: 1em;" class="toc-entry">
@@ -112,6 +120,10 @@ There is a simple `ssh` function, which by default, will try and use a id_rsa
 key in your $HOME/.ssh directory.
 
     (ssh hostname cmd)
+
+Strict host key checking can be turned off.
+
+    (default-session-options {:strict-host-key-checking :no})
 
 More advance usage is possible.
 
@@ -223,6 +235,16 @@ Licensed under EPL (<a href="http://www.eclipse.org/legal/epl-v10.html)">http://
 </div><div id="var-entry">
   <br />
   <hr />
+  <h2 id="clj-ssh.ssh/scp">scp</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (scp session-or-hostname source &amp; args)
+</pre>
+  <pre id="var-docstr">Copy files using SFTP. Options are:
+:dir     :get or :put. defaults to put.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
   <h2 id="clj-ssh.ssh/session">session</h2>
   <span id="var-type">function</span><br />
   <pre id="var-usage">Usage: (session agent? &amp; options)
@@ -230,6 +252,38 @@ Licensed under EPL (<a href="http://www.eclipse.org/legal/epl-v10.html)">http://
   <pre id="var-docstr">Start a SSH session.
 Requires hostname.  you can also pass values for :username, :password and :port
 keys.  All other option key pairs will be passed as SSH config options.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/sftp">sftp</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (sftp session-or-hostname cmd &amp; args)
+</pre>
+  <pre id="var-docstr">Execute SFTP commands.
+
+  sftp host-or-session cmd &amp; options
+
+cmd specifies a command to exec.  Valid commands are:
+:ls
+:put
+:get
+:chmod
+:chown
+:chgrp
+:cd
+:lcd
+:pwd
+:lpwd
+:rm
+:rmdir
+:stat
+:symlink
+
+Options are
+:username   username to use for authentication
+:password   password to use for authentication
+:port       port to use if no session specified</pre>
   
 </div><div id="var-entry">
   <br />
@@ -293,6 +347,24 @@ Options are
   <pre id="var-usage">Usage: (ssh-exec session cmd in out)
 </pre>
   <pre id="var-docstr">Run a command via ssh-exec.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/ssh-sftp">ssh-sftp</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (ssh-sftp session)
+</pre>
+  <pre id="var-docstr">Obtain a connected ftp channel.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/ssh-sftp-cmd">ssh-sftp-cmd</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (ssh-sftp-cmd channel cmd args options)
+</pre>
+  <pre id="var-docstr">Command on a ftp channel.</pre>
   
 </div><div id="var-entry">
   <br />
