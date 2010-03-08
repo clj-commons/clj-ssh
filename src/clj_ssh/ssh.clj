@@ -260,6 +260,13 @@ keys.  All other option key pairs will be passed as SSH config options."
         (.toByteArray err-stream)
         (.toString err-stream out))])))
 
+(defn default-session [host username port password]
+  (doto (session-impl
+         (or *ssh-agent* (create-ssh-agent))
+         host username port password
+         *default-session-options*)
+    (.connect)))
+
 (defn- parse-args
   "Takes a seq of 'ssh' arguments and returns a map of option keywords
   to option values."
@@ -298,13 +305,11 @@ Options are
         session-given (instance? com.jcraft.jsch.Session session-or-hostname)
         session (if session-given
                   session-or-hostname
-                  (session-impl
-                   (or *ssh-agent* (create-ssh-agent))
+                  (default-session
                    session-or-hostname
                    (opts :username)
                    (opts :port)
-                   (opts :password)
-                   *default-session-options*))]
+                   (opts :password)))]
     (try
      (when-not (connected? session)
        (connect session))
@@ -319,4 +324,121 @@ Options are
            result)))
      (finally
       (when-not session-given
+        (disconnect session))))))
+
+(defn ssh-sftp
+  "Obtain a connected ftp channel."
+  [#^Session session]
+  (let [channel (open-channel session :sftp)]
+    (connect channel)
+    channel))
+
+(defmacro memfn-varargs [name]
+  `(fn [target# & args#]
+    (condp = (count args#)
+      0 (. target# (~name))
+      1 (. target# (~name (first args#)))
+      2 (. target# (~name (first args#) (second args#)))
+      3 (. target# (~name (first args#) (second args#) (nth 2 args#)))
+      4 (. target# (~name (first args#) (second args#) (nth 2 args#) (nth 3 args#)))
+      5 (. target# (~name (first args#) (second args#) (nth 2 args#) (nth 3 args#) (nth 4 args#)))
+      (throw
+       (java.lang.IllegalArgumentException.
+        (str
+         "too many arguments passed.  Limit 5, passed " (count args#)))))))
+
+(defn ssh-sftp-cmd
+  "Command on a ftp channel."
+  [#^ChannelSftp channel cmd args options]
+  (condp = cmd
+    :ls (.ls channel (or (first args) "."))
+    :cd (.cd channel (first args))
+    :lcd (.lcd channel (first args))
+    :chmod (.chmod channel (first args) (second args))
+    :chown (.chown channel (first args) (second args))
+    :chgrp (.chgrp channel (first args) (second args))
+    :pwd (.pwd channel)
+    :lpwd (.lpwd channel)
+    :rm (.rm channel (first args))
+    :rmdir (.rmdir channel (first args))
+    :rmdir (.mkdir channel (first args))
+    :stat (.stat channel (first args))
+    :lstat (.lstat channel (first args))
+    :rename (.rename channel (first args) (second args))
+    :symlink (.symlink channel (first args) (second args))
+    :readlink (.readlink channel (first args))
+    :realpath (.realpath channel (first args) (second args))
+    :get-home (.getHome channel)
+    :get-server-version (.getServerVersion channel)
+    :get-extension (.getExtension channel (first args))
+    :get (let [args (if (options :with-monitor)
+                      (conj args (options :with-monitor))
+                      args)
+               args (if (options :mode)
+                      (conj args (options :mode))
+                      args)]
+           (apply (memfn-varargs get) channel args))
+    :put (let [args (if (options :with-monitor)
+                      (conj args (options :with-monitor))
+                      args)
+               args (if (options :mode)
+                      (conj args (options :mode))
+                      args)]
+           (apply (memfn-varargs put) channel args))
+    (throw (java.lang.IllegalArgumentException.
+            (str "Unknown SFTP command " cmd)))))
+
+(defn sftp
+  "Execute SFTP commands.
+
+  sftp host-or-session cmd & options
+
+cmd specifies a command to exec.  Valid commands are:
+:ls
+:put
+:get
+:chmod
+:chown
+:chgrp
+:cd
+:lcd
+:pwd
+:lpwd
+:rm
+:rmdir
+:stat
+:symlink
+
+Options are
+:username   username to use for authentication
+:password   password to use for authentication
+:port       port to use if no session specified
+"
+  [session-or-hostname cmd & args]
+  (let [opts (parse-args args)
+        channel-given (instance? com.jcraft.jsch.ChannelSftp session-or-hostname)
+        session-given (instance? com.jcraft.jsch.Session session-or-hostname)
+        session (if session-given
+                  session-or-hostname
+                  (if channel-given
+                    nil
+                    (default-session
+                      session-or-hostname
+                      (opts :username)
+                      (opts :port)
+                      (opts :password))))
+        channel (if channel-given
+                  session-or-hostname
+                  (ssh-sftp session))]
+    (try
+     (when (and session (not (connected? session)))
+       (connect session))
+     (let [result (ssh-sftp-cmd channel cmd args opts)]
+       (if (opts :return-map)
+         {:exit (first result) :out (second result)}
+         result))
+     (finally
+      (when-not channel-given
+        (disconnect channel))
+      (when-not (or session-given channel-given)
         (disconnect session))))))

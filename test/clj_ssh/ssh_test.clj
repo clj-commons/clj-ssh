@@ -16,6 +16,12 @@ list, Alan Dipert and MeikelBrandmeyer."
 (defn username
   [] (. System getProperty "user.name"))
 
+(defn cwd
+  [] (. System getProperty "user.dir"))
+
+(defn home
+  [] (. System getProperty "user.home"))
+
 (with-private-vars [clj-ssh.ssh [file-path camelize]]
 
   (deftest file-path-test
@@ -179,4 +185,81 @@ list, Alan Dipert and MeikelBrandmeyer."
       (is (= 0 (result :exit)))
       (is (.contains (result :out) "bin"))
       (is (= "" (result :err))))))
+
+(deftest ssh-sftp-cmd-test
+  (with-ssh-agent []
+    (let [session (session "localhost" :strict-host-key-checking :no)]
+      (with-connection session
+        (let [channel (ssh-sftp session)
+              dir (ssh-sftp-cmd channel :ls ["/"] {})]
+          (ssh-sftp-cmd channel :cd ["/"] {})
+          (is (= "/" (ssh-sftp-cmd channel :pwd [] {})))
+          ;; value equality comparison on lsentry is borked
+          (is (= (map str dir)
+                 (map str (ssh-sftp-cmd channel :ls [] {})))))))))
+
+(defn test-sftp-with [channel]
+  (let [dir (sftp channel :ls "/")]
+    (sftp channel :cd "/")
+    (is (= "/" (sftp channel :pwd)))
+    ;; value equality comparison on lsentry is borked
+    (is (= (map str dir)
+           (map str (sftp channel :ls))))
+    (let [tmpfile1 (java.io.File/createTempFile "clj-ssh" "test")
+          tmpfile2 (java.io.File/createTempFile "clj-ssh" "test")
+          file1 (.getPath tmpfile1)
+          file2 (.getPath tmpfile2)
+          content "content"
+          content2 "content2"]
+      (try
+       (copy content tmpfile1)
+       (sftp channel :put file1 file2)
+       (is (= content (slurp file2)))
+       (copy content2 tmpfile2)
+       (sftp channel :get file2 file1)
+       (is (= content2 (slurp file1)))
+       (sftp channel :put (java.io.ByteArrayInputStream. (.getBytes content)) file1)
+       (is (= content (slurp file1)))
+       (finally
+        (.delete tmpfile1)
+        (.delete tmpfile2))))))
+
+(defn test-sftp-transient-with [channel]
+  (let [dir (sftp channel :ls (home))]
+    (sftp channel :cd "/")
+    (is (= (home) (sftp channel :pwd)))
+    ;; value equality comparison on lsentry is borked
+    (is (= (map str dir)
+           (map str (sftp channel :ls))))
+    (let [tmpfile1 (java.io.File/createTempFile "clj-ssh" "test")
+          tmpfile2 (java.io.File/createTempFile "clj-ssh" "test")
+          file1 (.getPath tmpfile1)
+          file2 (.getPath tmpfile2)
+          content "content"
+          content2 "content2"]
+      (try
+       (copy content tmpfile1)
+       (sftp channel :put file1 file2)
+       (is (= content (slurp file2)))
+       (copy content2 tmpfile2)
+       (sftp channel :get file2 file1)
+       (is (= content2 (slurp file1)))
+       (sftp channel :put (java.io.ByteArrayInputStream. (.getBytes content)) file1)
+       (is (= content (slurp file1)))
+       (finally
+        (.delete tmpfile1)
+        (.delete tmpfile2))))))
+
+(deftest sftp-test
+  (with-ssh-agent []
+    (let [session (session "localhost" :strict-host-key-checking :no)]
+      (with-connection session
+        (let [channel (ssh-sftp session)]
+          (test-sftp-with channel))
+        (test-sftp-transient-with session))))
+  (with-default-session-options {:strict-host-key-checking :no}
+    (test-sftp-transient-with "localhost")))
+
+
+
 

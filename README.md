@@ -29,6 +29,25 @@ More advance usage is possible.
           (let [result (ssh session "/bin/bash" "-c" "ls" "/")]
             (println (second result))))))
 
+SFTP is supported, both with a simple interface,
+
+     (sftp "hostname" :put "/from/this/path" "to/this/path")
+
+as well as more advanced usage.
+
+    (with-ssh-agent []
+      (let [session (session "localhost" :strict-host-key-checking :no)]
+        (with-connection session
+          (let [channel (ssh-sftp session)]
+            (with-connection channel
+              (sftp channel :cd "/remote/path")
+              (sftp channel :put "/some/file" "filename"))))))
+
+Note that any sftp commands that change the state of the sftp session (such as
+cd) do not work with the simplified interface, as a new session is created each
+time.
+
+
 ## Installation
 
 Via maven and the [clojars](http://clojars.org), or
