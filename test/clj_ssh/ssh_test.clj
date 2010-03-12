@@ -198,6 +198,34 @@ list, Alan Dipert and MeikelBrandmeyer."
           (is (= (map str dir)
                  (map str (ssh-sftp-cmd channel :ls [] {})))))))))
 
+(defn sftp-monitor
+  "Create a SFTP progress monitor"
+  []
+  (let [operation (atom nil)
+        source (atom nil)
+        destination (atom nil)
+        number (atom nil)
+        done (atom false)
+        progress (atom 0)
+        continue (atom true)]
+    [ (proxy [com.jcraft.jsch.SftpProgressMonitor] []
+        (init [op src dest max]
+              (do
+                (reset! operation op)
+                (reset! source src)
+                (reset! destination dest)
+                (reset! number max)
+                (reset! done false)))
+        (count [n]
+               (reset! progress n)
+               @continue)
+        (end []
+             (reset! done true)))
+      [operation source destination number done progress continue]]))
+
+(defn sftp-monitor-done [state]
+  @(nth state 4))
+
 (defn test-sftp-with [channel]
   (let [dir (sftp channel :ls "/")]
     (sftp channel :cd "/")
@@ -218,11 +246,18 @@ list, Alan Dipert and MeikelBrandmeyer."
        (copy content2 tmpfile2)
        (sftp channel :get file2 file1)
        (is (= content2 (slurp file1)))
-       (sftp channel :put (java.io.ByteArrayInputStream. (.getBytes content)) file1)
+       (sftp
+        channel :put (java.io.ByteArrayInputStream. (.getBytes content)) file1)
        (is (= content (slurp file1)))
+       (let [[monitor state] (sftp-monitor)]
+         (sftp channel :put (java.io.ByteArrayInputStream. (.getBytes content))
+               file2 :with-monitor monitor)
+         (is (sftp-monitor-done state)))
+       (is (= content (slurp file2)))
        (finally
         (.delete tmpfile1)
         (.delete tmpfile2))))))
+
 
 (defn test-sftp-transient-with [channel]
   (let [dir (sftp channel :ls (home))]
@@ -236,7 +271,7 @@ list, Alan Dipert and MeikelBrandmeyer."
           file1 (.getPath tmpfile1)
           file2 (.getPath tmpfile2)
           content "content"
-          content2 "content2"]
+          content2 "othercontent"]
       (try
        (copy content tmpfile1)
        (sftp channel :put file1 file2)
@@ -246,6 +281,11 @@ list, Alan Dipert and MeikelBrandmeyer."
        (is (= content2 (slurp file1)))
        (sftp channel :put (java.io.ByteArrayInputStream. (.getBytes content)) file1)
        (is (= content (slurp file1)))
+       (let [[monitor state] (sftp-monitor)]
+         (sftp channel :put (java.io.ByteArrayInputStream. (.getBytes content))
+               file2 :with-monitor monitor)
+         (is (sftp-monitor-done state)))
+       (is (= content (slurp file2)))
        (finally
         (.delete tmpfile1)
         (.delete tmpfile2))))))

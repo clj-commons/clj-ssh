@@ -1,6 +1,6 @@
-(ns #^{:author "Hugo Duncan"
-       :doc "
-SSH in clojure.  Uses jsch.  Provides a ssh function that tries to look similar
+(ns #^{:author "Hugo Duncan"}
+  clj-ssh.ssh
+  "SSH in clojure.  Uses jsch.  Provides a ssh function that tries to look similar
 to clojure.contrib.shell/sh.
 
 ## Usage
@@ -36,10 +36,7 @@ Leiningen (http://github.com/technomancy/leiningen).
 
 ## License
 
-Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)
-
-"}
-  clj-ssh.ssh
+Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
   (:require [clojure.contrib.str-utils2 :as string])
   (:use [clojure.contrib.def :only [defvar]]
         [clojure.contrib.java-utils :only [file]]
@@ -334,18 +331,22 @@ Options are
     channel))
 
 (defmacro memfn-varargs [name]
-  `(fn [target# & args#]
+  `(fn [target# args#]
     (condp = (count args#)
       0 (. target# (~name))
       1 (. target# (~name (first args#)))
       2 (. target# (~name (first args#) (second args#)))
-      3 (. target# (~name (first args#) (second args#) (nth 2 args#)))
-      4 (. target# (~name (first args#) (second args#) (nth 2 args#) (nth 3 args#)))
-      5 (. target# (~name (first args#) (second args#) (nth 2 args#) (nth 3 args#) (nth 4 args#)))
+      3 (. target# (~name (first args#) (second args#) (nth args# 2)))
+      4 (. target# (~name (first args#) (second args#) (nth args# 2) (nth args# 3)))
+      5 (. target# (~name (first args#) (second args#) (nth args# 2) (nth args# 3) (nth args# 4)))
       (throw
        (java.lang.IllegalArgumentException.
         (str
          "too many arguments passed.  Limit 5, passed " (count args#)))))))
+
+(def sftp-modemap { :overwrite ChannelSftp/OVERWRITE
+                    :resume ChannelSftp/RESUME
+                    :append ChannelSftp/APPEND })
 
 (defn ssh-sftp-cmd
   "Command on a ftp channel."
@@ -375,16 +376,16 @@ Options are
                       (conj args (options :with-monitor))
                       args)
                args (if (options :mode)
-                      (conj args (options :mode))
+                      (conj args (sftp-modemap (options :mode)))
                       args)]
-           (apply (memfn-varargs get) channel args))
+           ((memfn-varargs get) channel args))
     :put (let [args (if (options :with-monitor)
                       (conj args (options :with-monitor))
                       args)
                args (if (options :mode)
-                      (conj args (options :mode))
+                      (conj args (sftp-modemap (options :mode)))
                       args)]
-           (apply (memfn-varargs put) channel args))
+           ((memfn-varargs put) channel args))
     (throw (java.lang.IllegalArgumentException.
             (str "Unknown SFTP command " cmd)))))
 
@@ -433,7 +434,7 @@ Options are
     (try
      (when (and session (not (connected? session)))
        (connect session))
-     (let [result (ssh-sftp-cmd channel cmd args opts)]
+     (let [result (ssh-sftp-cmd channel cmd (opts :cmd) (dissoc opts :cmd))]
        (if (opts :return-map)
          {:exit (first result) :out (second result)}
          result))
