@@ -129,15 +129,19 @@ list, Alan Dipert and MeikelBrandmeyer."
   (with-ssh-agent []
     (let [session (session "localhost" :strict-host-key-checking :no)]
       (with-connection session
-        (let [result (ssh-shell session "echo hello" "UTF-8")]
+        (let [result (ssh-shell session "echo hello" "UTF-8" {})]
           (is (= 0 (first result)))
           (is (.contains (second result) "hello")))
-        (let [result (ssh-shell session "echo hello" :bytes)]
+        (let [result (ssh-shell session "echo hello" :bytes {})]
           (is (= 0 (first result)))
           (is (.contains (String. (second result)) "hello")))
-        (let [result (ssh-shell session "echo hello;exit 1" "UTF-8")]
+        (let [result (ssh-shell session "echo hello;exit 1" "UTF-8" {})]
           (is (= 1 (first result)))
-          (is (.contains (second result) "hello")))))))
+          (is (.contains (second result) "hello")))
+        (let [result (ssh-shell session "exit $(tty -s)" "UTF-8" {:pty true})]
+          (is (= 0 (first result))))
+        (let [result (ssh-shell session "exit $(tty -s)" "UTF-8" {:pty nil})]
+          (is (= 1 (first result))))))))
 
 (deftest ssh-exec-test
   (with-ssh-agent []
@@ -169,7 +173,11 @@ list, Alan Dipert and MeikelBrandmeyer."
     (let [result (ssh "localhost" "/bin/bash -c 'ls' '/'")]
       (is (= 0 (first result)))
       (is (.contains (second result) "bin"))
-      (is (= "" (last result)))))
+      (is (= "" (last result))))
+    (let [result (ssh "localhost" :in "tty -s" :pty true)]
+      (is (= 0 (first result))))
+    (let [result (ssh "localhost" :in "tty -s" :pty false)]
+      (is (= 1 (first result)))))
   (with-default-session-options {:strict-host-key-checking :no}
     (let [result (ssh "localhost" :in "echo hello")]
       (is (= 0 (first result)))

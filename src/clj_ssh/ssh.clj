@@ -39,7 +39,7 @@ Leiningen (http://github.com/technomancy/leiningen).
 Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
   (:require [clojure.contrib.str-utils2 :as string])
   (:use [clojure.contrib.def :only [defvar]]
-        [clojure.contrib.java-utils :only [file]]
+        [clojure.contrib.java-utils :only [file wall-hack-method]]
         [clojure.contrib.str-utils2 :only [capitalize map-str]])
   (:import (com.jcraft.jsch JSch Session Channel ChannelShell ChannelExec ChannelSftp)))
 
@@ -213,16 +213,18 @@ keys.  All other option key pairs will be passed as SSH config options."
 
 (defn ssh-shell
   "Run a ssh-shell."
-  [#^Session session in out]
+  [#^Session session in out opts]
   (let [shell (open-channel session :shell)
         out-stream (java.io.ByteArrayOutputStream.)]
     (doto shell
       (.setInputStream
        (if (string? in)
-         (java.io.ByteArrayInputStream. (.getBytes (str in ";exit 0;\n")))
+         (java.io.ByteArrayInputStream. (.getBytes (str in ";exit $?;\n")))
          in)
        false)
       (.setOutputStream out-stream))
+    (when (contains? opts :pty)
+      (wall-hack-method com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE] shell (boolean (opts :pty))))
     (with-connection shell
       (while (connected? shell)
              (Thread/sleep 100))
@@ -311,7 +313,7 @@ Options are
      (when-not (connected? session)
        (connect session))
      (if (empty? (:cmd opts))
-       (let [result (ssh-shell session (:in opts) (:out opts))]
+       (let [result (ssh-shell session (:in opts) (:out opts) (dissoc opts :in :out :cmd))]
          (if (opts :return-map)
            {:exit (first result) :out (second result)}
            result))
