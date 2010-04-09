@@ -39,12 +39,19 @@ Leiningen (http://github.com/technomancy/leiningen).
 Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
   (:require [clojure.contrib.str-utils2 :as string])
   (:use [clojure.contrib.def :only [defvar]]
-        [clojure.contrib.java-utils :only [file wall-hack-method]]
         [clojure.contrib.str-utils2 :only [capitalize map-str]])
   (:import (com.jcraft.jsch JSch Session Channel ChannelShell ChannelExec ChannelSftp)))
 
 (defvar *ssh-agent* nil "SSH agent used to manage identities.")
 (defvar *default-session-options* {})
+
+; working towards clojure 1.1/1.2 compat
+(try
+  (use '[clojure.contrib.reflect :only [call-method]])
+  (use '[clojure.contrib.io :only [as-file]])
+  (catch Exception e
+    (use '[clojure.contrib.java-utils :only [file wall-hack-method] :rename {wall-hack-method call-method
+                                                                             file as-file}])))
 
 (defmacro with-default-session-options
   "Set the default session options"
