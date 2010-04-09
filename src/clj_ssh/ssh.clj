@@ -77,7 +77,7 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
   (. System getProperty "user.name"))
 
 (defn default-identity
-  [] (if-let [id-file (file (. System getProperty "user.home") ".ssh" "id_rsa")]
+  [] (if-let [id-file (as-file (. System getProperty "user.home") ".ssh" "id_rsa")]
        (if (.canRead id-file)
          id-file)))
 
@@ -231,7 +231,7 @@ keys.  All other option key pairs will be passed as SSH config options."
        false)
       (.setOutputStream out-stream))
     (when (contains? opts :pty)
-      (wall-hack-method com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE] shell (boolean (opts :pty))))
+      (call-method com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE] shell (boolean (opts :pty))))
     (with-connection shell
       (while (connected? shell)
              (Thread/sleep 100))
@@ -242,7 +242,7 @@ keys.  All other option key pairs will be passed as SSH config options."
 
 (defn ssh-exec
   "Run a command via ssh-exec."
-  [#^Session session cmd in out]
+  [#^Session session cmd in out opts]
   (let [exec (open-channel session :exec)
         out-stream (java.io.ByteArrayOutputStream.)
         err-stream (java.io.ByteArrayOutputStream.)]
@@ -255,6 +255,8 @@ keys.  All other option key pairs will be passed as SSH config options."
       (.setOutputStream out-stream)
       (.setErrStream err-stream)
       (.setCommand cmd))
+    (when (contains? opts :pty)
+      (call-method com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE] exec (boolean (opts :pty))))
     (with-connection exec
       (while (connected? exec)
              (Thread/sleep 100))
@@ -324,7 +326,7 @@ Options are
          (if (opts :return-map)
            {:exit (first result) :out (second result)}
            result))
-       (let [result (ssh-exec session (string/join " " (:cmd opts)) (:in opts) (:out opts))]
+       (let [result (ssh-exec session (string/join " " (:cmd opts)) (:in opts) (:out opts) (dissoc opts :in :out :cmd))]
          (if (opts :return-map)
            {:exit (first result) :out (second result) :err (last result)}
            result)))

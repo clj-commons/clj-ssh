@@ -147,11 +147,11 @@ list, Alan Dipert and MeikelBrandmeyer."
   (with-ssh-agent []
     (let [session (session "localhost" :strict-host-key-checking :no)]
       (with-connection session
-        (let [result (ssh-exec session "/bin/bash -c 'ls' '/'" nil "UTF-8")]
+        (let [result (ssh-exec session "/bin/bash -c 'ls /'" nil "UTF-8" {})]
           (is (= 0 (first result)))
           (is (.contains (second result) "bin"))
           (is (= "" (last result))))
-        (let [result (ssh-exec session "/bin/bash -c 'lsxxxxx' '/'" nil "UTF-8")]
+        (let [result (ssh-exec session "/bin/bash -c 'lsxxxxx /'" nil "UTF-8" {})]
           (is (not (= 0 (first result))))
           (is (= "" (second result)))
           (is (.contains (last result) "command not found")))))))
@@ -163,14 +163,14 @@ list, Alan Dipert and MeikelBrandmeyer."
         (let [result (ssh session :in "echo hello")]
           (is (= 0 (first result)))
           (is (.contains (second result) "hello")))
-        (let [result (ssh session "/bin/bash -c 'ls' '/'")]
+        (let [result (ssh session "/bin/bash -c 'ls /'")]
           (is (= 0 (first result)))
           (is (.contains (second result) "bin"))
           (is (= "" (last result))))))
     (let [result (ssh "localhost" :in "echo hello")]
       (is (= 0 (first result)))
       (is (.contains (second result) "hello")))
-    (let [result (ssh "localhost" "/bin/bash -c 'ls' '/'")]
+    (let [result (ssh "localhost" "/bin/bash -c 'ls /'")]
       (is (= 0 (first result)))
       (is (.contains (second result) "bin"))
       (is (= "" (last result))))
@@ -185,11 +185,11 @@ list, Alan Dipert and MeikelBrandmeyer."
     (let [result (ssh "localhost" :in "echo hello" :return-map true)]
       (is (= 0 (result :exit)))
       (is (.contains (result :out) "hello")))
-    (let [result (ssh "localhost" "/bin/bash -c 'ls' '/'")]
+    (let [result (ssh "localhost" "/bin/bash -c 'ls /'")]
       (is (= 0 (first result)))
       (is (.contains (second result) "bin"))
       (is (= "" (last result))))
-    (let [result (ssh "localhost" "/bin/bash -c 'ls' '/'" :return-map true)]
+    (let [result (ssh "localhost" "/bin/bash -c 'ls /'" :return-map true)]
       (is (= 0 (result :exit)))
       (is (.contains (result :out) "bin"))
       (is (= "" (result :err))))))
