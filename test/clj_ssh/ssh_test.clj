@@ -1,7 +1,12 @@
 (ns clj-ssh.ssh-test
   (:use [clj-ssh.ssh] :reload-all)
-  (:use [clojure.test]
-        [clojure.contrib.duck-streams]))
+  (:use [clojure.test]))
+
+;; clojure.contrib 1.1/1.2 compatability
+(try
+  (use '[clojure.contrib.io :as io])
+  (catch Exception e
+    (use '[clojure.contrib.duck-streams :as io])))
 
 (defmacro with-private-vars [[ns fns] & tests]
   "Refers private fns from ns and runs tests in context.  From users mailing
@@ -248,10 +253,10 @@ list, Alan Dipert and MeikelBrandmeyer."
           content "content"
           content2 "content2"]
       (try
-       (copy content tmpfile1)
+       (io/copy content tmpfile1)
        (sftp channel :put file1 file2)
        (is (= content (slurp file2)))
-       (copy content2 tmpfile2)
+       (io/copy content2 tmpfile2)
        (sftp channel :get file2 file1)
        (is (= content2 (slurp file1)))
        (sftp
@@ -281,10 +286,10 @@ list, Alan Dipert and MeikelBrandmeyer."
           content "content"
           content2 "othercontent"]
       (try
-       (copy content tmpfile1)
+       (io/copy content tmpfile1)
        (sftp channel :put file1 file2)
        (is (= content (slurp file2)))
-       (copy content2 tmpfile2)
+       (io/copy content2 tmpfile2)
        (sftp channel :get file2 file1)
        (is (= content2 (slurp file1)))
        (sftp channel :put (java.io.ByteArrayInputStream. (.getBytes content)) file1)
@@ -307,7 +312,3 @@ list, Alan Dipert and MeikelBrandmeyer."
         (test-sftp-transient-with session))))
   (with-default-session-options {:strict-host-key-checking :no}
     (test-sftp-transient-with "localhost")))
-
-
-
-

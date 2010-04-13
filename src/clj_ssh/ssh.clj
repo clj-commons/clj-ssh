@@ -37,21 +37,21 @@ Leiningen (http://github.com/technomancy/leiningen).
 ## License
 
 Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
-  (:require [clojure.contrib.str-utils2 :as string])
-  (:use [clojure.contrib.def :only [defvar]]
-        [clojure.contrib.str-utils2 :only [capitalize map-str]])
-  (:import (com.jcraft.jsch JSch Session Channel ChannelShell ChannelExec ChannelSftp)))
+  (:use [clojure.contrib.def :only [defvar]])
+  (:import [com.jcraft.jsch
+            JSch Session Channel ChannelShell ChannelExec ChannelSftp]))
 
 (defvar *ssh-agent* nil "SSH agent used to manage identities.")
-(defvar *default-session-options* {})
+(defvar *default-session-options* {} "Default SSH options")
 
-; working towards clojure 1.1/1.2 compat
+;; working towards clojure 1.1/1.2 compat
 (try
   (use '[clojure.contrib.reflect :only [call-method]])
   (use '[clojure.contrib.io :only [as-file]])
   (catch Exception e
-    (use '[clojure.contrib.java-utils :only [file wall-hack-method] :rename {wall-hack-method call-method
-                                                                             file as-file}])))
+    (use '[clojure.contrib.java-utils
+           :only [file wall-hack-method]
+           :rename {wall-hack-method call-method file as-file}])))
 
 (defmacro with-default-session-options
   "Set the default session options"
@@ -128,9 +128,16 @@ An existing agent instance can alternatively be passed."
                 `(create-ssh-agent))]
      ~@body))
 
+(defn #^String capitalize
+  "Converts first character of the string to upper-case."
+  [#^String s]
+  (if (< (count s) 2)
+    (.toUpperCase s)
+    (str (.toUpperCase #^String (subs s 0 1))
+         (subs s 1))))
 
 (defn- camelize [a]
-  (map-str capitalize (.split a "-")))
+  (apply str (map capitalize (.split a "-"))))
 
 (defn- #^String as-string [arg]
   (cond
@@ -322,11 +329,16 @@ Options are
      (when-not (connected? session)
        (connect session))
      (if (empty? (:cmd opts))
-       (let [result (ssh-shell session (:in opts) (:out opts) (dissoc opts :in :out :cmd))]
+       (let [result (ssh-shell
+                     session
+                     (:in opts) (:out opts) (dissoc opts :in :out :cmd))]
          (if (opts :return-map)
            {:exit (first result) :out (second result)}
            result))
-       (let [result (ssh-exec session (string/join " " (:cmd opts)) (:in opts) (:out opts) (dissoc opts :in :out :cmd))]
+       (let [result (ssh-exec
+                     session
+                     (apply str (interpose " " (:cmd opts)))
+                     (:in opts) (:out opts) (dissoc opts :in :out :cmd))]
          (if (opts :return-map)
            {:exit (first result) :out (second result) :err (last result)}
            result)))
