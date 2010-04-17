@@ -47,11 +47,11 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
 ;; working towards clojure 1.1/1.2 compat
 (try
   (use '[clojure.contrib.reflect :only [call-method]])
-  (use '[clojure.contrib.io :only [as-file]])
+  (use '[clojure.contrib.io :only [file]])
   (catch Exception e
     (use '[clojure.contrib.java-utils
            :only [file wall-hack-method]
-           :rename {wall-hack-method call-method file as-file}])))
+           :rename {wall-hack-method call-method}])))
 
 (defmacro with-default-session-options
   "Set the default session options"
@@ -77,9 +77,10 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
   (. System getProperty "user.name"))
 
 (defn default-identity
-  [] (if-let [id-file (as-file (. System getProperty "user.home") ".ssh" "id_rsa")]
-       (if (.canRead id-file)
-         id-file)))
+  []
+  (if-let [id-file (file (. System getProperty "user.home") ".ssh" "id_rsa")]
+    (if (.canRead id-file)
+      id-file)))
 
 (defn add-identity
   "Add an identity to the agent."
@@ -238,7 +239,8 @@ keys.  All other option key pairs will be passed as SSH config options."
        false)
       (.setOutputStream out-stream))
     (when (contains? opts :pty)
-      (call-method com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE] shell (boolean (opts :pty))))
+      (call-method com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE]
+                   shell (boolean (opts :pty))))
     (with-connection shell
       (while (connected? shell)
              (Thread/sleep 100))
@@ -263,7 +265,8 @@ keys.  All other option key pairs will be passed as SSH config options."
       (.setErrStream err-stream)
       (.setCommand cmd))
     (when (contains? opts :pty)
-      (call-method com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE] exec (boolean (opts :pty))))
+      (call-method com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE]
+                   exec (boolean (opts :pty))))
     (with-connection exec
       (while (connected? exec)
              (Thread/sleep 100))
