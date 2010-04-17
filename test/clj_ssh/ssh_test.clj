@@ -19,7 +19,8 @@ list, Alan Dipert and MeikelBrandmeyer."
   [] (str (. System getProperty "user.home") "/.ssh/id_rsa"))
 
 (defn username
-  [] (. System getProperty "user.name"))
+  [] (or (. System getProperty "ssh.username")
+         (. System getProperty "user.name")))
 
 (defn cwd
   [] (. System getProperty "user.dir"))
@@ -87,36 +88,40 @@ list, Alan Dipert and MeikelBrandmeyer."
 
 (deftest session-test
   (with-ssh-agent []
-    (let [session (session *ssh-agent* "localhost" :username (username) :port 22)]
+    (let [session (session *ssh-agent* "localhost"
+                           :username (username) :port 22)]
       (is (instance? com.jcraft.jsch.Session session))
       (is (not (connected? session)))))
   (with-ssh-agent []
-    (let [session (session "localhost")]
+    (let [session (session "localhost" :username (username))]
       (is (instance? com.jcraft.jsch.Session session))
       (is (not (connected? session)))))
   (with-ssh-agent []
-    (let [session (session *ssh-agent* "localhost" )]
+    (let [session (session *ssh-agent* "localhost" :username (username))]
       (is (instance? com.jcraft.jsch.Session session))
       (is (not (connected? session))))))
 
 (deftest session-connect-test
   (with-ssh-agent []
     (add-identity (private-key-path))
-    (let [session (session "localhost" :strict-host-key-checking :no)]
+    (let [session (session "localhost" :username (username)
+                           :strict-host-key-checking :no)]
       (is (instance? com.jcraft.jsch.Session session))
       (is (not (connected? session)))
       (connect session)
       (is (connected? session))
       (disconnect session)
       (is (not (connected? session))))
-    (let [session (session "localhost" :strict-host-key-checking :no)]
+    (let [session (session "localhost" :username (username)
+                           :strict-host-key-checking :no)]
       (with-connection session
         (is (connected? session)))
       (is (not (connected? session))))))
 
 (deftest open-shell-channel-test
   (with-ssh-agent []
-    (let [session (session "localhost" :strict-host-key-checking :no)]
+    (let [session (session "localhost" :username (username)
+                           :strict-host-key-checking :no)]
       (with-connection session
         (let [shell (open-channel session :shell)
               os (java.io.ByteArrayOutputStream.)]
@@ -132,7 +137,8 @@ list, Alan Dipert and MeikelBrandmeyer."
 
 (deftest ssh-shell-test
   (with-ssh-agent []
-    (let [session (session "localhost" :strict-host-key-checking :no)]
+    (let [session (session "localhost" :username (username)
+                           :strict-host-key-checking :no)]
       (with-connection session
         (let [result (ssh-shell session "echo hello" "UTF-8" {})]
           (is (= 0 (first result)))
@@ -150,7 +156,8 @@ list, Alan Dipert and MeikelBrandmeyer."
 
 (deftest ssh-exec-test
   (with-ssh-agent []
-    (let [session (session "localhost" :strict-host-key-checking :no)]
+    (let [session (session "localhost" :username (username)
+                           :strict-host-key-checking :no)]
       (with-connection session
         (let [result (ssh-exec session "/bin/bash -c 'ls /'" nil "UTF-8" {})]
           (is (= 0 (first result)))
@@ -163,7 +170,8 @@ list, Alan Dipert and MeikelBrandmeyer."
 
 (deftest ssh-test
   (with-ssh-agent []
-    (let [session (session "localhost" :strict-host-key-checking :no)]
+    (let [session (session "localhost" :username (username)
+                           :strict-host-key-checking :no)]
       (with-connection session
         (let [result (ssh session :in "echo hello")]
           (is (= 0 (first result)))
@@ -172,36 +180,39 @@ list, Alan Dipert and MeikelBrandmeyer."
           (is (= 0 (first result)))
           (is (.contains (second result) "bin"))
           (is (= "" (last result))))))
-    (let [result (ssh "localhost" :in "echo hello")]
+    (let [result (ssh "localhost" :in "echo hello" :username (username))]
       (is (= 0 (first result)))
       (is (.contains (second result) "hello")))
-    (let [result (ssh "localhost" "/bin/bash -c 'ls /'")]
+    (let [result (ssh "localhost" "/bin/bash -c 'ls /'" :username (username))]
       (is (= 0 (first result)))
       (is (.contains (second result) "bin"))
       (is (= "" (last result))))
-    (let [result (ssh "localhost" :in "tty -s" :pty true)]
+    (let [result (ssh "localhost" :in "tty -s" :pty true :username (username))]
       (is (= 0 (first result))))
-    (let [result (ssh "localhost" :in "tty -s" :pty false)]
+    (let [result (ssh "localhost" :in "tty -s" :pty false :username (username))]
       (is (= 1 (first result)))))
   (with-default-session-options {:strict-host-key-checking :no}
-    (let [result (ssh "localhost" :in "echo hello")]
+    (let [result (ssh "localhost" :in "echo hello" :username (username))]
       (is (= 0 (first result)))
       (is (.contains (second result) "hello")))
-    (let [result (ssh "localhost" :in "echo hello" :return-map true)]
+    (let [result (ssh "localhost" :in "echo hello" :return-map true
+                      :username (username))]
       (is (= 0 (result :exit)))
       (is (.contains (result :out) "hello")))
-    (let [result (ssh "localhost" "/bin/bash -c 'ls /'")]
+    (let [result (ssh "localhost" "/bin/bash -c 'ls /'" :username (username))]
       (is (= 0 (first result)))
       (is (.contains (second result) "bin"))
       (is (= "" (last result))))
-    (let [result (ssh "localhost" "/bin/bash -c 'ls /'" :return-map true)]
+    (let [result (ssh "localhost" "/bin/bash -c 'ls /'" :return-map true
+                      :username (username))]
       (is (= 0 (result :exit)))
       (is (.contains (result :out) "bin"))
       (is (= "" (result :err))))))
 
 (deftest ssh-sftp-cmd-test
   (with-ssh-agent []
-    (let [session (session "localhost" :strict-host-key-checking :no)]
+    (let [session (session "localhost" :username (username)
+                           :strict-host-key-checking :no)]
       (with-connection session
         (let [channel (ssh-sftp session)
               dir (ssh-sftp-cmd channel :ls ["/"] {})]
@@ -272,9 +283,9 @@ list, Alan Dipert and MeikelBrandmeyer."
         (.delete tmpfile2))))))
 
 
-(defn test-sftp-transient-with [channel]
+(defn test-sftp-transient-with [channel & options]
   (let [dir (sftp channel :ls (home))]
-    (sftp channel :cd "/")
+    (apply sftp channel :cd "/" options)
     (is (= (home) (sftp channel :pwd)))
     ;; value equality comparison on lsentry is borked
     (is (= (map str dir)
@@ -287,16 +298,20 @@ list, Alan Dipert and MeikelBrandmeyer."
           content2 "othercontent"]
       (try
        (io/copy content tmpfile1)
-       (sftp channel :put file1 file2)
+       (apply sftp channel :put file1 file2 options)
        (is (= content (slurp file2)))
        (io/copy content2 tmpfile2)
-       (sftp channel :get file2 file1)
+       (apply sftp channel :get file2 file1 options)
        (is (= content2 (slurp file1)))
-       (sftp channel :put (java.io.ByteArrayInputStream. (.getBytes content)) file1)
+       (apply sftp channel
+              :put (java.io.ByteArrayInputStream. (.getBytes content))
+              file1
+              options)
        (is (= content (slurp file1)))
        (let [[monitor state] (sftp-monitor)]
-         (sftp channel :put (java.io.ByteArrayInputStream. (.getBytes content))
-               file2 :with-monitor monitor)
+         (apply sftp channel
+                :put (java.io.ByteArrayInputStream. (.getBytes content))
+               file2 :with-monitor monitor options)
          (is (sftp-monitor-done state)))
        (is (= content (slurp file2)))
        (finally
@@ -305,10 +320,11 @@ list, Alan Dipert and MeikelBrandmeyer."
 
 (deftest sftp-test
   (with-ssh-agent []
-    (let [session (session "localhost" :strict-host-key-checking :no)]
+    (let [session (session "localhost" :username (username)
+                           :strict-host-key-checking :no)]
       (with-connection session
         (let [channel (ssh-sftp session)]
           (test-sftp-with channel))
         (test-sftp-transient-with session))))
   (with-default-session-options {:strict-host-key-checking :no}
-    (test-sftp-transient-with "localhost")))
+    (test-sftp-transient-with "localhost" :username (username))))
