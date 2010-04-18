@@ -296,6 +296,8 @@ list, Alan Dipert and MeikelBrandmeyer."
           content "content"
           content2 "othercontent"]
       (try
+       (.setWritable tmpfile1 true false)
+       (.setWritable tmpfile2 true false)
        (io/copy content tmpfile1)
        (apply sftp channel :put file1 file2 options)
        (is (= content (slurp file2)))
