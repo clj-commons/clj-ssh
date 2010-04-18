@@ -286,12 +286,9 @@ list, Alan Dipert and MeikelBrandmeyer."
 
 
 (defn test-sftp-transient-with [channel & options]
-  (let [dir (sftp channel :ls (home))]
+  (let [dir (sftp channel :ls "/")]
     (apply sftp channel :cd "/" options)
-    (is (= (home) (sftp channel :pwd)))
-    ;; value equality comparison on lsentry is borked
-    (is (= (map str dir)
-           (map str (sftp channel :ls))))
+    (is (not= "/" (sftp channel :pwd)))
     (let [tmpfile1 (java.io.File/createTempFile "clj-ssh" "test")
           tmpfile2 (java.io.File/createTempFile "clj-ssh" "test")
           file1 (.getPath tmpfile1)
@@ -313,7 +310,7 @@ list, Alan Dipert and MeikelBrandmeyer."
        (let [[monitor state] (sftp-monitor)]
          (apply sftp channel
                 :put (java.io.ByteArrayInputStream. (.getBytes content))
-               file2 :with-monitor monitor options)
+                file2 :with-monitor monitor options)
          (is (sftp-monitor-done state)))
        (is (= content (slurp file2)))
        (finally
