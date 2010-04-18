@@ -155,10 +155,11 @@ An existing agent instance can alternatively be passed."
                  (or port 22))]
     (when password
       (.setPassword session password))
-    (dorun
-     (map #(.setConfig
-            session (camelize (as-string (first %))) (as-string (second %)))
-          options))
+    (doseq [option options]
+      (.setConfig
+       session
+       (camelize (as-string (first option)))
+       (as-string (second option))))
     session))
 
 (defn session
