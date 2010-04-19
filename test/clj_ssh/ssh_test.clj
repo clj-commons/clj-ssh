@@ -325,7 +325,8 @@ list, Alan Dipert and MeikelBrandmeyer."
                            :strict-host-key-checking :no)]
       (with-connection session
         (let [channel (ssh-sftp session)]
-          (test-sftp-with channel))
+          (with-connection channel
+            (test-sftp-with channel)))
         (test-sftp-transient-with session))))
   (with-default-session-options {:strict-host-key-checking :no}
     (test-sftp-transient-with "localhost" :username (username))))

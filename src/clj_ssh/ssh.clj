@@ -353,6 +353,7 @@ Options are
 (defn ssh-sftp
   "Obtain a connected ftp channel."
   [#^Session session]
+  {:pre (connected? session)}
   (let [channel (open-channel session :sftp)]
     (connect channel)
     channel))
