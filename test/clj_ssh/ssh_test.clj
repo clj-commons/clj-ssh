@@ -319,7 +319,7 @@ list, Alan Dipert and MeikelBrandmeyer."
         (.delete tmpfile1)
         (.delete tmpfile2))))))
 
-(deftest sftp-test
+(deftest sftp-session-test
   (with-ssh-agent []
     (let [session (session "localhost" :username (username)
                            :strict-host-key-checking :no)]
@@ -327,6 +327,8 @@ list, Alan Dipert and MeikelBrandmeyer."
         (let [channel (ssh-sftp session)]
           (with-connection channel
             (test-sftp-with channel)))
-        (test-sftp-transient-with session))))
+        (test-sftp-transient-with session)))))
+
+(deftest sftp-hostnametest
   (with-default-session-options {:strict-host-key-checking :no}
     (test-sftp-transient-with "localhost" :username (username))))
