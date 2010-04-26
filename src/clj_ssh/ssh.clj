@@ -64,10 +64,10 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
   [options]
   (alter-var-root #'*default-session-options* #(identity %2) options))
 
-(defn- file-path [string-or-file]
+(defn- #^String file-path [string-or-file]
   (if (string? string-or-file)
     string-or-file
-    (.getPath string-or-file)))
+    (.getPath #^java.io.File string-or-file)))
 
 (defn ssh-agent?
   "Predicate to test for an ssh-agent."
@@ -88,11 +88,11 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
      (add-identity *ssh-agent* (default-identity)))
   ([private-key]
      (add-identity *ssh-agent* private-key))
-  ([agent private-key]
+  ([#^JSch agent private-key]
      (if (ssh-agent? agent)
        (.addIdentity agent (file-path private-key))
        (add-identity *ssh-agent* agent private-key)))
-  ([agent private-key passphrase]
+  ([#^JSch agent private-key #^String passphrase]
      (.addIdentity agent (file-path private-key) passphrase)))
 
 
@@ -137,7 +137,7 @@ An existing agent instance can alternatively be passed."
     (str (.toUpperCase #^String (subs s 0 1))
          (subs s 1))))
 
-(defn- camelize [a]
+(defn- camelize [#^String a]
   (apply str (map capitalize (.split a "-"))))
 
 (defn- #^String as-string [arg]
@@ -147,7 +147,7 @@ An existing agent instance can alternatively be passed."
    :else (str arg)))
 
 (defn- session-impl
-  [agent hostname username port password options]
+  [#^JSch agent hostname username port #^String password options]
   (let [session (.getSession
                  agent
                  (or username (default-user))
@@ -230,7 +230,7 @@ keys.  All other option key pairs will be passed as SSH config options."
 (defn ssh-shell
   "Run a ssh-shell."
   [#^Session session in out opts]
-  (let [shell (open-channel session :shell)
+  (let [#^ChannelShell shell (open-channel session :shell)
         out-stream (java.io.ByteArrayOutputStream.)]
     (doto shell
       (.setInputStream
@@ -252,8 +252,8 @@ keys.  All other option key pairs will be passed as SSH config options."
 
 (defn ssh-exec
   "Run a command via ssh-exec."
-  [#^Session session cmd in out opts]
-  (let [exec (open-channel session :exec)
+  [#^Session session #^String cmd in out opts]
+  (let [#^ChannelExec exec (open-channel session :exec)
         out-stream (java.io.ByteArrayOutputStream.)
         err-stream (java.io.ByteArrayOutputStream.)]
     (doto exec
