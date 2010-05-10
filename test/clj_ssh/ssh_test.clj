@@ -1,6 +1,7 @@
 (ns clj-ssh.ssh-test
   (:use [clj-ssh.ssh] :reload-all)
-  (:use [clojure.test]))
+  (:use [clojure.test])
+  (:import com.jcraft.jsch.JSch))
 
 ;; clojure.contrib 1.1/1.2 compatability
 (try
@@ -14,9 +15,21 @@ list, Alan Dipert and MeikelBrandmeyer."
   `(let ~(reduce #(conj %1 %2 `@(ns-resolve '~ns '~%2)) [] fns)
      ~@tests))
 
-;; This assumes you have this private key
+;; TEST SETUP
+;;
+;; The tests assume the following setup
+;;
+;; ssh-keygen -f ~/.ssh/clj_ssh -t rsa -C "key for test clj-ssh" -N ""
+;; ssh-keygen -f ~/.ssh/clj_ssh_pp -t rsa -C "key for test clj-ssh" -N "clj-ssh"
+;; cp ~/.ssh/authorized_keys ~/.ssh/authorized_keys.bak
+;; echo "from=\"localhost\" $(cat ~/.ssh/clj_ssh.pub)" >> ~/.ssh/authorized_keys
+;; echo "from=\"localhost\" $(cat ~/.ssh/clj_ssh_pp.pub)" >> ~/.ssh/authorized_keys
+
 (defn private-key-path
-  [] (str (. System getProperty "user.home") "/.ssh/id_rsa"))
+  [] (str (. System getProperty "user.home") "/.ssh/clj_ssh"))
+
+(defn encrypted-private-key-path
+  [] (str (. System getProperty "user.home") "/.ssh/clj_ssh_pp"))
 
 (defn username
   [] (or (. System getProperty "ssh.username")
@@ -39,7 +52,8 @@ list, Alan Dipert and MeikelBrandmeyer."
 
 
 (deftest default-identity-test
-  (is (= (private-key-path) (.getPath (default-identity)))))
+  (is (= (str (. System getProperty "user.home") "/.ssh/id_rsa")
+         (.getPath (default-identity)))))
 
 (deftest default-session-options-test
   (let [old *default-session-options*
@@ -50,7 +64,7 @@ list, Alan Dipert and MeikelBrandmeyer."
     (is (= old *default-session-options*))))
 
 (deftest ssh-agent?-test
-  (is (ssh-agent? (com.jcraft.jsch.JSch.)))
+  (is (ssh-agent? (JSch.)))
   (is (not (ssh-agent? "i'm not an ssh-agent"))))
 
 (deftest create-ssh-agent-test
@@ -59,17 +73,37 @@ list, Alan Dipert and MeikelBrandmeyer."
 
 (deftest with-ssh-agent-test
   (with-ssh-agent []
-    (is (ssh-agent? *ssh-agent*)))
+    (is (ssh-agent? *ssh-agent*))
+    (is (= 1 (count (.getIdentityNames *ssh-agent*)))))
+  (with-ssh-agent [false]
+    (is (ssh-agent? *ssh-agent*))
+    (is (= 0 (count (.getIdentityNames *ssh-agent*)))))
   (with-ssh-agent [(private-key-path)]
     (is (ssh-agent? *ssh-agent*)))
   (let [agent (create-ssh-agent)]
     (with-ssh-agent [agent]
       (is (= *ssh-agent* agent)))))
 
+(deftest make-identity-test
+  (with-ssh-agent [false]
+    (let [path (private-key-path)
+          identity (make-identity path (str path ".pub"))]
+      (is (instance? com.jcraft.jsch.Identity identity))
+      (is (not (.isEncrypted identity)))
+      (add-identity identity)
+      (is (= 1 (count (.getIdentityNames *ssh-agent*)))))
+    (let [path (encrypted-private-key-path)
+          identity (make-identity path (str path ".pub"))]
+      (is (instance? com.jcraft.jsch.Identity identity))
+      (is (.isEncrypted identity))
+      (add-identity identity "clj-ssh")
+      (is (= 2 (count (.getIdentityNames *ssh-agent*)))))))
+
 (deftest add-identity-test
   (let [key (private-key-path)]
-    (with-ssh-agent []
+    (with-ssh-agent [false]
       (add-identity key)
+      (is (= 1 (count (.getIdentityNames *ssh-agent*))))
       (add-identity *ssh-agent* key))))
 
 (with-private-vars [clj-ssh.ssh [session-impl]]
@@ -102,8 +136,23 @@ list, Alan Dipert and MeikelBrandmeyer."
       (is (not (connected? session))))))
 
 (deftest session-connect-test
-  (with-ssh-agent []
+  (with-ssh-agent [false]
     (add-identity (private-key-path))
+    (let [session (session "localhost" :username (username)
+                           :strict-host-key-checking :no)]
+      (is (instance? com.jcraft.jsch.Session session))
+      (is (not (connected? session)))
+      (connect session)
+      (is (connected? session))
+      (disconnect session)
+      (is (not (connected? session))))
+    (let [session (session "localhost" :username (username)
+                           :strict-host-key-checking :no)]
+      (with-connection session
+        (is (connected? session)))
+      (is (not (connected? session)))))
+  (with-ssh-agent [false]
+    (add-identity (encrypted-private-key-path) "clj-ssh")
     (let [session (session "localhost" :username (username)
                            :strict-host-key-checking :no)]
       (is (instance? com.jcraft.jsch.Session session))
@@ -119,7 +168,8 @@ list, Alan Dipert and MeikelBrandmeyer."
       (is (not (connected? session))))))
 
 (deftest open-shell-channel-test
-  (with-ssh-agent []
+  (with-ssh-agent [false]
+    (add-identity (private-key-path))
     (let [session (session "localhost" :username (username)
                            :strict-host-key-checking :no)]
       (with-connection session
@@ -136,7 +186,8 @@ list, Alan Dipert and MeikelBrandmeyer."
             (is (.contains (str os) "bin"))))))))
 
 (deftest ssh-shell-test
-  (with-ssh-agent []
+  (with-ssh-agent [false]
+    (add-identity (private-key-path))
     (let [session (session "localhost" :username (username)
                            :strict-host-key-checking :no)]
       (with-connection session
@@ -155,7 +206,8 @@ list, Alan Dipert and MeikelBrandmeyer."
           (is (= 1 (first result))))))))
 
 (deftest ssh-exec-test
-  (with-ssh-agent []
+  (with-ssh-agent [false]
+    (add-identity (private-key-path))
     (let [session (session "localhost" :username (username)
                            :strict-host-key-checking :no)]
       (with-connection session
@@ -169,7 +221,8 @@ list, Alan Dipert and MeikelBrandmeyer."
           (is (.contains (last result) "command not found")))))))
 
 (deftest ssh-test
-  (with-ssh-agent []
+  (with-ssh-agent [false]
+    (add-identity (private-key-path))
     (let [session (session "localhost" :username (username)
                            :strict-host-key-checking :no)]
       (with-connection session
@@ -192,25 +245,27 @@ list, Alan Dipert and MeikelBrandmeyer."
     (let [result (ssh "localhost" :in "tty -s" :pty false :username (username))]
       (is (= 1 (first result)))))
   (with-default-session-options {:strict-host-key-checking :no}
-    (let [result (ssh "localhost" :in "echo hello" :username (username))]
-      (is (= 0 (first result)))
-      (is (.contains (second result) "hello")))
-    (let [result (ssh "localhost" :in "echo hello" :return-map true
-                      :username (username))]
-      (is (= 0 (result :exit)))
-      (is (.contains (result :out) "hello")))
-    (let [result (ssh "localhost" "/bin/bash -c 'ls /'" :username (username))]
-      (is (= 0 (first result)))
-      (is (.contains (second result) "bin"))
-      (is (= "" (last result))))
-    (let [result (ssh "localhost" "/bin/bash -c 'ls /'" :return-map true
-                      :username (username))]
-      (is (= 0 (result :exit)))
-      (is (.contains (result :out) "bin"))
-      (is (= "" (result :err))))))
+    (with-default-identity (private-key-path)
+      (let [result (ssh "localhost" :in "echo hello" :username (username))]
+        (is (= 0 (first result)))
+        (is (.contains (second result) "hello")))
+      (let [result (ssh "localhost" :in "echo hello" :return-map true
+                        :username (username))]
+        (is (= 0 (result :exit)))
+        (is (.contains (result :out) "hello")))
+      (let [result (ssh "localhost" "/bin/bash -c 'ls /'" :username (username))]
+        (is (= 0 (first result)))
+        (is (.contains (second result) "bin"))
+        (is (= "" (last result))))
+      (let [result (ssh "localhost" "/bin/bash -c 'ls /'" :return-map true
+                        :username (username))]
+        (is (= 0 (result :exit)))
+        (is (.contains (result :out) "bin"))
+        (is (= "" (result :err)))))))
 
 (deftest ssh-sftp-cmd-test
-  (with-ssh-agent []
+  (with-ssh-agent [false]
+    (add-identity (private-key-path))
     (let [session (session "localhost" :username (username)
                            :strict-host-key-checking :no)]
       (with-connection session
@@ -320,15 +375,18 @@ list, Alan Dipert and MeikelBrandmeyer."
         (.delete tmpfile2))))))
 
 (deftest sftp-session-test
-  (with-ssh-agent []
-    (let [session (session "localhost" :username (username)
-                           :strict-host-key-checking :no)]
-      (with-connection session
-        (let [channel (ssh-sftp session)]
-          (with-connection channel
-            (test-sftp-with channel)))
-        (test-sftp-transient-with session)))))
+  (with-default-identity (private-key-path)
+    (with-ssh-agent []
+      (let [session (session "localhost" :username (username)
+                             :strict-host-key-checking :no)]
+        (with-connection session
+          (let [channel (ssh-sftp session)]
+            (with-connection channel
+              (test-sftp-with channel)))
+          (test-sftp-transient-with session))))))
 
 (deftest sftp-hostnametest
-  (with-default-session-options {:strict-host-key-checking :no}
-    (test-sftp-transient-with "localhost" :username (username))))
+  (with-default-identity (private-key-path)
+    (with-default-session-options {:strict-host-key-checking :no}
+      (test-sftp-transient-with "localhost" :username (username)))))
+

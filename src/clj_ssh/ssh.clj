@@ -7,7 +7,7 @@ to clojure.contrib.shell/sh.
 
 The top level namespace is `clj-ssh.ssh`
 
-    (use 'clj-ssh)
+    (use 'clj-ssh.ssh)
 
 There is a simple `ssh` function, which by default, will try and use a id_rsa
 key in your $HOME/.ssh directory.
@@ -37,9 +37,13 @@ Leiningen (http://github.com/technomancy/leiningen).
 ## License
 
 Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
-  (:use [clojure.contrib.def :only [defvar]])
+  (:use
+   [clojure.contrib.def :only [defvar]])
+  (:require
+   [clojure.contrib.logging :as logging])
   (:import [com.jcraft.jsch
-            JSch Session Channel ChannelShell ChannelExec ChannelSftp]))
+            JSch Session Channel ChannelShell ChannelExec ChannelSftp
+            Identity IdentityFile Logger]))
 
 (defvar *ssh-agent* nil "SSH agent used to manage identities.")
 (defvar *default-session-options* {} "Default SSH options")
@@ -52,6 +56,31 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
     (use '[clojure.contrib.java-utils
            :only [file wall-hack-method]
            :rename {wall-hack-method call-method}])))
+
+(defmacro when-feature
+  [feature-name & body]
+  (if (find-var (symbol "clojure.core" (name feature-name)))
+    `(do ~@body)))
+
+;; Enable java logging of jsch when in clojure 1.2
+(when-feature deftype
+ (def ssh-log-levels
+      {com.jcraft.jsch.Logger/DEBUG :debug
+       com.jcraft.jsch.Logger/INFO  :info
+       com.jcraft.jsch.Logger/WARN  :warn
+       com.jcraft.jsch.Logger/ERROR :error
+       com.jcraft.jsch.Logger/FATAL :fatal})
+ (deftype SshLogger
+   [log-level]
+   com.jcraft.jsch.Logger
+   (isEnabled
+    [_ level]
+    (>= level log-level))
+   (log
+    [_ level message]
+    (logging/log (ssh-log-levels level) message nil "clj-ssh.ssh")))
+
+ (JSch/setLogger (SshLogger. com.jcraft.jsch.Logger/DEBUG)))
 
 (defmacro with-default-session-options
   "Set the default session options"
@@ -76,25 +105,48 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
 (defn- default-user []
   (. System getProperty "user.name"))
 
+(def *default-identity*
+     (.getPath (file (. System getProperty "user.home") ".ssh" "id_rsa")))
+
+(defmacro with-default-identity
+  "Bind the default identity."
+  [path & body]
+  `(binding [*default-identity* ~path]
+     ~@body))
+
 (defn default-identity
   []
-  (if-let [id-file (file (. System getProperty "user.home") ".ssh" "id_rsa")]
+  (if-let [id-file (java.io.File. *default-identity*)]
     (if (.canRead id-file)
       id-file)))
+
+(defn make-identity
+  "Create a JSch identity.  This can be used to check whether the key is
+   encrypted."
+  ([private-key-path public-key-path]
+     (make-identity *ssh-agent* private-key-path public-key-path))
+  ([#^JSch agent #^String private-key-path #^String public-key-path]
+     (call-method
+      com.jcraft.jsch.IdentityFile 'newInstance [String String JSch]
+      nil private-key-path public-key-path agent)))
 
 (defn add-identity
   "Add an identity to the agent."
   ([]
-     (add-identity *ssh-agent* (default-identity)))
+     (add-identity *ssh-agent* (default-identity) nil))
   ([private-key]
-     (add-identity *ssh-agent* private-key))
+     (add-identity *ssh-agent* private-key nil))
   ([#^JSch agent private-key]
      (if (ssh-agent? agent)
-       (.addIdentity agent (file-path private-key))
+       (add-identity agent private-key nil)
        (add-identity *ssh-agent* agent private-key)))
   ([#^JSch agent private-key #^String passphrase]
-     (.addIdentity agent (file-path private-key) passphrase)))
-
+     (.addIdentity
+      agent
+      (if (instance? Identity private-key)
+        private-key
+        (file-path private-key))
+      (and passphrase (.getBytes passphrase)))))
 
 (defn create-ssh-agent
   "Create an ssh-agent. By default try and add the current user's id_rsa key."
@@ -121,8 +173,8 @@ The argument vector can be empty, in which case a new agent is created.  If pass
 An existing agent instance can alternatively be passed."
   [[& agent] & body]
   `(binding [*ssh-agent*
-             ~(if-let [arg (first agent)]
-                `(let [arg# ~arg]
+             ~(if (seq agent)
+                `(let [arg# ~(first agent)]
                    (if (ssh-agent? arg#)
                      arg#
                      (create-ssh-agent ~@agent)))
