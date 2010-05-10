@@ -148,6 +148,11 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
         (file-path private-key))
       (and passphrase (.getBytes passphrase)))))
 
+(defn has-identity?
+  "Check if the given identity is present."
+  ([name] (has-identity? *ssh-agent* name))
+  ([agent name] (some #(= name %) (.getIdentityNames *ssh-agent*))))
+
 (defn create-ssh-agent
   "Create an ssh-agent. By default try and add the current user's id_rsa key."
   ([] (create-ssh-agent true))

@@ -106,6 +106,17 @@ list, Alan Dipert and MeikelBrandmeyer."
       (is (= 1 (count (.getIdentityNames *ssh-agent*))))
       (add-identity *ssh-agent* key))))
 
+(deftest has-identity?-test
+  (let [key (private-key-path)]
+    (with-ssh-agent [false]
+      (is (not (has-identity? key)))
+      (is (not (has-identity? *ssh-agent* key)))
+      (add-identity key)
+      (is (= 1 (count (.getIdentityNames *ssh-agent*))))
+      (is (has-identity? key))
+      (is (has-identity? *ssh-agent* key))
+      (add-identity *ssh-agent* key))))
+
 (with-private-vars [clj-ssh.ssh [session-impl]]
   (deftest session-impl-test
     (with-ssh-agent []
