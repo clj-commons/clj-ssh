@@ -7,7 +7,7 @@ to clojure.contrib.shell/sh.
 
 The top level namespace is `clj-ssh.ssh`
 
-    (use 'clj-ssh)
+    (use 'clj-ssh.ssh)
 
 There is a simple `ssh` function, which by default, will try and use a id_rsa
 key in your $HOME/.ssh directory.
