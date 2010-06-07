@@ -47,6 +47,11 @@ Note that any sftp commands that change the state of the sftp session (such as
 cd) do not work with the simplified interface, as a new session is created each
 time.
 
+## FAQ
+
+Q: What does  "4: Failure @ com.jcraft.jsch.ChannelSftp.throwStatusError(ChannelSftp.java:2289)" during an sftp transfer signify?
+
+A: Probably a disk full, or permission error.
 
 ## Installation
 

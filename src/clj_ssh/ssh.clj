@@ -45,17 +45,19 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
             JSch Session Channel ChannelShell ChannelExec ChannelSftp
             Identity IdentityFile Logger]))
 
-(defvar *ssh-agent* nil "SSH agent used to manage identities.")
-(defvar *default-session-options* {} "Default SSH options")
-
 ;; working towards clojure 1.1/1.2 compat
 (try
   (use '[clojure.contrib.reflect :only [call-method]])
-  (use '[clojure.contrib.io :only [file]])
+  (require '[clojure.contrib.io :as io])
   (catch Exception e
-    (use '[clojure.contrib.java-utils
-           :only [file wall-hack-method]
-           :rename {wall-hack-method call-method}])))
+    (require '[clojure.contrib.java-utils :as io :only [file]])
+    (use '[clojure.contrib.java-utils :only [wall-hack-method]
+               :rename {wall-hack-method call-method}])))
+
+
+
+(defvar *ssh-agent* nil "SSH agent used to manage identities.")
+(defvar *default-session-options* {} "Default SSH options")
 
 (defmacro when-feature
   [feature-name & body]
@@ -105,8 +107,8 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
 (defn- default-user []
   (. System getProperty "user.name"))
 
-(def *default-identity*
-     (.getPath (file (. System getProperty "user.home") ".ssh" "id_rsa")))
+(def #^String *default-identity*
+     (.getPath (io/file (. System getProperty "user.home") ".ssh" "id_rsa")))
 
 (defmacro with-default-identity
   "Bind the default identity."
@@ -297,8 +299,9 @@ keys.  All other option key pairs will be passed as SSH config options."
        false)
       (.setOutputStream out-stream))
     (when (contains? opts :pty)
-      (call-method com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE]
-                   shell (boolean (opts :pty))))
+      (call-method
+       com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE]
+       shell (boolean (opts :pty))))
     (with-connection shell
       (while (connected? shell)
              (Thread/sleep 100))
@@ -323,8 +326,9 @@ keys.  All other option key pairs will be passed as SSH config options."
       (.setErrStream err-stream)
       (.setCommand cmd))
     (when (contains? opts :pty)
-      (call-method com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE]
-                   exec (boolean (opts :pty))))
+      (call-method
+       com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE]
+       exec (boolean (opts :pty))))
     (with-connection exec
       (while (connected? exec)
              (Thread/sleep 100))
