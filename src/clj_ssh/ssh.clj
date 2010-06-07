@@ -51,6 +51,7 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
   (require '[clojure.contrib.io :as io])
   (catch Exception e
     (require '[clojure.contrib.java-utils :as io :only [file]])
+    (ns-unmap 'clj-ssh.ssh 'call-method)
     (use '[clojure.contrib.java-utils :only [wall-hack-method]
                :rename {wall-hack-method call-method}])))
 
