@@ -40,6 +40,7 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
   (:use
    [clojure.contrib.def :only [defvar]])
   (:require
+   clj-ssh.keychain
    [clojure.contrib.logging :as logging])
   (:import [com.jcraft.jsch
             JSch Session Channel ChannelShell ChannelExec ChannelSftp
@@ -123,12 +124,19 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
     (if (.canRead id-file)
       id-file)))
 
+(defn has-identity?
+  "Check if the given identity is present."
+  ([name] (has-identity? *ssh-agent* name))
+  ([agent name] (some #(= name %) (.getIdentityNames agent))))
+
 (defn make-identity
   "Create a JSch identity.  This can be used to check whether the key is
    encrypted."
   ([private-key-path public-key-path]
      (make-identity *ssh-agent* private-key-path public-key-path))
   ([#^JSch agent #^String private-key-path #^String public-key-path]
+     (logging/trace
+      (format "Make identity %s %s" private-key-path public-key-path))
      (call-method
       com.jcraft.jsch.IdentityFile 'newInstance [String String JSch]
       nil private-key-path public-key-path agent)))
@@ -139,7 +147,7 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
      (add-identity *ssh-agent* (default-identity) nil))
   ([private-key]
      (add-identity *ssh-agent* private-key nil))
-  ([#^JSch agent private-key]
+  ([agent private-key]
      (if (ssh-agent? agent)
        (add-identity agent private-key nil)
        (add-identity *ssh-agent* agent private-key)))
@@ -151,10 +159,22 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
         (file-path private-key))
       (and passphrase (.getBytes passphrase)))))
 
-(defn has-identity?
-  "Check if the given identity is present."
-  ([name] (has-identity? *ssh-agent* name))
-  ([agent name] (some #(= name %) (.getIdentityNames *ssh-agent*))))
+(defn add-identity-with-keychain
+  "Add a private key, only if not already known, using the keychain to obtain
+   a passphrase if required"
+  ([] (add-identity-with-keychain *ssh-agent* (default-identity)))
+  ([private-key-path] (add-identity-with-keychain *ssh-agent* private-key-path))
+  ([agent private-key-path]
+     (when-not (has-identity? agent private-key-path)
+       (let [identity (make-identity
+                       agent
+                       (file-path private-key-path)
+                       (str private-key-path ".pub"))]
+         (if (.isEncrypted identity)
+           (if-let [passphrase (clj-ssh.keychain/passphrase private-key-path)]
+             (add-identity agent identity passphrase)
+             (logging/error "Passphrase required, but none findable."))
+           (add-identity agent identity))))))
 
 (defn create-ssh-agent
   "Create an ssh-agent. By default try and add the current user's id_rsa key."
@@ -166,13 +186,13 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
        (let [agent (JSch.)]
          (when add-default-identity?
            (if-let [default-id (default-identity)]
-             (add-identity agent default-id)))
+             (add-identity-with-keychain agent default-id)))
          agent)))
   ([private-key passphrase?]
      (let [agent (JSch.)]
        (if passphrase?
          (add-identity agent private-key passphrase?)
-         (add-identity agent private-key))
+         (add-identity-with-keychain agent private-key))
        agent)))
 
 (defmacro with-ssh-agent
