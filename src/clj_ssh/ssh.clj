@@ -127,9 +127,9 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
 (defn has-identity?
   "Check if the given identity is present."
   ([name] (has-identity? *ssh-agent* name))
-  ([agent name] (some #(= name %) (.getIdentityNames agent))))
+  ([#^JSch agent name] (some #(= name %) (.getIdentityNames agent))))
 
-(defn make-identity
+(defn #^Identity make-identity
   "Create a JSch identity.  This can be used to check whether the key is
    encrypted."
   ([private-key-path public-key-path]
@@ -157,7 +157,11 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
       (if (instance? Identity private-key)
         private-key
         (file-path private-key))
-      (and passphrase (.getBytes passphrase)))))
+      (and passphrase (.getBytes passphrase))))
+  ([#^JSch agent #^String name #^bytes private-key #^bytes public-key
+    #^bytes passphrase]
+     (.addIdentity
+      agent name private-key public-key passphrase)))
 
 (defn add-identity-with-keychain
   "Add a private key, only if not already known, using the keychain to obtain
@@ -340,7 +344,7 @@ keys.  All other option key pairs will be passed as SSH config options."
     (doto exec
       (.setInputStream
        (if (string? in)
-         (java.io.ByteArrayInputStream. (.getBytes in))
+         (java.io.ByteArrayInputStream. (.getBytes #^String in))
          in)
        false)
       (.setOutputStream out-stream)

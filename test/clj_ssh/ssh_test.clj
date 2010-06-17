@@ -28,8 +28,14 @@ list, Alan Dipert and MeikelBrandmeyer."
 (defn private-key-path
   [] (str (. System getProperty "user.home") "/.ssh/clj_ssh"))
 
+(defn public-key-path
+  [] (str (. System getProperty "user.home") "/.ssh/clj_ssh.pub"))
+
 (defn encrypted-private-key-path
   [] (str (. System getProperty "user.home") "/.ssh/clj_ssh_pp"))
+
+(defn encrypted-public-key-path
+  [] (str (. System getProperty "user.home") "/.ssh/clj_ssh_pp.pub"))
 
 (defn username
   [] (or (. System getProperty "ssh.username")
@@ -111,7 +117,17 @@ list, Alan Dipert and MeikelBrandmeyer."
     (with-ssh-agent [false]
       (add-identity key)
       (is (= 1 (count (.getIdentityNames *ssh-agent*))))
-      (add-identity *ssh-agent* key))))
+      (add-identity *ssh-agent* key)))
+  (testing "passing byte arrays"
+    (with-ssh-agent [false]
+      (add-identity
+       *ssh-agent*
+       "name"
+       (.getBytes (slurp (private-key-path)))
+       (.getBytes (slurp (public-key-path)))
+       nil)
+      (is (= 1 (count (.getIdentityNames *ssh-agent*))))
+      (is (= "name" (first (.getIdentityNames *ssh-agent*)))))))
 
 (deftest has-identity?-test
   (let [key (private-key-path)]
