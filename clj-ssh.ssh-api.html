@@ -34,7 +34,7 @@ namespace.
     <a class="wiki_link" href="api-index.html">API Index</a><br />
     <a class="wiki_link" href="#">Namespaces:</a>
     <ul id="left-sidebar-list">
-      <li><a href="clj-ssh.ssh-api.html" class="wiki_link">clj-ssh.ssh</a></li>
+      <li><a href="clj-ssh.keychain-api.html" class="wiki_link">clj-ssh.keychain</a></li><li><a href="clj-ssh.ssh-api.html" class="wiki_link">clj-ssh.ssh</a></li>
     </ul>
   </div>
 </div>
@@ -48,9 +48,15 @@ namespace.
   <div style="margin-left: 1em;" class="toc-section">
     <a href="#toc0">Overview</a>
     <div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/*default-session-options*">*default-session-options*</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
       <a href="#clj-ssh.ssh/*ssh-agent*">*ssh-agent*</a>
     </div><div style="margin-left: 1em;" class="toc-entry">
       <a href="#clj-ssh.ssh/add-identity">add-identity</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/add-identity-with-keychain">add-identity-with-keychain</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/capitalize">capitalize</a>
     </div><div style="margin-left: 1em;" class="toc-entry">
       <a href="#clj-ssh.ssh/connect">connect</a>
     </div><div style="margin-left: 1em;" class="toc-entry">
@@ -63,6 +69,10 @@ namespace.
       <a href="#clj-ssh.ssh/disconnect">disconnect</a>
     </div><div style="margin-left: 1em;" class="toc-entry">
       <a href="#clj-ssh.ssh/exec-channel">exec-channel</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/has-identity?">has-identity?</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/make-identity">make-identity</a>
     </div><div style="margin-left: 1em;" class="toc-entry">
       <a href="#clj-ssh.ssh/open-channel">open-channel</a>
     </div><div style="margin-left: 1em;" class="toc-entry">
@@ -90,6 +100,8 @@ namespace.
     </div><div style="margin-left: 1em;" class="toc-entry">
       <a href="#clj-ssh.ssh/with-connection">with-connection</a>
     </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#clj-ssh.ssh/with-default-identity">with-default-identity</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
       <a href="#clj-ssh.ssh/with-default-session-options">with-default-session-options</a>
     </div><div style="margin-left: 1em;" class="toc-entry">
       <a href="#clj-ssh.ssh/with-ssh-agent">with-ssh-agent</a>
@@ -106,15 +118,14 @@ by <span id="author">Hugo Duncan</span><br />
   (:require <span id="long-name">clj-ssh.ssh</span>))
 </pre><pre>
 </pre><h2>Overview</h2>
-<pre id="namespace-docstr">
-SSH in clojure.  Uses jsch.  Provides a ssh function that tries to look similar
+<pre id="namespace-docstr">SSH in clojure.  Uses jsch.  Provides a ssh function that tries to look similar
 to clojure.contrib.shell/sh.
 
 ## Usage
 
 The top level namespace is `clj-ssh.ssh`
 
-    (use 'clj-ssh)
+    (use 'clj-ssh.ssh)
 
 There is a simple `ssh` function, which by default, will try and use a id_rsa
 key in your $HOME/.ssh directory.
@@ -149,6 +160,14 @@ Licensed under EPL (<a href="http://www.eclipse.org/legal/epl-v10.html)">http://
 <div id="var-entry">
   <br />
   <hr />
+  <h2 id="clj-ssh.ssh/*default-session-options*">*default-session-options*</h2>
+  <span id="var-type">var</span><br />
+  <pre id="var-usage"></pre>
+  <pre id="var-docstr">Default SSH options</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
   <h2 id="clj-ssh.ssh/*ssh-agent*">*ssh-agent*</h2>
   <span id="var-type">var</span><br />
   <pre id="var-usage"></pre>
@@ -163,8 +182,30 @@ Licensed under EPL (<a href="http://www.eclipse.org/legal/epl-v10.html)">http://
        (add-identity private-key)
        (add-identity agent private-key)
        (add-identity agent private-key passphrase)
+       (add-identity agent name private-key public-key passphrase)
 </pre>
   <pre id="var-docstr">Add an identity to the agent.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/add-identity-with-keychain">add-identity-with-keychain</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (add-identity-with-keychain)
+       (add-identity-with-keychain private-key-path)
+       (add-identity-with-keychain agent private-key-path)
+</pre>
+  <pre id="var-docstr">Add a private key, only if not already known, using the keychain to obtain
+a passphrase if required</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/capitalize">capitalize</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (capitalize s)
+</pre>
+  <pre id="var-docstr">Converts first character of the string to upper-case.</pre>
   
 </div><div id="var-entry">
   <br />
@@ -222,6 +263,27 @@ Licensed under EPL (<a href="http://www.eclipse.org/legal/epl-v10.html)">http://
   <pre id="var-usage">Usage: (exec-channel session)
 </pre>
   <pre id="var-docstr">Open an Exec channel in the session.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/has-identity?">has-identity?</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (has-identity? name)
+       (has-identity? agent name)
+</pre>
+  <pre id="var-docstr">Check if the given identity is present.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/make-identity">make-identity</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (make-identity private-key-path public-key-path)
+       (make-identity agent private-key-path public-key-path)
+</pre>
+  <pre id="var-docstr">Create a JSch identity.  This can be used to check whether the key is
+encrypted.</pre>
   
 </div><div id="var-entry">
   <br />
@@ -344,7 +406,7 @@ Options are
   <hr />
   <h2 id="clj-ssh.ssh/ssh-exec">ssh-exec</h2>
   <span id="var-type">function</span><br />
-  <pre id="var-usage">Usage: (ssh-exec session cmd in out)
+  <pre id="var-usage">Usage: (ssh-exec session cmd in out opts)
 </pre>
   <pre id="var-docstr">Run a command via ssh-exec.</pre>
   
@@ -371,7 +433,7 @@ Options are
   <hr />
   <h2 id="clj-ssh.ssh/ssh-shell">ssh-shell</h2>
   <span id="var-type">function</span><br />
-  <pre id="var-usage">Usage: (ssh-shell session in out)
+  <pre id="var-usage">Usage: (ssh-shell session in out opts)
 </pre>
   <pre id="var-docstr">Run a ssh-shell.</pre>
   
@@ -384,6 +446,15 @@ Options are
 </pre>
   <pre id="var-docstr">Creates a context in which the session is connected. Ensures the session is
 disconnected on exit.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="clj-ssh.ssh/with-default-identity">with-default-identity</h2>
+  <span id="var-type">macro</span><br />
+  <pre id="var-usage">Usage: (with-default-identity path &amp; body)
+</pre>
+  <pre id="var-docstr">Bind the default identity.</pre>
   
 </div><div id="var-entry">
   <br />

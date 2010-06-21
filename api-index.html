@@ -34,7 +34,7 @@ namespace.
     <a class="wiki_link" href="api-index.html">API Index</a><br />
     <a class="wiki_link" href="#">Namespaces:</a>
     <ul id="left-sidebar-list">
-      <li><a href="clj-ssh.ssh-api.html" class="wiki_link">clj-ssh.ssh</a></li>
+      <li><a href="clj-ssh.keychain-api.html" class="wiki_link">clj-ssh.keychain</a></li><li><a href="clj-ssh.ssh-api.html" class="wiki_link">clj-ssh.ssh</a></li>
     </ul>
   </div>
 </div>
@@ -74,6 +74,7 @@ Shortcuts:<br />
   <h2 id="A"><span id="section-head">A</span></h2>
   <pre>
 <span id="section-content"> <a href="clj-ssh.ssh-api.html#clj-ssh.ssh/add-identity">add-identity</a><span id="line-content">                 function      clj-ssh.ssh        Add an identity to the agent..
+</span></span><span id="section-content"> <a href="clj-ssh.ssh-api.html#clj-ssh.ssh/add-identity-with-keychain">add-identity-with-keychain</a><span id="line-content">   function      clj-ssh.ssh        Add a private key, only if not already known, usin...
 </span></span></pre>
 </div><div id="index-body">
   <h2 id="B"><span id="section-head">B</span></h2>
@@ -82,14 +83,16 @@ Shortcuts:<br />
 </div><div id="index-body">
   <h2 id="C"><span id="section-head">C</span></h2>
   <pre>
-<span id="section-content"> <a href="clj-ssh.ssh-api.html#clj-ssh.ssh/connect">connect</a><span id="line-content">                      function      clj-ssh.ssh        Connect a session..
+<span id="section-content"> <a href="clj-ssh.ssh-api.html#clj-ssh.ssh/capitalize">capitalize</a><span id="line-content">                   function      clj-ssh.ssh        Converts first character of the string to upper-ca...
+</span></span><span id="section-content"> <a href="clj-ssh.ssh-api.html#clj-ssh.ssh/connect">connect</a><span id="line-content">                      function      clj-ssh.ssh        Connect a session..
 </span></span><span id="section-content"> <a href="clj-ssh.ssh-api.html#clj-ssh.ssh/connected?">connected?</a><span id="line-content">                   function      clj-ssh.ssh        Predicate used to test for a connected session..
 </span></span><span id="section-content"> <a href="clj-ssh.ssh-api.html#clj-ssh.ssh/create-ssh-agent">create-ssh-agent</a><span id="line-content">             function      clj-ssh.ssh        Create an ssh-agent. By default try and add the cu...
 </span></span></pre>
 </div><div id="index-body">
   <h2 id="D"><span id="section-head">D</span></h2>
   <pre>
-<span id="section-content"> <a href="clj-ssh.ssh-api.html#clj-ssh.ssh/default-session-options">default-session-options</a><span id="line-content">      function      clj-ssh.ssh        Set the default session options.
+<span id="section-content"> <a href="clj-ssh.ssh-api.html#clj-ssh.ssh/*default-session-options*">*default-session-options*</a><span id="line-content">    var           clj-ssh.ssh        Default SSH options.
+</span></span><span id="section-content"> <a href="clj-ssh.ssh-api.html#clj-ssh.ssh/default-session-options">default-session-options</a><span id="line-content">      function      clj-ssh.ssh        Set the default session options.
 </span></span><span id="section-content"> <a href="clj-ssh.ssh-api.html#clj-ssh.ssh/disconnect">disconnect</a><span id="line-content">                   function      clj-ssh.ssh        Disconnect a session..
 </span></span></pre>
 </div><div id="index-body">
@@ -108,7 +111,8 @@ Shortcuts:<br />
 </div><div id="index-body">
   <h2 id="H"><span id="section-head">H</span></h2>
   <pre>
-</pre>
+<span id="section-content"> <a href="clj-ssh.ssh-api.html#clj-ssh.ssh/has-identity?">has-identity?</a><span id="line-content">                function      clj-ssh.ssh        Check if the given identity is present..
+</span></span></pre>
 </div><div id="index-body">
   <h2 id="I"><span id="section-head">I</span></h2>
   <pre>
@@ -120,7 +124,8 @@ Shortcuts:<br />
 </div><div id="index-body">
   <h2 id="K"><span id="section-head">K</span></h2>
   <pre>
-</pre>
+<span id="section-content"> <a href="clj-ssh.keychain-api.html#clj-ssh.keychain/keychain-passphrase">keychain-passphrase</a><span id="line-content">          multimethod   clj-ssh.keychain   Obtain password for path.
+</span></span></pre>
 </div><div id="index-body">
   <h2 id="L"><span id="section-head">L</span></h2>
   <pre>
@@ -128,7 +133,8 @@ Shortcuts:<br />
 </div><div id="index-body">
   <h2 id="M"><span id="section-head">M</span></h2>
   <pre>
-</pre>
+<span id="section-content"> <a href="clj-ssh.ssh-api.html#clj-ssh.ssh/make-identity">make-identity</a><span id="line-content">                function      clj-ssh.ssh        Create a JSch identity.  This can be used to check...
+</span></span></pre>
 </div><div id="index-body">
   <h2 id="N"><span id="section-head">N</span></h2>
   <pre>
@@ -141,7 +147,8 @@ Shortcuts:<br />
 </div><div id="index-body">
   <h2 id="P"><span id="section-head">P</span></h2>
   <pre>
-</pre>
+<span id="section-content"> <a href="clj-ssh.keychain-api.html#clj-ssh.keychain/passphrase">passphrase</a><span id="line-content">                   function      clj-ssh.keychain   Obtain a passphrase for the given key path.
+</span></span></pre>
 </div><div id="index-body">
   <h2 id="Q"><span id="section-head">Q</span></h2>
   <pre>
@@ -182,6 +189,7 @@ Shortcuts:<br />
   <h2 id="W"><span id="section-head">W</span></h2>
   <pre>
 <span id="section-content"> <a href="clj-ssh.ssh-api.html#clj-ssh.ssh/with-connection">with-connection</a><span id="line-content">              macro         clj-ssh.ssh        Creates a context in which the session is connecte...
+</span></span><span id="section-content"> <a href="clj-ssh.ssh-api.html#clj-ssh.ssh/with-default-identity">with-default-identity</a><span id="line-content">        macro         clj-ssh.ssh        Bind the default identity..
 </span></span><span id="section-content"> <a href="clj-ssh.ssh-api.html#clj-ssh.ssh/with-default-session-options">with-default-session-options</a><span id="line-content"> macro         clj-ssh.ssh        Set the default session options.
 </span></span><span id="section-content"> <a href="clj-ssh.ssh-api.html#clj-ssh.ssh/with-ssh-agent">with-ssh-agent</a><span id="line-content">               macro         clj-ssh.ssh        Bind an ssh-agent for use as identity manager. The...
 </span></span></pre>

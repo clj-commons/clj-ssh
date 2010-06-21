@@ -34,7 +34,7 @@ namespace.
     <a class="wiki_link" href="api-index.html">API Index</a><br />
     <a class="wiki_link" href="#">Namespaces:</a>
     <ul id="left-sidebar-list">
-      <li><a href="clj-ssh.ssh-api.html" class="wiki_link">clj-ssh.ssh</a></li>
+      <li><a href="clj-ssh.keychain-api.html" class="wiki_link">clj-ssh.keychain</a></li><li><a href="clj-ssh.ssh-api.html" class="wiki_link">clj-ssh.ssh</a></li>
     </ul>
   </div>
 </div>
@@ -46,6 +46,10 @@ namespace.
                 <div id="right-sidebar"><div id="toc">
   <h1 class="nopad">Table of Contents</h1>
   <div style="margin-left: 1em;" class="toc-section">
+    <a href="#clj-ssh.keychain">clj-ssh.keychain</a>
+    
+    <br />
+  </div><div style="margin-left: 1em;" class="toc-section">
     <a href="#clj-ssh.ssh">clj-ssh.ssh</a>
     
     <br />
@@ -59,18 +63,28 @@ namespace.
 <div id="namespace-entry">
   <br />
   <hr />
+  <h2 id="clj-ssh.keychain">clj-ssh.keychain</h2>
+  by <span id="author">unknown author</span><br />
+  <a href="clj-ssh.keychain-api.html" id="api-link">Detailed API documentation</a><br />
+  <pre id="namespace-docstr">Primitive keychain support for clj-ssh.  Only implemented on OSX at the moment.</pre>
+  
+  Public variables and functions:
+  <span id="var-link"><a href="clj-ssh.keychain-api.html#clj-ssh.keychain/keychain-passphrase" id="var-tag">keychain-passphrase</a> </span><span id="var-link"><a href="clj-ssh.keychain-api.html#clj-ssh.keychain/passphrase" id="var-tag">passphrase</a> </span><br />
+  
+</div><div id="namespace-entry">
+  <br />
+  <hr />
   <h2 id="clj-ssh.ssh">clj-ssh.ssh</h2>
   by <span id="author">Hugo Duncan</span><br />
   <a href="clj-ssh.ssh-api.html" id="api-link">Detailed API documentation</a><br />
-  <pre id="namespace-docstr">
-SSH in clojure.  Uses jsch.  Provides a ssh function that tries to look similar
+  <pre id="namespace-docstr">SSH in clojure.  Uses jsch.  Provides a ssh function that tries to look similar
 to clojure.contrib.shell/sh.
 
 ## Usage
 
 The top level namespace is `clj-ssh.ssh`
 
-    (use 'clj-ssh)
+    (use 'clj-ssh.ssh)
 
 There is a simple `ssh` function, which by default, will try and use a id_rsa
 key in your $HOME/.ssh directory.
@@ -102,7 +116,7 @@ Leiningen (http://github.com/technomancy/leiningen).
 Licensed under EPL (<a href="http://www.eclipse.org/legal/epl-v10.html)">http://www.eclipse.org/legal/epl-v10.html)</a></pre>
   
   Public variables and functions:
-  <span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/*ssh-agent*" id="var-tag">*ssh-agent*</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/add-identity" id="var-tag">add-identity</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/connect" id="var-tag">connect</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/connected?" id="var-tag">connected?</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/create-ssh-agent" id="var-tag">create-ssh-agent</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/default-session-options" id="var-tag">default-session-options</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/disconnect" id="var-tag">disconnect</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/exec-channel" id="var-tag">exec-channel</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/open-channel" id="var-tag">open-channel</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/scp" id="var-tag">scp</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/session" id="var-tag">session</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/sftp" id="var-tag">sftp</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/sftp-channel" id="var-tag">sftp-channel</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/shell-channel" id="var-tag">shell-channel</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/ssh" id="var-tag">ssh</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/ssh-agent?" id="var-tag">ssh-agent?</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/ssh-exec" id="var-tag">ssh-exec</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/ssh-sftp" id="var-tag">ssh-sftp</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/ssh-sftp-cmd" id="var-tag">ssh-sftp-cmd</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/ssh-shell" id="var-tag">ssh-shell</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/with-connection" id="var-tag">with-connection</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/with-default-session-options" id="var-tag">with-default-session-options</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/with-ssh-agent" id="var-tag">with-ssh-agent</a> </span><br />
+  <span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/*default-session-options*" id="var-tag">*default-session-options*</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/*ssh-agent*" id="var-tag">*ssh-agent*</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/add-identity" id="var-tag">add-identity</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/add-identity-with-keychain" id="var-tag">add-identity-with-keychain</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/capitalize" id="var-tag">capitalize</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/connect" id="var-tag">connect</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/connected?" id="var-tag">connected?</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/create-ssh-agent" id="var-tag">create-ssh-agent</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/default-session-options" id="var-tag">default-session-options</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/disconnect" id="var-tag">disconnect</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/exec-channel" id="var-tag">exec-channel</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/has-identity?" id="var-tag">has-identity?</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/make-identity" id="var-tag">make-identity</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/open-channel" id="var-tag">open-channel</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/scp" id="var-tag">scp</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/session" id="var-tag">session</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/sftp" id="var-tag">sftp</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/sftp-channel" id="var-tag">sftp-channel</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/shell-channel" id="var-tag">shell-channel</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/ssh" id="var-tag">ssh</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/ssh-agent?" id="var-tag">ssh-agent?</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/ssh-exec" id="var-tag">ssh-exec</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/ssh-sftp" id="var-tag">ssh-sftp</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/ssh-sftp-cmd" id="var-tag">ssh-sftp-cmd</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/ssh-shell" id="var-tag">ssh-shell</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/with-connection" id="var-tag">with-connection</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/with-default-identity" id="var-tag">with-default-identity</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/with-default-session-options" id="var-tag">with-default-session-options</a> </span><span id="var-link"><a href="clj-ssh.ssh-api.html#clj-ssh.ssh/with-ssh-agent" id="var-tag">with-ssh-agent</a> </span><br />
   
 </div>
 </div>
