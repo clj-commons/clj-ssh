@@ -31,14 +31,14 @@ More advance usage is possible.
 
 ## Installation
 
-Via maven and the clojars (http://clojars.org), or
+Via maven and the clojars (http://clojars.org/clj-ssh), or
 Leiningen (http://github.com/technomancy/leiningen).
 
 ## License
 
 Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
   (:use
-   [clojure.contrib.def :only [defvar]])
+   [clojure.contrib.def :only [defvar defunbound]])
   (:require
    clj-ssh.keychain
    [clojure.contrib.logging :as logging])
@@ -58,13 +58,25 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
 
 
 
-(defvar *ssh-agent* nil "SSH agent used to manage identities.")
+(defunbound *ssh-agent* "SSH agent used to manage identities.")
 (defvar *default-session-options* {} "Default SSH options")
+
 
 (defmacro when-feature
   [feature-name & body]
-  (if (find-var (symbol "clojure.core" (name feature-name)))
+  (when (find-var (symbol "clojure.core" (name feature-name)))
     `(do ~@body)))
+
+(defmacro when-not-feature
+  [feature-name & body]
+  (when-not (find-var (symbol "clojure.core" (name feature-name)))
+    `(do ~@body)))
+
+(when-not-feature
+ bound?
+ (defn bound?
+   [& vars#]
+   (every? #(.isBound #^clojure.lang.Var %) vars#)))
 
 ;; Enable java logging of jsch when in clojure 1.2
 (when-feature deftype
@@ -152,6 +164,7 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
        (add-identity agent private-key nil)
        (add-identity *ssh-agent* agent private-key)))
   ([#^JSch agent private-key #^String passphrase]
+     (assert agent)
      (.addIdentity
       agent
       (if (instance? Identity private-key)
@@ -160,6 +173,7 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
       (and passphrase (.getBytes passphrase))))
   ([#^JSch agent #^String name #^bytes private-key #^bytes public-key
     #^bytes passphrase]
+     (assert agent)
      (.addIdentity
       agent name private-key public-key passphrase)))
 
@@ -367,7 +381,7 @@ keys.  All other option key pairs will be passed as SSH config options."
 
 (defn default-session [host username port password]
   (doto (session-impl
-         (or *ssh-agent* (create-ssh-agent))
+         (or (and (bound? #'*ssh-agent*) *ssh-agent*) (create-ssh-agent))
          host username port password
          *default-session-options*)
     (.connect)))

@@ -100,6 +100,12 @@
       <artifactId>jsch</artifactId>
       <version>0.1.42</version>
     </dependency>
+    <dependency>
+      <groupId>swank-clojure</groupId>
+      <artifactId>swank-clojure</artifactId>
+      <version>1.2.1</version>
+      <optional>true</optional>
+    </dependency>
   </dependencies>
   <profiles>
     <profile>
