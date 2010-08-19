@@ -35,8 +35,9 @@
 	  </testSourceDirectories>
 	  <clojureOptions>-Xmx512m -Djava.awt.headless=true -XX:MaxPermSize=256m</clojureOptions>
 	  <warnOnReflection>true</warnOnReflection>
-    <!-- we want the AOT compile sanity check, but still only ship source -->
-    <outputDirectory>${project.build.directory}/clojure-classes</outputDirectory>
+          <compileDeclaredNamespaceOnly>true</compileDeclaredNamespaceOnly>
+          <!-- we want the AOT compile sanity check, but still only ship source -->
+          <outputDirectory>${project.build.directory}/clojure-classes</outputDirectory>
 	</configuration>
 	<executions>
 	  <execution>
@@ -114,12 +115,12 @@
 	<dependency>
 	  <groupId>org.clojure</groupId>
 	  <artifactId>clojure</artifactId>
-	  <version>1.2.0-master-SNAPSHOT</version>
+	  <version>1.2.0</version>
 	</dependency>
 	<dependency>
 	  <groupId>org.clojure</groupId>
 	  <artifactId>clojure-contrib</artifactId>
-	  <version>1.2.0-SNAPSHOT</version>
+	  <version>1.2.0</version>
 	</dependency>
       </dependencies>
     </profile>
