@@ -1,7 +1,7 @@
 (ns #^{:author "Hugo Duncan"}
   clj-ssh.ssh
-  "SSH in clojure.  Uses jsch.  Provides a ssh function that tries to look similar
-to clojure.contrib.shell/sh.
+  "SSH in clojure.  Uses jsch.  Provides a ssh function that tries to look
+similar to clojure.contrib.shell/sh.
 
 ## Usage
 
@@ -38,13 +38,13 @@ Leiningen (http://github.com/technomancy/leiningen).
 
 Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
   (:use
-   [clojure.contrib.def :only [defvar defunbound]])
+   [clojure.contrib.def :only [defvar defvar- defunbound]])
   (:require
    clj-ssh.keychain
    [clojure.contrib.logging :as logging])
   (:import [com.jcraft.jsch
             JSch Session Channel ChannelShell ChannelExec ChannelSftp
-            Identity IdentityFile Logger]))
+            Identity IdentityFile Logger KeyPair]))
 
 ;; working towards clojure 1.1/1.2 compat
 (try
@@ -215,8 +215,9 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
 
 (defmacro with-ssh-agent
   "Bind an ssh-agent for use as identity manager.
-The argument vector can be empty, in which case a new agent is created.  If passed a String or File, then this is passed to the new agent as an identity to be added.
-An existing agent instance can alternatively be passed."
+The argument vector can be empty, in which case a new agent is created.  If
+passed a String or File, then this is passed to the new agent as an identity to
+be added.  An existing agent instance can alternatively be passed."
   [[& agent] & body]
   `(binding [*ssh-agent*
              ~(if (seq agent)
@@ -465,8 +466,11 @@ Options are
       1 (. target# (~name (first args#)))
       2 (. target# (~name (first args#) (second args#)))
       3 (. target# (~name (first args#) (second args#) (nth args# 2)))
-      4 (. target# (~name (first args#) (second args#) (nth args# 2) (nth args# 3)))
-      5 (. target# (~name (first args#) (second args#) (nth args# 2) (nth args# 3) (nth args# 4)))
+      4 (. target#
+           (~name (first args#) (second args#) (nth args# 2) (nth args# 3)))
+      5 (. target#
+           (~name (first args#) (second args#) (nth args# 2) (nth args# 3)
+                  (nth args# 4)))
       (throw
        (java.lang.IllegalArgumentException.
         (str
@@ -545,8 +549,10 @@ Options are
 "
   [session-or-hostname cmd & args]
   (let [opts (parse-args args)
-        channel-given (instance? com.jcraft.jsch.ChannelSftp session-or-hostname)
-        session-given (instance? com.jcraft.jsch.Session session-or-hostname)
+        channel-given (instance?
+                       com.jcraft.jsch.ChannelSftp session-or-hostname)
+        session-given (instance?
+                       com.jcraft.jsch.Session session-or-hostname)
         session (if session-given
                   session-or-hostname
                   (if channel-given
