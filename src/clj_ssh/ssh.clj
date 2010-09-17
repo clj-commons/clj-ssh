@@ -577,3 +577,22 @@ Options are
         (disconnect channel))
       (when-not (or session-given channel-given)
         (disconnect session))))))
+
+
+
+(defvar- key-types {:rsa KeyPair/RSA :dsa KeyPair/DSA})
+
+(defn generate-keypair
+  "Generate a keypair, returned as [private public] byte arrays.
+   Valid types are :rsa and :dsa.  key-size is in bytes. passphrase
+   can be a string or byte array."
+  ([key-type key-size passphrase]
+     (generate-keypair *ssh-agent* key-type key-size passphrase))
+  ([agent key-type key-size passphrase]
+     (let [keypair (KeyPair/genKeyPair agent (key-type key-types) key-size)]
+       (when passphrase (.setPassphrase keypair passphrase))
+       (let [pub-baos (java.io.ByteArrayOutputStream.)
+             pri-baos (java.io.ByteArrayOutputStream.)]
+         (.writePublicKey keypair pub-baos "")
+         (.writePrivateKey keypair pri-baos)
+         [(.toByteArray pri-baos) (.toByteArray pub-baos)]))))

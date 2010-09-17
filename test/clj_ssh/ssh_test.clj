@@ -424,3 +424,7 @@ list, Alan Dipert and MeikelBrandmeyer."
     (with-default-session-options {:strict-host-key-checking :no}
       (test-sftp-transient-with "localhost" :username (username)))))
 
+(deftest generate-keypair-test
+  (with-ssh-agent []
+    (let [[priv pub] (generate-keypair :rsa 1024 "hello")]
+      (add-identity *ssh-agent* "name" priv pub (.getBytes "hello")))))
