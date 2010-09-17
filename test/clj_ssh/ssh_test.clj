@@ -375,9 +375,9 @@ list, Alan Dipert and MeikelBrandmeyer."
 
 
 (defn test-sftp-transient-with [channel & options]
-  (let [dir (sftp channel :ls "/")]
+  (let [dir (apply sftp channel :ls "/" options)]
     (apply sftp channel :cd "/" options)
-    (is (not= "/" (sftp channel :pwd)))
+    (is (not= "/" (apply sftp channel :pwd options)))
     (let [tmpfile1 (java.io.File/createTempFile "clj-ssh" "test")
           tmpfile2 (java.io.File/createTempFile "clj-ssh" "test")
           file1 (.getPath tmpfile1)
