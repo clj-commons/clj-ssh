@@ -18,6 +18,11 @@ Strict host key checking can be turned off.
 
     (default-session-options {:strict-host-key-checking :no})
 
+By default, your current username and id_rsa key are used.  If your key has a
+passphrase, and you are on OSX, then you should be asked for access to your
+keychain.  If you are on any other OS, you will need to explicitly add your key
+to the clj-ssh's ssh-agent with the appropriate add-identity call.
+
 More advance usage is possible.
 
     (with-ssh-agent []
@@ -48,6 +53,10 @@ cd) do not work with the simplified interface, as a new session is created each
 time.
 
 ## FAQ
+
+Q: Why doesn't clj-ssh integrate with the OS's ssh agent?
+
+A: Java has no access to the Unix domain socket used by the system ssh-agent.
 
 Q: What does  "4: Failure @ com.jcraft.jsch.ChannelSftp.throwStatusError(ChannelSftp.java:2289)" during an sftp transfer signify?
 
