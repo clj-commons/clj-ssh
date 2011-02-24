@@ -494,7 +494,7 @@ Options are
     :lpwd (.lpwd channel)
     :rm (.rm channel (first args))
     :rmdir (.rmdir channel (first args))
-    :rmdir (.mkdir channel (first args))
+    :mkdir (.mkdir channel (first args))
     :stat (.stat channel (first args))
     :lstat (.lstat channel (first args))
     :rename (.rename channel (first args) (second args))
