@@ -80,7 +80,7 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
 
 ;; Enable java logging of jsch when in clojure 1.2
 (when-feature deftype
- (def ssh-log-levels
+ (def ^{:dynamic true} *ssh-log-levels*
       {com.jcraft.jsch.Logger/DEBUG :debug
        com.jcraft.jsch.Logger/INFO  :info
        com.jcraft.jsch.Logger/WARN  :warn
@@ -94,7 +94,7 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
     (>= level log-level))
    (log
     [_ level message]
-    (logging/log (ssh-log-levels level) message nil "clj-ssh.ssh")))
+    (logging/log (*ssh-log-levels* level) message nil "clj-ssh.ssh")))
 
  (JSch/setLogger (SshLogger. com.jcraft.jsch.Logger/DEBUG)))
 
