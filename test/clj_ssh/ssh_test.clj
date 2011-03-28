@@ -234,6 +234,13 @@ list, Alan Dipert and MeikelBrandmeyer."
         (let [result (ssh-shell session "echo hello;exit 1" "UTF-8" {})]
           (is (= 1 (first result)))
           (is (.contains (second result) "hello")))
+        (let [[shell stream] (ssh-shell session "echo hello;exit 1" :stream {})]
+          (while (connected? shell) (Thread/sleep 100))
+          (is (= 1 (.getExitStatus shell)))
+          (is (pos? (.available stream)))
+          (let [bytes (byte-array 1024)
+                n (.read stream bytes 0 1024)]
+            (is (.contains (String. bytes 0 n)  "hello"))))
         (let [result (ssh-shell session "exit $(tty -s)" "UTF-8" {:pty true})]
           (is (= 0 (first result))))
         (let [result (ssh-shell session "exit $(tty -s)" "UTF-8" {:pty nil})]
@@ -249,10 +256,27 @@ list, Alan Dipert and MeikelBrandmeyer."
           (is (= 0 (first result)))
           (is (.contains (second result) "bin"))
           (is (= "" (last result))))
-        (let [result (ssh-exec session "/bin/bash -c 'lsxxxxx /'" nil "UTF-8" {})]
+        (let [result (ssh-exec
+                      session "/bin/bash -c 'lsxxxxx /'" nil "UTF-8" {})]
           (is (not (= 0 (first result))))
           (is (= "" (second result)))
-          (is (.contains (last result) "command not found")))))))
+          (is (.contains (last result) "command not found")))
+        (let [[exec out err] (ssh-exec
+                              session
+                              "/bin/bash -c 'ls / && lsxxxxx /'"
+                              nil :stream {})]
+          (while (connected? exec) (Thread/sleep 100))
+          (is (not= 0 (.getExitStatus exec)))
+          (is (pos? (.available out)))
+          (is (pos? (.available err)))
+          (let [out-bytes (byte-array 1024)
+                out-n (.read out out-bytes 0 1024)
+                err-bytes (byte-array 1024)
+                err-n (.read err err-bytes 0 1024)]
+            (is (.contains (String. out-bytes 0 out-n) "bin"))
+            (is (.contains
+                 (String. err-bytes 0 err-n)
+                 "command not found"))))))))
 
 (deftest ssh-test
   (with-ssh-agent [false]

@@ -80,7 +80,7 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
 
 ;; Enable java logging of jsch when in clojure 1.2
 (when-feature deftype
- (def ssh-log-levels
+ (def ^{:dynamic true} *ssh-log-levels*
       {com.jcraft.jsch.Logger/DEBUG :debug
        com.jcraft.jsch.Logger/INFO  :info
        com.jcraft.jsch.Logger/WARN  :warn
@@ -94,7 +94,7 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
     (>= level log-level))
    (log
     [_ level message]
-    (logging/log (ssh-log-levels level) message nil "clj-ssh.ssh")))
+    (logging/log (*ssh-log-levels* level) message nil "clj-ssh.ssh")))
 
  (JSch/setLogger (SshLogger. com.jcraft.jsch.Logger/DEBUG)))
 
@@ -325,12 +325,18 @@ keys.  All other option key pairs will be passed as SSH config options."
   [#^Session session]
   (open-channel session :shell))
 
+(defn- streams-for-out
+  [out]
+  (if (= :stream out)
+    (let [os (java.io.PipedOutputStream.)]
+      [os (java.io.PipedInputStream. os)])
+    [(java.io.ByteArrayOutputStream.) nil]))
 
 (defn ssh-shell
   "Run a ssh-shell."
   [#^Session session in out opts]
   (let [#^ChannelShell shell (open-channel session :shell)
-        out-stream (java.io.ByteArrayOutputStream.)]
+        [out-stream out-inputstream] (streams-for-out out)]
     (doto shell
       (.setInputStream
        (if (string? in)
@@ -342,20 +348,24 @@ keys.  All other option key pairs will be passed as SSH config options."
       (call-method
        com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE]
        shell (boolean (opts :pty))))
-    (with-connection shell
-      (while (connected? shell)
-             (Thread/sleep 100))
-      [(.getExitStatus shell)
-       (if (= :bytes out)
-         (.toByteArray out-stream)
-         (.toString out-stream out))])))
+    (if out-inputstream
+      (do
+        (connect shell)
+        [shell out-inputstream])
+      (with-connection shell
+        (while (connected? shell)
+          (Thread/sleep 100))
+        [(.getExitStatus shell)
+         (if (= :bytes out)
+           (.toByteArray out-stream)
+           (.toString out-stream out))]))))
 
 (defn ssh-exec
   "Run a command via ssh-exec."
   [#^Session session #^String cmd in out opts]
   (let [#^ChannelExec exec (open-channel session :exec)
-        out-stream (java.io.ByteArrayOutputStream.)
-        err-stream (java.io.ByteArrayOutputStream.)]
+        [out-stream out-inputstream] (streams-for-out out)
+        [err-stream err-inputstream] (streams-for-out out)]
     (doto exec
       (.setInputStream
        (if (string? in)
@@ -369,16 +379,20 @@ keys.  All other option key pairs will be passed as SSH config options."
       (call-method
        com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE]
        exec (boolean (opts :pty))))
-    (with-connection exec
-      (while (connected? exec)
-             (Thread/sleep 100))
-      [(.getExitStatus exec)
-       (if (= :bytes out)
-        (.toByteArray out-stream)
-        (.toString out-stream out))
-       (if (= :bytes out)
-        (.toByteArray err-stream)
-        (.toString err-stream out))])))
+    (if out-inputstream
+      (do
+        (connect exec)
+        [exec out-inputstream err-inputstream])
+      (with-connection exec
+        (while (connected? exec)
+          (Thread/sleep 100))
+        [(.getExitStatus exec)
+         (if (= :bytes out)
+           (.toByteArray out-stream)
+           (.toString out-stream out))
+         (if (= :bytes out)
+           (.toByteArray err-stream)
+           (.toString err-stream out))]))))
 
 (defn default-session [host username port password]
   (doto (session-impl
@@ -409,7 +423,11 @@ cmd specifies a command to exec.  If no cmd is given, a shell is started and inp
 Options are
 
 :in         specifies input to the remote shell. A string or a stream.
-:out        specify :bytes or a string with an encoding specification.
+:out        specify :stream to obtain a an [inputstream shell],
+            specify :bytes to obtain a byte array,
+            or specify a string with an encoding specification for a
+            result string.  In the case of :stream, the shell can
+            be polled for connected status.
 :return-map when followed by boolean true, sh returns a map of
               :exit => sub-process's exit code
               :out  => sub-process's stdout (as byte[] or String)
@@ -437,14 +455,14 @@ Options are
        (let [result (ssh-shell
                      session
                      (:in opts) (:out opts) (dissoc opts :in :out :cmd))]
-         (if (opts :return-map)
+         (if (and (opts :return-map) (not= (:out opts) :stream))
            {:exit (first result) :out (second result)}
            result))
        (let [result (ssh-exec
                      session
                      (apply str (interpose " " (:cmd opts)))
                      (:in opts) (:out opts) (dissoc opts :in :out :cmd))]
-         (if (opts :return-map)
+         (if (and (opts :return-map) (not= (:out opts) :stream))
            {:exit (first result) :out (second result) :err (last result)}
            result)))
      (finally
