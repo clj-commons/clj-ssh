@@ -1,13 +1,23 @@
 (ns clj-ssh.ssh-test
-  (:use [clj-ssh.ssh] :reload-all)
-  (:use [clojure.test])
+  (:use clj-ssh.ssh)
+  (:use clojure.test)
+  (:require [clojure.java.io :as io])
   (:import com.jcraft.jsch.JSch))
 
-;; clojure.contrib 1.1/1.2 compatability
-(try
-  (use '[clojure.contrib.io :as io])
-  (catch Exception e
-    (use '[clojure.contrib.duck-streams :as io])))
+(def debug-log-levels
+  {com.jcraft.jsch.Logger/DEBUG :debug
+   com.jcraft.jsch.Logger/INFO  :debug
+   com.jcraft.jsch.Logger/WARN  :debug
+   com.jcraft.jsch.Logger/ERROR :error
+   com.jcraft.jsch.Logger/FATAL :fatal})
+
+(use-fixtures :once (fn [f]
+                      (let [levels @ssh-log-levels]
+                        (try
+                          (reset! ssh-log-levels debug-log-levels)
+                          (f)
+                          (finally
+                           (reset! ssh-log-levels levels))))))
 
 (defmacro with-private-vars [[ns fns] & tests]
   "Refers private fns from ns and runs tests in context.  From users mailing

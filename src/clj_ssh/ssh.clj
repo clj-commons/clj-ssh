@@ -1,4 +1,4 @@
-(ns #^{:author "Hugo Duncan"}
+(ns ^{:author "Hugo Duncan"}
   clj-ssh.ssh
   "SSH in clojure.  Uses jsch.  Provides a ssh function that tries to look
 similar to clojure.contrib.shell/sh.
@@ -40,53 +40,29 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
   (:use
    [clojure.contrib.def :only [defvar defvar- defunbound]])
   (:require
-   clj-ssh.keychain
-   [clojure.contrib.logging :as logging])
+   [clj-ssh.keychain :as keychain]
+   [clojure.contrib.condition :as condition]
+   [clojure.contrib.logging :as logging]
+   [clojure.contrib.reflect :as reflect]
+   [clojure.java.io :as io]
+   [clojure.string :as string])
   (:import [com.jcraft.jsch
             JSch Session Channel ChannelShell ChannelExec ChannelSftp
             Identity IdentityFile Logger KeyPair]))
 
-;; working towards clojure 1.1/1.2 compat
-(try
-  (use '[clojure.contrib.reflect :only [call-method]])
-  (require '[clojure.contrib.io :as io])
-  (catch Exception e
-    (require '[clojure.contrib.java-utils :as io :only [file]])
-    (ns-unmap 'clj-ssh.ssh 'call-method)
-    (use '[clojure.contrib.java-utils :only [wall-hack-method]
-               :rename {wall-hack-method call-method}])))
-
-
-
 (defunbound *ssh-agent* "SSH agent used to manage identities.")
 (defvar *default-session-options* {} "Default SSH options")
 
+(def ^{:dynamic true}
+  ssh-log-levels
+  (atom
+   {com.jcraft.jsch.Logger/DEBUG :debug
+    com.jcraft.jsch.Logger/INFO  :info
+    com.jcraft.jsch.Logger/WARN  :warn
+    com.jcraft.jsch.Logger/ERROR :error
+    com.jcraft.jsch.Logger/FATAL :fatal}))
 
-(defmacro when-feature
-  [feature-name & body]
-  (when (find-var (symbol "clojure.core" (name feature-name)))
-    `(do ~@body)))
-
-(defmacro when-not-feature
-  [feature-name & body]
-  (when-not (find-var (symbol "clojure.core" (name feature-name)))
-    `(do ~@body)))
-
-(when-not-feature
- bound?
- (defn bound?
-   [& vars#]
-   (every? #(.isBound #^clojure.lang.Var %) vars#)))
-
-;; Enable java logging of jsch when in clojure 1.2
-(when-feature deftype
- (def ^{:dynamic true} *ssh-log-levels*
-      {com.jcraft.jsch.Logger/DEBUG :debug
-       com.jcraft.jsch.Logger/INFO  :info
-       com.jcraft.jsch.Logger/WARN  :warn
-       com.jcraft.jsch.Logger/ERROR :error
-       com.jcraft.jsch.Logger/FATAL :fatal})
- (deftype SshLogger
+(deftype SshLogger
    [log-level]
    com.jcraft.jsch.Logger
    (isEnabled
@@ -94,9 +70,9 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
     (>= level log-level))
    (log
     [_ level message]
-    (logging/log (*ssh-log-levels* level) message nil "clj-ssh.ssh")))
+    (logging/log (@ssh-log-levels level) message nil "clj-ssh.ssh")))
 
- (JSch/setLogger (SshLogger. com.jcraft.jsch.Logger/DEBUG)))
+ (JSch/setLogger (SshLogger. com.jcraft.jsch.Logger/DEBUG))
 
 (defmacro with-default-session-options
   "Set the default session options"
@@ -109,10 +85,10 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
   [options]
   (alter-var-root #'*default-session-options* #(identity %2) options))
 
-(defn- #^String file-path [string-or-file]
+(defn- ^String file-path [string-or-file]
   (if (string? string-or-file)
     string-or-file
-    (.getPath #^java.io.File string-or-file)))
+    (.getPath ^java.io.File string-or-file)))
 
 (defn ssh-agent?
   "Predicate to test for an ssh-agent."
@@ -121,7 +97,7 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
 (defn- default-user []
   (. System getProperty "user.name"))
 
-(def #^String *default-identity*
+(def ^String *default-identity*
      (.getPath (io/file (. System getProperty "user.home") ".ssh" "id_rsa")))
 
 (defmacro with-default-identity
@@ -139,17 +115,17 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
 (defn has-identity?
   "Check if the given identity is present."
   ([name] (has-identity? *ssh-agent* name))
-  ([#^JSch agent name] (some #(= name %) (.getIdentityNames agent))))
+  ([^JSch agent name] (some #(= name %) (.getIdentityNames agent))))
 
-(defn #^Identity make-identity
+(defn ^Identity make-identity
   "Create a JSch identity.  This can be used to check whether the key is
    encrypted."
   ([private-key-path public-key-path]
      (make-identity *ssh-agent* private-key-path public-key-path))
-  ([#^JSch agent #^String private-key-path #^String public-key-path]
+  ([^JSch agent ^String private-key-path ^String public-key-path]
      (logging/trace
       (format "Make identity %s %s" private-key-path public-key-path))
-     (call-method
+     (reflect/call-method
       com.jcraft.jsch.IdentityFile 'newInstance [String String JSch]
       nil private-key-path public-key-path agent)))
 
@@ -163,7 +139,7 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
      (if (ssh-agent? agent)
        (add-identity agent private-key nil)
        (add-identity *ssh-agent* agent private-key)))
-  ([#^JSch agent private-key #^String passphrase]
+  ([^JSch agent private-key ^String passphrase]
      (assert agent)
      (.addIdentity
       agent
@@ -171,8 +147,8 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
         private-key
         (file-path private-key))
       (and passphrase (.getBytes passphrase))))
-  ([#^JSch agent #^String name #^bytes private-key #^bytes public-key
-    #^bytes passphrase]
+  ([^JSch agent ^String name ^bytes private-key ^bytes public-key
+    ^bytes passphrase]
      (assert agent)
      (.addIdentity
       agent name private-key public-key passphrase)))
@@ -189,7 +165,7 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
                        (file-path private-key-path)
                        (str private-key-path ".pub"))]
          (if (.isEncrypted identity)
-           (if-let [passphrase (clj-ssh.keychain/passphrase private-key-path)]
+           (if-let [passphrase (keychain/passphrase private-key-path)]
              (add-identity agent identity passphrase)
              (logging/error "Passphrase required, but none findable."))
            (add-identity agent identity))))))
@@ -228,25 +204,25 @@ be added.  An existing agent instance can alternatively be passed."
                 `(create-ssh-agent))]
      ~@body))
 
-(defn #^String capitalize
+(defn ^String capitalize
   "Converts first character of the string to upper-case."
-  [#^String s]
+  [^String s]
   (if (< (count s) 2)
     (.toUpperCase s)
-    (str (.toUpperCase #^String (subs s 0 1))
+    (str (.toUpperCase ^String (subs s 0 1))
          (subs s 1))))
 
-(defn- camelize [#^String a]
+(defn- camelize [^String a]
   (apply str (map capitalize (.split a "-"))))
 
-(defn- #^String as-string [arg]
+(defn- ^String as-string [arg]
   (cond
    (symbol? arg) (name arg)
    (keyword? arg) (name arg)
    :else (str arg)))
 
 (defn- session-impl
-  [#^JSch agent hostname username port #^String password options]
+  [^JSch agent hostname username port ^String password options]
   (let [session (.getSession
                  agent
                  (or username (default-user))
@@ -307,22 +283,22 @@ keys.  All other option key pairs will be passed as SSH config options."
 
 (defn open-channel
   "Open a channel of the specified type in the session."
-  [#^Session session session-type]
+  [^Session session session-type]
   (.openChannel session (name session-type)))
 
 (defn sftp-channel
   "Open a SFTP channel in the session."
-  [#^Session session]
+  [^Session session]
   (open-channel session :sftp))
 
 (defn exec-channel
   "Open an Exec channel in the session."
-  [#^Session session]
+  [^Session session]
   (open-channel session :exec))
 
 (defn shell-channel
   "Open a Shell channel in the session."
-  [#^Session session]
+  [^Session session]
   (open-channel session :shell))
 
 (defn- streams-for-out
@@ -332,10 +308,15 @@ keys.  All other option key pairs will be passed as SSH config options."
       [os (java.io.PipedInputStream. os)])
     [(java.io.ByteArrayOutputStream.) nil]))
 
+(defn- streams-for-in
+  []
+  (let [os (java.io.PipedInputStream.)]
+    [os (java.io.PipedOutputStream. os)]))
+
 (defn ssh-shell
   "Run a ssh-shell."
-  [#^Session session in out opts]
-  (let [#^ChannelShell shell (open-channel session :shell)
+  [^Session session in out opts]
+  (let [^ChannelShell shell (open-channel session :shell)
         [out-stream out-inputstream] (streams-for-out out)]
     (doto shell
       (.setInputStream
@@ -345,7 +326,7 @@ keys.  All other option key pairs will be passed as SSH config options."
        false)
       (.setOutputStream out-stream))
     (when (contains? opts :pty)
-      (call-method
+      (reflect/call-method
        com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE]
        shell (boolean (opts :pty))))
     (if out-inputstream
@@ -362,21 +343,21 @@ keys.  All other option key pairs will be passed as SSH config options."
 
 (defn ssh-exec
   "Run a command via ssh-exec."
-  [#^Session session #^String cmd in out opts]
-  (let [#^ChannelExec exec (open-channel session :exec)
+  [^Session session ^String cmd in out opts]
+  (let [^ChannelExec exec (open-channel session :exec)
         [out-stream out-inputstream] (streams-for-out out)
         [err-stream err-inputstream] (streams-for-out out)]
     (doto exec
       (.setInputStream
        (if (string? in)
-         (java.io.ByteArrayInputStream. (.getBytes #^String in))
+         (java.io.ByteArrayInputStream. (.getBytes ^String in))
          in)
        false)
       (.setOutputStream out-stream)
       (.setErrStream err-stream)
       (.setCommand cmd))
     (when (contains? opts :pty)
-      (call-method
+      (reflect/call-method
        com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE]
        exec (boolean (opts :pty))))
     (if out-inputstream
@@ -471,7 +452,7 @@ Options are
 
 (defn ssh-sftp
   "Obtain a connected ftp channel."
-  [#^Session session]
+  [^Session session]
   {:pre (connected? session)}
   (let [channel (open-channel session :sftp)]
     (connect channel)
@@ -500,8 +481,8 @@ Options are
 
 (defn ssh-sftp-cmd
   "Command on a ftp channel."
-  [#^ChannelSftp channel cmd args options]
-  (condp = cmd
+  [^ChannelSftp channel cmd args options]
+  (case cmd
     :ls (.ls channel (or (first args) "."))
     :cd (.cd channel (first args))
     :lcd (.lcd channel (first args))

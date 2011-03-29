@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>clj-ssh</groupId>
   <artifactId>clj-ssh</artifactId>
-  <version>0.2.4-SNAPSHOT</version>
+  <version>0.3.0-SNAPSHOT</version>
   <name>clj-ssh</name>
   <description>ssh from clojure</description>
   <scm>
@@ -33,7 +33,7 @@
 	    <testSourceDirectory>test</testSourceDirectory>
 	  </testSourceDirectories>
 	  <clojureOptions>-Xmx512m -Djava.awt.headless=true -XX:MaxPermSize=256m</clojureOptions>
-	  <warnOnReflection>true</warnOnReflection>
+	  <warnOnReflection>false</warnOnReflection>
           <compileDeclaredNamespaceOnly>true</compileDeclaredNamespaceOnly>
           <temporaryOutputDirectory>true</temporaryOutputDirectory>
 	</configuration>
@@ -90,12 +90,12 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>clojure</artifactId>
-      <version>1.1.0</version>
+      <version>1.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>clojure-contrib</artifactId>
-      <version>1.1.0</version>
+      <version>1.2.0</version>
     </dependency>
     <dependency>
       <groupId>com.jcraft</groupId>
@@ -103,28 +103,21 @@
       <version>0.1.44-1</version>
     </dependency>
     <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+        <version>1.2.14</version>
+      <optional>true</optional>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>swank-clojure</groupId>
       <artifactId>swank-clojure</artifactId>
       <version>1.2.1</version>
       <optional>true</optional>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   <profiles>
-    <profile>
-      <id>clojure-1.2</id>
-      <dependencies>
-	<dependency>
-	  <groupId>org.clojure</groupId>
-	  <artifactId>clojure</artifactId>
-	  <version>1.2.0</version>
-	</dependency>
-	<dependency>
-	  <groupId>org.clojure</groupId>
-	  <artifactId>clojure-contrib</artifactId>
-	  <version>1.2.0</version>
-	</dependency>
-      </dependencies>
-    </profile>
     <profile>
       <id>testuser</id>
       <build>
