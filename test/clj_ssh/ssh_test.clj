@@ -458,6 +458,66 @@ list, Alan Dipert and MeikelBrandmeyer."
     (with-default-session-options {:strict-host-key-checking :no}
       (test-sftp-transient-with "localhost" :username (username)))))
 
+(defn test-scp-to-with
+  [session]
+  (let [tmpfile1 (java.io.File/createTempFile "clj-ssh" "test")
+        tmpfile2 (java.io.File/createTempFile "clj-ssh" "test")
+        file1 (.getPath tmpfile1)
+        file2 (.getPath tmpfile2)
+        content "content"
+        content2 "content2"]
+    (try
+      (.setWritable tmpfile1 true false)
+      (.setWritable tmpfile2 true false)
+      (io/copy content tmpfile1)
+      (scp-to session file1 file2)
+      (is (= content (slurp file2)) "scp-to should copy content")
+      (io/copy content2 tmpfile1)
+      (scp-to "localhost" file1 file2
+              :cipher-none true
+              :username (username)
+              :strict-host-key-checking :no)
+      (is (= content2 (slurp file2))
+          "scp-to with implicit session should copy content")
+      (finally
+       (.delete tmpfile1)
+       (.delete tmpfile2)))))
+
+(defn test-scp-from-with
+  [session]
+  (let [tmpfile1 (java.io.File/createTempFile "clj-ssh" "test")
+        tmpfile2 (java.io.File/createTempFile "clj-ssh" "test")
+        file1 (.getPath tmpfile1)
+        file2 (.getPath tmpfile2)
+        content "content"
+        content2 "content2"]
+    (try
+      (.setWritable tmpfile1 true false)
+      (.setWritable tmpfile2 true false)
+      (io/copy content tmpfile1)
+      (scp-from session file1 file2)
+      (is (= content (slurp file2))
+          "scp-from should copy content")
+      (io/copy content2 tmpfile1)
+      (scp-from "localhost" file1 file2
+                :cipher-none true
+                :username (username)
+                :strict-host-key-checking :no)
+      (is (= content2 (slurp file2))
+          "scp-from with implicit session should copy content")
+      (finally
+       (.delete tmpfile1)
+       (.delete tmpfile2)))))
+
+(deftest scp-test
+  (with-default-identity (private-key-path)
+    (with-ssh-agent []
+      (let [session (session "localhost" :username (username)
+                             :strict-host-key-checking :no)]
+        (with-connection session
+          (test-scp-to-with session)
+          (test-scp-from-with session))))))
+
 (deftest generate-keypair-test
   (with-ssh-agent []
     (let [[priv pub] (generate-keypair :rsa 1024 "hello")]

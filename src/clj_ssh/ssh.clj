@@ -577,7 +577,299 @@ Options are
       (when-not (or session-given channel-given)
         (disconnect session))))))
 
+(defn- scp-send-ack
+  "Send acknowledgement to the specified output stream"
+  ([out] (scp-send-ack out 0))
+  ([out code]
+     (.write out (byte-array [(byte code)]))
+     (.flush out)))
 
+(defn- scp-receive-ack
+  "Check for an acknowledgement byte from the given input stream"
+  [in]
+  (let [code (.read in)]
+    (when-not (zero? code)
+      (condition/raise
+       :type :clj-ssh/scp-failure
+       :message (format
+                 "clj-ssh scp failure: %s"
+                 (case code
+                   1 "scp error"
+                   2 "scp fatal error"
+                   -1 "disconnect error"
+                   "unknown error"))))))
+
+(defn- scp-send-command
+  "Send command to the specified output stream"
+  [out in cmd-string]
+  (.write out (.getBytes cmd-string))
+  (.flush out)
+  (logging/trace (format "Sent command %s" cmd-string))
+  (scp-receive-ack in)
+  (logging/trace "Received ACK"))
+
+(defn- scp-receive-command
+  "Receive command on the specified input stream"
+  [out in]
+  (let [buffer-size 1024
+        buffer (byte-array buffer-size)]
+    (let [cmd (loop [offset 0]
+                (let [n (.read in buffer offset (- buffer-size offset))]
+                  (logging/trace
+                   (format
+                    "scp-receive-command: %s"
+                    (String. buffer 0 (+ offset n))))
+                  (if (= \newline (char (aget buffer (+ offset n -1))))
+                    (String. buffer 0 (+ offset n))
+                    (recur (+ offset n)))))]
+      (logging/trace (format "Received command %s" cmd))
+      (scp-send-ack out)
+      (logging/trace "Sent ACK")
+      cmd)))
+
+(defn- scp-copy-file
+  "Send acknowledgement to the specified output stream"
+  [send recv file {:keys [mode buffer-size preserve]
+                   :or {mode 0644 buffer-size 1492 preserve false}}]
+  (logging/trace (format "Sending %s" (.getAbsolutePath file)))
+  (when preserve
+    (scp-send-command
+     send recv
+     (format "P %d 0 %d 0\n" (.lastModified file) (.lastModified file))))
+  (scp-send-command
+   send recv
+   (format "C%04o %d %s\n" mode (.length file) (.getName file)))
+  (with-open [fs (java.io.FileInputStream. file)]
+    (io/copy fs send :buffer-size buffer-size))
+  (scp-send-ack send)
+  (logging/trace "Sent ACK after send")
+  (scp-receive-ack recv)
+  (logging/trace "Received ACK after send"))
+
+(defn- scp-copy-dir
+  "Send acknowledgement to the specified output stream"
+  [send recv dir {:keys [dir-mode] :or {dir-mode 0755} :as options}]
+  (logging/trace (format "Sending directory %s" (.getAbsolutePath dir)))
+  (scp-send-command
+   send recv
+   (format "D%04o 0 %s" dir-mode (.getName dir)))
+  (doseq [file (.listFiles dir)]
+    (cond
+     (.isFile file) (scp-copy-file send recv file options)
+     (.isDirectory file) (scp-copy-dir send recv file options)
+     ))
+  (scp-send-ack send)
+  (logging/trace "Sent ACK after send")
+  (scp-receive-ack recv)
+  (logging/trace "Received ACK after send"))
+
+(defn- scp-files
+  [paths recursive]
+  (let [f (if recursive
+            #(java.io.File. %)
+            (fn [path]
+              (let [file (java.io.File. path)]
+                (when (.isDirectory file)
+                  (condition/raise
+                   :type :clj-ssh/scp-directory-copy-requested
+                   :message (format
+                             "Copy of dir %s requested without recursive flag"
+                             path)))
+                file)))]
+    (map f paths)))
+
+(defn session-cipher-none
+  "Reset the session to use no cipher"
+  [session]
+  (logging/trace "Set session to prefer none cipher")
+  (doto session
+    (.setConfig
+     "cipher.s2c" "none,aes128-cbc,3des-cbc,blowfish-cbc")
+    (.setConfig
+     "cipher.c2s" "none,aes128-cbc,3des-cbc,blowfish-cbc")
+    (.rekey)))
+
+(defn scp-parse-times
+  [cmd]
+  (let [s (java.io.StringReader. cmd)]
+    (.skip s 1) ;; skip T
+    (let [scanner (java.util.Scanner. s)
+          mtime (.nextLong scanner)
+          zero (.nextInt scanner)
+          atime (.nextLong scanner)]
+      [mtime atime])))
+
+(defn scp-parse-copy
+  [cmd]
+  (let [s (java.io.StringReader. cmd)]
+    (.skip s 1) ;; skip C or D
+    (let [scanner (java.util.Scanner. s)
+          mode (.nextInt scanner 8)
+          length (.nextLong scanner)
+          filename (.next scanner)]
+      [mode length filename])))
+
+(defn scp-sink-file
+  "Sink a file"
+  [send recv file mode length {:keys [buffer-size] :or {buffer-size 2048}}]
+  (logging/trace (format "Sinking %d bytes to file %s" length (.getPath file)))
+  (let [buffer (byte-array buffer-size)]
+    (with-open [file-stream (java.io.FileOutputStream. file)]
+      (loop [length length]
+        (let [size (.read recv buffer 0 (min length buffer-size))]
+          (when (pos? size)
+            (.write file-stream buffer 0 size))
+          (when (and (pos? size) (< size length))
+            (recur (- length size))))))
+    (scp-receive-ack recv)
+    (logging/trace "Received ACK after sink of file")
+    (scp-send-ack send)
+    (logging/trace "Sent ACK after sink of file")))
+
+(defn scp-sink
+  "Sink scp commands to file"
+  [send recv file times {:as options}]
+  (let [cmd (scp-receive-command send recv)]
+    (case (first cmd)
+      \C (let [[mode length filename] (scp-parse-copy cmd)
+               file (if (and (.exists file) (.isDirectory file))
+                      (doto (java.io.File. file filename) (.createNewFile))
+                      (doto file (.createNewFile)))]
+           (scp-sink-file send recv file mode length options)
+           (when times
+             (.setLastModified file (first times))))
+      \T (scp-sink send recv file (scp-parse-times cmd) options)
+      \D (let [[mode filename] (scp-parse-copy cmd)
+               dir (java.io.File. file filename)]
+           (when (and (.exists dir) (not (.isDirectory dir)))
+             (.delete dir))
+           (when (not (.exists dir))
+             (.mkdir dir))
+           (scp-sink send recv dir nil options))
+      \E nil)))
+
+
+;; http://blogs.sun.com/janp/entry/how_the_scp_protocol_works
+(defn scp-to
+  "Copy local path(s) to remote path via scp.
+
+   Options are:
+
+   :username   username to use for authentication
+   :password   password to use for authentication
+   :port       port to use if no session specified
+   :mode       mode, as a 4 digit octal number (default 0644)
+   :dir-mode   directory mode, as a 4 digit octal number (default 0755)
+   :recursive  flag for recursive operation
+   :preserve   flag for preserving mode, mtime and atime. atime is not available
+               in java, so is set to mtime. mode is not readable in java."
+  [session-or-hostname local-paths remote-path
+   & {:keys [username password port mode dir-mode recursive preserve] :as opts}]
+  (let [local-paths (if (sequential? local-paths) local-paths [local-paths])
+        files (scp-files local-paths recursive)
+        session-given (instance? com.jcraft.jsch.Session session-or-hostname)
+        session (if session-given
+                  session-or-hostname
+                  (let [s (default-session
+                            session-or-hostname
+                            (opts :username)
+                            (opts :port)
+                            (opts :password))]
+                    (if (:cipher-none opts)
+                      (session-cipher-none s)
+                      s)))]
+    (try
+      (when (and session (not (connected? session)))
+        (connect session))
+      (let [[in send] (streams-for-in)
+            cmd (format "scp %s -t %s" (:remote-flags opts "") remote-path)
+            _ (logging/trace (format "scp-to: %s" cmd))
+            [exec recv] (ssh-exec session cmd in :stream opts)]
+        (logging/trace
+         (format "scp-to %s %s" (string/join " " local-paths) remote-path))
+        (logging/trace "Receive initial ACK")
+        (scp-receive-ack recv)
+        (doseq [file files]
+          (logging/trace (format "scp-to: from %s" (.getPath file)))
+          (if (.isDirectory file)
+            (scp-copy-dir send recv file opts)
+            (scp-copy-file send recv file opts)))
+        (logging/trace "Closing streams")
+        (.close send)
+        (.close recv)
+        (disconnect exec)
+        nil)
+      (finally
+       (when-not session-given
+         (disconnect session))))))
+
+(defn scp-from
+  "Copy remote path(s) to local path via scp.
+
+   Options are:
+
+   :username   username to use for authentication
+   :password   password to use for authentication
+   :port       port to use if no session specified
+   :mode       mode, as a 4 digit octal number (default 0644)
+   :dir-mode   directory mode, as a 4 digit octal number (default 0755)
+   :recursive  flag for recursive operation
+   :preserve   flag for preserving mode, mtime and atime. atime is not available
+               in java, so is set to mtime. mode is not readable in java."
+  [session-or-hostname remote-paths local-path
+   & {:keys [username password port mode dir-mode recursive preserve] :as opts}]
+  (let [remote-paths (if (sequential? remote-paths) remote-paths [remote-paths])
+        file (java.io.File. local-path)
+        _ (when (and (.exists file)
+                     (not (.isDirectory file))
+                     (> (count remote-paths) 1))
+            (condition/raise
+             :type :clj-ssh/scp-copy-multiple-files-to-file-requested
+             :message (format
+                       "Copy of multiple files to file %s requested"
+                       local-path)))
+        session-given (instance? com.jcraft.jsch.Session session-or-hostname)
+        session (if session-given
+                  session-or-hostname
+                  (let [s (default-session
+                            session-or-hostname
+                            (opts :username)
+                            (opts :port)
+                            (opts :password))]
+                    (if (:cipher-none opts)
+                      (session-cipher-none s)
+                      s)))]
+    (try
+      (when (and session (not (connected? session)))
+        (connect session))
+      (let [[in send] (streams-for-in)
+            flags {:recursive "-r" :preserve "-p"}
+            cmd (format
+                 "scp %s -f %s"
+                 (:remote-flags
+                  opts
+                  (string/join
+                   " "
+                   (->>
+                    (select-keys opts [:recursive :preserve])
+                    (filter val)
+                    (map (fn [k v] (k flags))))))
+                 (string/join " " remote-paths))
+            _ (logging/trace (format "scp-from: %s" cmd))
+            [exec recv] (ssh-exec session cmd in :stream opts)]
+        (logging/trace
+         (format "scp-from %s %s" (string/join " " remote-paths) local-path))
+        (scp-send-ack send)
+        (logging/trace "Sent initial ACK")
+        (scp-sink send recv file nil opts)
+        (logging/trace "Closing streams")
+        (.close send)
+        (.close recv)
+        (disconnect exec)
+        nil)
+      (finally
+       (when-not session-given
+         (disconnect session))))))
 
 (defvar- key-types {:rsa KeyPair/RSA :dsa KeyPair/DSA})
 
