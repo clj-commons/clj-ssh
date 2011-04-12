@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>clj-ssh</groupId>
   <artifactId>clj-ssh</artifactId>
-  <version>0.2.4-SNAPSHOT</version>
+  <version>0.2.4</version>
   <name>clj-ssh</name>
   <description>ssh from clojure</description>
   <scm>
