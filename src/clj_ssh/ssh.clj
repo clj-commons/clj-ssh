@@ -42,7 +42,7 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
   (:require
    [clj-ssh.keychain :as keychain]
    [clojure.contrib.condition :as condition]
-   [clojure.contrib.logging :as logging]
+   [clojure.tools.logging :as logging]
    [clojure.contrib.reflect :as reflect]
    [clojure.java.io :as io]
    [clojure.string :as string])
@@ -70,7 +70,7 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
     (>= level log-level))
    (log
     [_ level message]
-    (logging/log (@ssh-log-levels level) message nil "clj-ssh.ssh")))
+    (logging/log "clj-ssh.ssh" (@ssh-log-levels level) nil message)))
 
  (JSch/setLogger (SshLogger. com.jcraft.jsch.Logger/DEBUG))
 
@@ -123,8 +123,7 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
   ([private-key-path public-key-path]
      (make-identity *ssh-agent* private-key-path public-key-path))
   ([^JSch agent ^String private-key-path ^String public-key-path]
-     (logging/trace
-      (format "Make identity %s %s" private-key-path public-key-path))
+     (logging/tracef "Make identity %s %s" private-key-path public-key-path)
      (reflect/call-method
       com.jcraft.jsch.IdentityFile 'newInstance [String String JSch]
       nil private-key-path public-key-path agent)))
@@ -413,8 +412,8 @@ cmd specifies a command to exec.  If no cmd is given, a shell is started and inp
 Options are
 
 :in         specifies input to the remote shell. A string or a stream.
-:out        specify :stream to obtain a an [inputstream shell],
-            specify :bytes to obtain a byte array,
+:out        specify :stream to obtain a an [inputstream shell]
+            specify :bytes to obtain a byte array
             or specify a string with an encoding specification for a
             result string.  In the case of :stream, the shell can
             be polled for connected status.
@@ -613,7 +612,7 @@ Options are
   [out in cmd-string]
   (.write out (.getBytes cmd-string))
   (.flush out)
-  (logging/trace (format "Sent command %s" cmd-string))
+  (logging/tracef "Sent command %s" cmd-string)
   (scp-receive-ack in)
   (logging/trace "Received ACK"))
 
@@ -624,14 +623,13 @@ Options are
         buffer (byte-array buffer-size)]
     (let [cmd (loop [offset 0]
                 (let [n (.read in buffer offset (- buffer-size offset))]
-                  (logging/trace
-                   (format
-                    "scp-receive-command: %s"
-                    (String. buffer 0 (+ offset n))))
+                  (logging/tracef
+                   "scp-receive-command: %s"
+                   (String. buffer 0 (+ offset n)))
                   (if (= \newline (char (aget buffer (+ offset n -1))))
                     (String. buffer 0 (+ offset n))
                     (recur (+ offset n)))))]
-      (logging/trace (format "Received command %s" cmd))
+      (logging/tracef "Received command %s" cmd)
       (scp-send-ack out)
       (logging/trace "Sent ACK")
       cmd)))
@@ -640,7 +638,7 @@ Options are
   "Send acknowledgement to the specified output stream"
   [send recv file {:keys [mode buffer-size preserve]
                    :or {mode 0644 buffer-size 1492 preserve false}}]
-  (logging/trace (format "Sending %s" (.getAbsolutePath file)))
+  (logging/tracef "Sending %s" (.getAbsolutePath file))
   (when preserve
     (scp-send-command
      send recv
@@ -658,7 +656,7 @@ Options are
 (defn- scp-copy-dir
   "Send acknowledgement to the specified output stream"
   [send recv dir {:keys [dir-mode] :or {dir-mode 0755} :as options}]
-  (logging/trace (format "Sending directory %s" (.getAbsolutePath dir)))
+  (logging/trace "Sending directory %s" (.getAbsolutePath dir))
   (scp-send-command
    send recv
    (format "D%04o 0 %s" dir-mode (.getName dir)))
@@ -721,7 +719,7 @@ Options are
 (defn scp-sink-file
   "Sink a file"
   [send recv file mode length {:keys [buffer-size] :or {buffer-size 2048}}]
-  (logging/trace (format "Sinking %d bytes to file %s" length (.getPath file)))
+  (logging/tracef "Sinking %d bytes to file %s" length (.getPath file))
   (let [buffer (byte-array buffer-size)]
     (with-open [file-stream (java.io.FileOutputStream. file)]
       (loop [length length]
@@ -792,14 +790,14 @@ Options are
         (connect session))
       (let [[in send] (streams-for-in)
             cmd (format "scp %s -t %s" (:remote-flags opts "") remote-path)
-            _ (logging/trace (format "scp-to: %s" cmd))
+            _ (logging/tracef "scp-to: %s" cmd)
             [exec recv] (ssh-exec session cmd in :stream opts)]
-        (logging/trace
-         (format "scp-to %s %s" (string/join " " local-paths) remote-path))
+        (logging/tracef
+         "scp-to %s %s" (string/join " " local-paths) remote-path)
         (logging/trace "Receive initial ACK")
         (scp-receive-ack recv)
         (doseq [file files]
-          (logging/trace (format "scp-to: from %s" (.getPath file)))
+          (logging/tracef "scp-to: from %s" (.getPath file))
           (if (.isDirectory file)
             (scp-copy-dir send recv file opts)
             (scp-copy-file send recv file opts)))
@@ -864,10 +862,10 @@ Options are
                     (filter val)
                     (map (fn [k v] (k flags))))))
                  (string/join " " remote-paths))
-            _ (logging/trace (format "scp-from: %s" cmd))
+            _ (logging/tracef "scp-from: %s" cmd)
             [exec recv] (ssh-exec session cmd in :stream opts)]
-        (logging/trace
-         (format "scp-from %s %s" (string/join " " remote-paths) local-path))
+        (logging/tracef
+         "scp-from %s %s" (string/join " " remote-paths) local-path)
         (scp-send-ack send)
         (logging/trace "Sent initial ACK")
         (scp-sink send recv file nil opts)

@@ -2,7 +2,7 @@
   "Primitive keychain support for clj-ssh.  Only implemented on OSX at the
    moment."
   (:require
-   [clojure.contrib.logging :as logging]
+   [clojure.tools.logging :as logging]
    [clojure.contrib.shell :as shell]))
 
 (defn ask-passphrase [path]
