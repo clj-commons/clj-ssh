@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8" content="text/html" http-equiv="Content-Type" /><meta content="ssh from clojure" name="description" /><style type="text/css"></style><style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style><style type="text/css"></style><style type="text/css">html{margin:0;padding:0;}h1{margin:0;padding:0;}h2{margin:0;padding:0;}h3{margin:0;padding:0;}h4{margin:0;padding:0;}a{color:#261A3B;}a:visited{color:#261A3B;}</style><style type="text/css">.header{margin-top:30px;}h1.project-name{font-size:34px;display:inline;}h2.project-version{font-size:18px;margin-top:0;display:inline;margin-left:10px;}.toc-link{font-size:12px;margin-left:10px;color:#252519;text-decoration:none;}.toc-link:hover{color:#5050A6;}.toc h1{font-size:34px;margin:0;}.docs-header{border-bottom:dotted #aaa 1px;padding-bottom:10px;margin-bottom:25px;}.toc h1{font-size:24px;}.toc{border-bottom:solid #bbb 1px;margin-bottom:40px;}.toc ul{margin-left:20px;padding-left:0px;padding-top:0;margin-top:0;}.toc li{list-style-type:none;padding-left:0;}.dependencies{}.dependencies table{font-size:16px;width:99.99%;border:none;margin-left:20px;}.dependencies td{padding-right:20px;;white-space:nowrap;}.dependencies .dotted{width:99%;}.dependencies .dotted hr{margin-bottom:-6px;noshade:noshade;border-top:none;color:transparent;border-left:none;border-bottom:dotted #bbb 1px;border-right:none;background-color:transparent;height:0;}.dependencies .dep-version{text-align:right;}.plugins ul{margin-left:20px;padding-left:0px;padding-top:0;margin-top:0;}.plugins li{list-style-type:none;padding-left:0;}.header p{margin-left:20px;}</style><style type="text/css">#floating-toc{position:fixed;top:10px;right:20px;height:20px;overflow:hidden;text-align:right;}#floating-toc li{list-style-type:none;margin:0;padding:0;}</style><style type="text/css">body{margin:0;padding:0;font-family:'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;;font-size:16px;color:#252519;}h1{font-size:20px;margin-top:0;}a.anchor{text-decoration:none;color:#252519;}a.anchor:hover{color:#5050A6;}table{border-spacing:0;border-bottom:solid #ddd 1px;;margin-bottom:10px;}code{display:inline;}p{margin-top:8px;}tr{margin:0px;padding:0px;}td.docs{width:410px;max-width:410px;vertical-align:top;margin:0px;padding-left:55px;padding-right:20px;border:none;}td.docs pre{font-size:12px;overflow:hidden;}td.codes{border:none;margin:0px;padding-left:20px;width:55%;border-left:solid #E5E5EE 1px;font-size:10pt;vertical-align:top;overflow:hidden;background-color:#F5F5FF;}td.spacer{padding-bottom:40px;}pre code{display:block;padding:4px;}code{background-color:ghostWhite;border:solid #DEDEDE 1px;padding-left:3px;padding-right:3px;font-size:14px;}.syntaxhighlighter code{font-size:13px;}.footer{text-align:center;}</style><script type="text/javascript"></script><script type="text/javascript"></script><script type="text/javascript"></script><script type="text/javascript"></script><script type="text/javascript"></script><title>clj-ssh -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">clj-ssh</h1><h2 class="project-version">0.3.0-SNAPSHOT</h2><br /><p>ssh from clojure</p>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.2.0</td></tr><tr><td class="dep-name">slingshot/slingshot</td><td class="dotted"><hr /></td><td class="dep-version">0.2.0</td></tr><tr><td class="dep-name">org.clojure/tools.logging</td><td class="dotted"><hr /></td><td class="dep-version">0.1.2</td></tr><tr><td class="dep-name">com.jcraft/jsch</td><td class="dotted"><hr /></td><td class="dep-version">0.1.44-1</td></tr><tr><td class="dep-name">marginalia/marginalia</td><td class="dotted"><hr /></td><td class="dep-version">0.5.1</td></tr></table></div><div class="dependencies"><h3>dev dependencies</h3><table></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#clj-ssh.keychain">clj-ssh.keychain</a></li><li><a href="#clj-ssh.reflect">clj-ssh.reflect</a></li><li><a href="#clj-ssh.ssh">clj-ssh.ssh</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clj-ssh.keychain" name="clj-ssh.keychain"><h1 class="project-name">clj-ssh.keychain</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Primitive keychain support for clj-ssh.  Only implemented on OSX at the
+   moment.</p>
+</td><td class="codes" /><pre class="brush: clojure">(ns clj-ssh.keychain
+  (:require
+   [clojure.tools.logging :as logging]
+   [clojure.java.shell :as shell]))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defn ask-passphrase [path]
+  (when-let [console (. System console)]
+    (print &quot;Passphrase for&quot; path &quot;: &quot;)
+    (.readPassword console)))</pre></tr><tr><td class="docs"><p>Obtain password for path</p>
+</td><td class="codes" /><pre class="brush: clojure">(defmulti keychain-passphrase 
+  (fn [system path] system))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defmethod keychain-passphrase :default
+  [system path]
+  (logging/warn &quot;Passphrase required, but no keychain implemented.&quot;)
+  (ask-passphrase path))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defmethod keychain-passphrase &quot;Mac OS X&quot;
+  [system path]
+  (let [result (shell/sh
+                &quot;/usr/bin/security&quot; &quot;find-generic-password&quot; &quot;-a&quot;
+                (format &quot;%s&quot; path)
+                &quot;-g&quot;)]
+    (when (zero? (result :exit))
+      (second (re-find #&quot;password: \&quot;(.*)\&quot;&quot; (result :err))))))</pre></tr><tr><td class="docs"><p>Obtain a passphrase for the given key path</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn passphrase
+  [path]
+  (keychain-passphrase (System/getProperty &quot;os.name&quot;) path))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clj-ssh.reflect" name="clj-ssh.reflect"><h1 class="project-name">clj-ssh.reflect</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>taken from clojure.contrib.reflect 1.2.0</p>
+</td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) 2010 Stuart Halloway &amp; Contributors. All rights
+reserved.  The use and distribution terms for this software are
+covered by the Eclipse Public License 1.0
+(http://opensource.org/licenses/eclipse-1.0.php) which can be
+found in the file epl-v10.html at the root of this distribution.
+By using this software in any fashion, you are agreeing to be
+bound by the terms of this license.  You must not remove this
+notice, or any other, from this software.</p>
+</td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(ns clj-ssh.reflect)</pre></tr><tr><td class="docs"><p>Calls a private or protected method.</p>
+
+<p>   params is a vector of classes which correspond to the arguments to
+   the method e</p>
+
+<p>   obj is nil for static methods, the instance object otherwise.</p>
+
+<p>   The method-name is given a symbol or a keyword (something Named).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn call-method
+  [klass method-name params obj &amp; args]
+  (-&gt; klass (.getDeclaredMethod (name method-name)
+                                (into-array Class params))
+      (doto (.setAccessible true))
+      (.invoke obj (into-array Object args))))</pre></tr><tr><td class="docs"><p>Access to private or protected field.  field-name is a symbol or
+  keyword.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn get-field
+  [klass field-name obj]
+  (-&gt; klass (.getDeclaredField (name field-name))
+      (doto (.setAccessible true))
+      (.get obj)))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clj-ssh.ssh" name="clj-ssh.ssh"><h1 class="project-name">clj-ssh.ssh</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>SSH in clojure.  Uses jsch.  Provides a ssh function that tries to look
+similar to clojure.contrib.shell/sh.</p>
+
+<h2>Usage</h2>
+
+<p>The top level namespace is <code>clj-ssh.ssh</code></p>
+
+<pre><code>(use 'clj-ssh.ssh)
+</code></pre>
+
+<p>There is a simple <code>ssh</code> function, which by default, will try and use a id_rsa
+key in your $HOME/.ssh directory.</p>
+
+<pre><code>(ssh hostname cmd)
+</code></pre>
+
+<p>Strict host key checking can be turned off.</p>
+
+<pre><code>(default-session-options {:strict-host-key-checking :no})
+</code></pre>
+
+<p>More advance usage is possible.</p>
+
+<pre><code>(with-ssh-agent []
+  (add-identity path-to-private-key)
+  (let [session (session hostname :strict-host-key-checking :no)]
+    (with-connection session
+      (let [result (ssh session :in commands-string :result-map true)]
+        (println (result :out)))
+      (let [result (ssh session some-cmd-string)]
+        (println (second result))))))
+</code></pre>
+
+<h2>Installation</h2>
+
+<p>Via maven and the clojars (http://clojars.org/clj-ssh), or
+Leiningen (http://github.com/technomancy/leiningen).</p>
+
+<h2>License</h2>
+
+<p>Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)</p>
+</td><td class="codes" /><pre class="brush: clojure">(ns ^{:author &quot;Hugo Duncan&quot;}
+  clj-ssh.ssh
+  (:require
+   [clj-ssh.keychain :as keychain]
+   [clj-ssh.reflect :as reflect]
+   [clojure.java.io :as io]
+   [clojure.string :as string]
+   [clojure.tools.logging :as logging]
+   [slingshot.core :as slingshot])
+  (:import [com.jcraft.jsch
+            JSch Session Channel ChannelShell ChannelExec ChannelSftp
+            Identity IdentityFile Logger KeyPair]))</pre></tr><tr><td class="docs"><p>SSH agent used to manage identities.</p>
+</td><td class="codes" /><pre class="brush: clojure">(def ^{:doc  :dynamic true}
+  *ssh-agent*)</pre></tr><tr><td class="docs"><p>Default SSH options</p>
+</td><td class="codes" /><pre class="brush: clojure">(def
+  ^{:doc 
+    :dynamic true}
+  *default-session-options* {})</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(def ^{:dynamic true}
+  ssh-log-levels
+  (atom
+   {com.jcraft.jsch.Logger/DEBUG :debug
+    com.jcraft.jsch.Logger/INFO  :info
+    com.jcraft.jsch.Logger/WARN  :warn
+    com.jcraft.jsch.Logger/ERROR :error
+    com.jcraft.jsch.Logger/FATAL :fatal}))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(deftype SshLogger
+   [log-level]
+   com.jcraft.jsch.Logger
+   (isEnabled
+    [_ level]
+    (&gt;= level log-level))
+   (log
+    [_ level message]
+    (logging/log &quot;clj-ssh.ssh&quot; (@ssh-log-levels level) nil message)))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure"> (JSch/setLogger (SshLogger. com.jcraft.jsch.Logger/DEBUG))</pre></tr><tr><td class="docs"><p>Set the default session options</p>
+</td><td class="codes" /><pre class="brush: clojure">(defmacro with-default-session-options
+  [options &amp; body]
+  `(binding [*default-session-options* ~options]
+     ~@body))</pre></tr><tr><td class="docs"><p>Set the default session options</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn default-session-options
+  [options]
+  (alter-var-root #'*default-session-options* #(identity %2) options))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defn- ^String file-path [string-or-file]
+  (if (string? string-or-file)
+    string-or-file
+    (.getPath ^java.io.File string-or-file)))</pre></tr><tr><td class="docs"><p>Predicate to test for an ssh-agent.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn ssh-agent?
+  [object] (instance? JSch object))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defn- default-user []
+  (. System getProperty &quot;user.name&quot;))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(def ^{:dynamic true} ^String *default-identity*
+     (.getPath (io/file (. System getProperty &quot;user.home&quot;) &quot;.ssh&quot; &quot;id_rsa&quot;)))</pre></tr><tr><td class="docs"><p>Bind the default identity.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defmacro with-default-identity
+  [path &amp; body]
+  `(binding [*default-identity* ~path]
+     ~@body))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defn default-identity
+  []
+  (if-let [id-file (java.io.File. *default-identity*)]
+    (if (.canRead id-file)
+      id-file)))</pre></tr><tr><td class="docs"><p>Check if the given identity is present.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn has-identity?
+  ([name] (has-identity? *ssh-agent* name))
+  ([^JSch agent name] (some #(= name %) (.getIdentityNames agent))))</pre></tr><tr><td class="docs"><p>Create a JSch identity.  This can be used to check whether the key is
+   encrypted.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn ^Identity make-identity
+  ([private-key-path public-key-path]
+     (make-identity *ssh-agent* private-key-path public-key-path))
+  ([^JSch agent ^String private-key-path ^String public-key-path]
+     (logging/tracef &quot;Make identity %s %s&quot; private-key-path public-key-path)
+     (reflect/call-method
+      com.jcraft.jsch.IdentityFile 'newInstance [String String JSch]
+      nil private-key-path public-key-path agent)))</pre></tr><tr><td class="docs"><p>Add an identity to the agent.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn add-identity
+  ([]
+     (add-identity *ssh-agent* (default-identity) nil))
+  ([private-key]
+     (add-identity *ssh-agent* private-key nil))
+  ([agent private-key]
+     (if (ssh-agent? agent)
+       (add-identity agent private-key nil)
+       (add-identity *ssh-agent* agent private-key)))
+  ([^JSch agent private-key ^String passphrase]
+     (assert agent)
+     (.addIdentity
+      agent
+      (if (instance? Identity private-key)
+        private-key
+        (file-path private-key))
+      (and passphrase (.getBytes passphrase))))
+  ([^JSch agent ^String name ^bytes private-key ^bytes public-key
+    ^bytes passphrase]
+     (assert agent)
+     (.addIdentity
+      agent name private-key public-key passphrase)))</pre></tr><tr><td class="docs"><p>Add a private key, only if not already known, using the keychain to obtain
+   a passphrase if required</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn add-identity-with-keychain
+  ([] (add-identity-with-keychain *ssh-agent* (default-identity)))
+  ([private-key-path] (add-identity-with-keychain *ssh-agent* private-key-path))
+  ([agent private-key-path]
+     (when-not (has-identity? agent private-key-path)
+       (let [identity (make-identity
+                       agent
+                       (file-path private-key-path)
+                       (str private-key-path &quot;.pub&quot;))]
+         (if (.isEncrypted identity)
+           (if-let [passphrase (keychain/passphrase private-key-path)]
+             (add-identity agent identity passphrase)
+             (logging/error &quot;Passphrase required, but none findable.&quot;))
+           (add-identity agent identity))))))</pre></tr><tr><td class="docs"><p>Create an ssh-agent. By default try and add the current user's id_rsa key.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn create-ssh-agent
+  ([] (create-ssh-agent true))
+  ([add-default-identity?]
+     (if (or (string? add-default-identity?)
+             (instance? java.io.File add-default-identity?))
+       (create-ssh-agent add-default-identity? nil)
+       (let [agent (JSch.)]
+         (when add-default-identity?
+           (if-let [default-id (default-identity)]
+             (add-identity-with-keychain agent default-id)))
+         agent)))
+  ([private-key passphrase?]
+     (let [agent (JSch.)]
+       (if passphrase?
+         (add-identity agent private-key passphrase?)
+         (add-identity-with-keychain agent private-key))
+       agent)))</pre></tr><tr><td class="docs"><p>Bind an ssh-agent for use as identity manager.
+The argument vector can be empty, in which case a new agent is created.  If
+passed a String or File, then this is passed to the new agent as an identity to
+be added.  An existing agent instance can alternatively be passed.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defmacro with-ssh-agent
+  [[&amp; agent] &amp; body]
+  `(binding [*ssh-agent*
+             ~(if (seq agent)
+                `(let [arg# ~(first agent)]
+                   (if (ssh-agent? arg#)
+                     arg#
+                     (create-ssh-agent ~@agent)))
+                `(create-ssh-agent))]
+     ~@body))</pre></tr><tr><td class="docs"><p>Converts first character of the string to upper-case.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn ^String capitalize
+  [^String s]
+  (if (&lt; (count s) 2)
+    (.toUpperCase s)
+    (str (.toUpperCase ^String (subs s 0 1))
+         (subs s 1))))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defn- camelize [^String a]
+  (apply str (map capitalize (.split a &quot;-&quot;))))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defn- ^String as-string [arg]
+  (cond
+   (symbol? arg) (name arg)
+   (keyword? arg) (name arg)
+   :else (str arg)))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defn- session-impl
+  [^JSch agent hostname username port ^String password options]
+  (let [session (.getSession
+                 agent
+                 (or username (default-user))
+                 hostname
+                 (or port 22))]
+    (when password
+      (.setPassword session password))
+    (doseq [option options]
+      (.setConfig
+       session
+       (camelize (as-string (first option)))
+       (as-string (second option))))
+    session))</pre></tr><tr><td class="docs"><p>Start a SSH session.
+Requires hostname.  you can also pass values for :username, :password and :port
+keys.  All other option key pairs will be passed as SSH config options.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn session
+  [agent? &amp; options]
+  (let [agent-provided? (ssh-agent? agent?)
+        agent (if agent-provided? agent? *ssh-agent*)
+        hostname (if agent-provided? (first options) agent?)
+        options (if agent-provided? (rest options) options)
+        options (apply hash-map options)]
+    (session-impl agent hostname
+                  (or (options :username) (. System getProperty &quot;user.name&quot;))
+                  (options :port)
+                  (options :password)
+                  (dissoc options :username :port :password))))</pre></tr><tr><td class="docs"><p>Connect a session.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn connect
+  ([session]
+     (.connect session))
+  ([session timeout]
+     (.connect session timeout)))</pre></tr><tr><td class="docs"><p>Disconnect a session.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn disconnect
+  [session]
+  (.disconnect session)
+  (when (instance? com.jcraft.jsch.Session session)
+    (when-let [t (reflect/get-field
+                  com.jcraft.jsch.Session 'connectThread session)]
+      (when (.isAlive t)
+        (.interrupt t)))))</pre></tr><tr><td class="docs"><p>Predicate used to test for a connected session.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn connected?
+  ([session]
+     (.isConnected session)))</pre></tr><tr><td class="docs"><p>Creates a context in which the session is connected. Ensures the session is
+  disconnected on exit.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defmacro with-connection
+  [session &amp; body]
+  `(let [session# ~session]
+     (try
+       (when-not (connected? session#)
+         (connect session#))
+       ~@body
+       (finally
+        (disconnect session#)))))</pre></tr><tr><td class="docs"><p>Open a channel of the specified type in the session.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn open-channel
+  [^Session session session-type]
+  (.openChannel session (name session-type)))</pre></tr><tr><td class="docs"><p>Open a SFTP channel in the session.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn sftp-channel
+  [^Session session]
+  (open-channel session :sftp))</pre></tr><tr><td class="docs"><p>Open an Exec channel in the session.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn exec-channel
+  [^Session session]
+  (open-channel session :exec))</pre></tr><tr><td class="docs"><p>Open a Shell channel in the session.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn shell-channel
+  [^Session session]
+  (open-channel session :shell))</pre></tr><tr><td class="docs"><p>The buffer size (in bytes) for the piped stream used to implement
+    the :stream option for :out. If your ssh commands generate a high volume of
+    output, then this buffer size can become a bottleneck. You might also
+    increase the frequency with which you read the output stream if this is an
+    issue.</p>
+</td><td class="codes" /><pre class="brush: clojure">(def
+  ^{:dynamic true
+    :doc (str )}
+  *piped-stream-buffer-size* (* 1024 10))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defn- streams-for-out
+  [out]
+  (if (= :stream out)
+    (let [os (java.io.PipedOutputStream.)]
+      [os (java.io.PipedInputStream. os *piped-stream-buffer-size*)])
+    [(java.io.ByteArrayOutputStream.) nil]))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defn- streams-for-in
+  []
+  (let [os (java.io.PipedInputStream. *piped-stream-buffer-size*)]
+    [os (java.io.PipedOutputStream. os)]))</pre></tr><tr><td class="docs"><p>Run a ssh-shell.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn ssh-shell
+  [^Session session in out opts]
+  (let [^ChannelShell shell (open-channel session :shell)
+        [out-stream out-inputstream] (streams-for-out out)]
+    (doto shell
+      (.setInputStream
+       (if (string? in)
+         (java.io.ByteArrayInputStream. (.getBytes (str in &quot;;exit $?;\n&quot;)))
+         in)
+       false)
+      (.setOutputStream out-stream))
+    (when (contains? opts :pty)
+      (reflect/call-method
+       com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE]
+       shell (boolean (opts :pty))))
+    (if out-inputstream
+      (do
+        (connect shell)
+        [shell out-inputstream])
+      (with-connection shell
+        (while (connected? shell)
+          (Thread/sleep 100))
+        [(.getExitStatus shell)
+         (if (= :bytes out)
+           (.toByteArray out-stream)
+           (.toString out-stream out))]))))</pre></tr><tr><td class="docs"><p>Run a command via ssh-exec.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn ssh-exec
+  [^Session session ^String cmd in out opts]
+  (let [^ChannelExec exec (open-channel session :exec)
+        [out-stream out-inputstream] (streams-for-out out)
+        [err-stream err-inputstream] (streams-for-out out)]
+    (doto exec
+      (.setInputStream
+       (if (string? in)
+         (java.io.ByteArrayInputStream. (.getBytes ^String in))
+         in)
+       false)
+      (.setOutputStream out-stream)
+      (.setErrStream err-stream)
+      (.setCommand cmd))
+    (when (contains? opts :pty)
+      (reflect/call-method
+       com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE]
+       exec (boolean (opts :pty))))
+    (if out-inputstream
+      (do
+        (connect exec)
+        [exec out-inputstream err-inputstream])
+      (with-connection exec
+        (while (connected? exec)
+          (Thread/sleep 100))
+        [(.getExitStatus exec)
+         (if (= :bytes out)
+           (.toByteArray out-stream)
+           (.toString out-stream out))
+         (if (= :bytes out)
+           (.toByteArray err-stream)
+           (.toString err-stream out))]))))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defn default-session [host username port password]
+  (doto (session-impl
+         (or (and (bound? #'*ssh-agent*) *ssh-agent*) (create-ssh-agent))
+         host username port password
+         *default-session-options*)
+    (.connect)))</pre></tr><tr><td class="docs"><p>Takes a seq of 'ssh' arguments and returns a map of option keywords
+  to option values.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn- parse-args
+  [args]
+  (loop [[arg :as args] args
+         opts {:cmd [] :out &quot;UTF-8&quot;}]
+    (if-not args
+      opts
+      (if (keyword? arg)
+        (recur (nnext args) (assoc opts arg (second args)))
+        (recur (next args) (update-in opts [:cmd] conj arg))))))</pre></tr><tr><td class="docs"><p>Execute commands over ssh.</p>
+
+<p>  ssh host-or-session cmd? &amp; options</p>
+
+<p>cmd specifies a command to exec.  If no cmd is given, a shell is started and input is taken from :in.</p>
+
+<p>Options are</p>
+
+<p>:in         specifies input to the remote shell. A string or a stream.
+:out        specify :stream to obtain a an [inputstream shell]
+            specify :bytes to obtain a byte array
+            or specify a string with an encoding specification for a
+            result string.  In the case of :stream, the shell can
+            be polled for connected status.
+:return-map when followed by boolean true, sh returns a map of
+              :exit => sub-process's exit code
+              :out  => sub-process's stdout (as byte[] or String)
+              :err  => sub-process's stderr (as byte[] or String)
+            when not given or followed by false, ssh returns a vector
+            of the remote shell's stdout followed by its stderr
+:username   username to use for authentication
+:password   password to use for authentication
+:port       port to use if no session specified</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn ssh
+  [session-or-hostname &amp; args]
+  (let [opts (parse-args args)
+        session-given (instance? com.jcraft.jsch.Session session-or-hostname)
+        session (if session-given
+                  session-or-hostname
+                  (default-session
+                   session-or-hostname
+                   (opts :username)
+                   (opts :port)
+                   (opts :password)))]
+    (try
+     (when-not (connected? session)
+       (connect session))
+     (if (empty? (:cmd opts))
+       (let [result (ssh-shell
+                     session
+                     (:in opts) (:out opts) (dissoc opts :in :out :cmd))]
+         (if (and (opts :return-map) (not= (:out opts) :stream))
+           {:exit (first result) :out (second result)}
+           result))
+       (let [result (ssh-exec
+                     session
+                     (apply str (interpose &quot; &quot; (:cmd opts)))
+                     (:in opts) (:out opts) (dissoc opts :in :out :cmd))]
+         (if (and (opts :return-map) (not= (:out opts) :stream))
+           {:exit (first result) :out (second result) :err (last result)}
+           result)))
+     (finally
+      (when-not session-given
+        (disconnect session))))))</pre></tr><tr><td class="docs"><p>Obtain a connected ftp channel.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn ssh-sftp
+  [^Session session]
+  {:pre (connected? session)}
+  (let [channel (open-channel session :sftp)]
+    (connect channel)
+    channel))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defmacro memfn-varargs [name]
+  `(fn [target# args#]
+    (condp = (count args#)
+      0 (. target# (~name))
+      1 (. target# (~name (first args#)))
+      2 (. target# (~name (first args#) (second args#)))
+      3 (. target# (~name (first args#) (second args#) (nth args# 2)))
+      4 (. target#
+           (~name (first args#) (second args#) (nth args# 2) (nth args# 3)))
+      5 (. target#
+           (~name (first args#) (second args#) (nth args# 2) (nth args# 3)
+                  (nth args# 4)))
+      (slingshot/throw+
+       (java.lang.IllegalArgumentException.
+        (str &quot;Too many arguments passed.  Limit 5, passed &quot; (count args#)))))))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(def sftp-modemap { :overwrite ChannelSftp/OVERWRITE
+                    :resume ChannelSftp/RESUME
+                    :append ChannelSftp/APPEND })</pre></tr><tr><td class="docs"><p>Command on a ftp channel.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn ssh-sftp-cmd
+  [^ChannelSftp channel cmd args options]
+  (case cmd
+    :ls (.ls channel (or (first args) &quot;.&quot;))
+    :cd (.cd channel (first args))
+    :lcd (.lcd channel (first args))
+    :chmod (.chmod channel (first args) (second args))
+    :chown (.chown channel (first args) (second args))
+    :chgrp (.chgrp channel (first args) (second args))
+    :pwd (.pwd channel)
+    :lpwd (.lpwd channel)
+    :rm (.rm channel (first args))
+    :rmdir (.rmdir channel (first args))
+    :mkdir (.mkdir channel (first args))
+    :stat (.stat channel (first args))
+    :lstat (.lstat channel (first args))
+    :rename (.rename channel (first args) (second args))
+    :symlink (.symlink channel (first args) (second args))
+    :readlink (.readlink channel (first args))
+    :realpath (.realpath channel (first args) (second args))
+    :get-home (.getHome channel)
+    :get-server-version (.getServerVersion channel)
+    :get-extension (.getExtension channel (first args))
+    :get (let [args (if (options :with-monitor)
+                      (conj args (options :with-monitor))
+                      args)
+               args (if (options :mode)
+                      (conj args (sftp-modemap (options :mode)))
+                      args)]
+           ((memfn-varargs get) channel args))
+    :put (let [args (if (options :with-monitor)
+                      (conj args (options :with-monitor))
+                      args)
+               args (if (options :mode)
+                      (conj args (sftp-modemap (options :mode)))
+                      args)]
+           ((memfn-varargs put) channel args))
+    (slingshot/throw+
+     (java.lang.IllegalArgumentException. (str &quot;Unknown SFTP command &quot; cmd)))))</pre></tr><tr><td class="docs"><p>Execute SFTP commands.</p>
+
+<p>  sftp host-or-session cmd &amp; options</p>
+
+<p>cmd specifies a command to exec.  Valid commands are:
+:ls
+:put
+:get
+:chmod
+:chown
+:chgrp
+:cd
+:lcd
+:pwd
+:lpwd
+:rm
+:rmdir
+:stat
+:symlink</p>
+
+<p>Options are
+:username   username to use for authentication
+:password   password to use for authentication
+:port       port to use if no session specified</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn sftp
+  [session-or-hostname cmd &amp; args]
+  (let [opts (parse-args args)
+        channel-given (instance?
+                       com.jcraft.jsch.ChannelSftp session-or-hostname)
+        session-given (instance?
+                       com.jcraft.jsch.Session session-or-hostname)
+        session (if session-given
+                  session-or-hostname
+                  (if channel-given
+                    nil
+                    (default-session
+                      session-or-hostname
+                      (opts :username)
+                      (opts :port)
+                      (opts :password))))
+        channel (if channel-given
+                  session-or-hostname
+                  (ssh-sftp session))]
+    (try
+     (when (and session (not (connected? session)))
+       (connect session))
+     (let [result (ssh-sftp-cmd channel cmd (opts :cmd) (dissoc opts :cmd))]
+       (if (opts :return-map)
+         {:exit (first result) :out (second result)}
+         result))
+     (finally
+      (when-not channel-given
+        (disconnect channel))
+      (when-not (or session-given channel-given)
+        (disconnect session))))))</pre></tr><tr><td class="docs"><p>Send acknowledgement to the specified output stream</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn- scp-send-ack
+  ([out] (scp-send-ack out 0))
+  ([out code]
+     (.write out (byte-array [(byte code)]))
+     (.flush out)))</pre></tr><tr><td class="docs"><p>Check for an acknowledgement byte from the given input stream</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn- scp-receive-ack
+  [in]
+  (let [code (.read in)]
+    (when-not (zero? code)
+      (slingshot/throw+
+       {:type :clj-ssh/scp-failure
+        :message (format
+                  &quot;clj-ssh scp failure: %s&quot;
+                  (case code
+                    1 &quot;scp error&quot;
+                    2 &quot;scp fatal error&quot;
+                    -1 &quot;disconnect error&quot;
+                    &quot;unknown error&quot;))}))))</pre></tr><tr><td class="docs"><p>Send command to the specified output stream</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn- scp-send-command
+  [out in cmd-string]
+  (.write out (.getBytes cmd-string))
+  (.flush out)
+  (logging/tracef &quot;Sent command %s&quot; cmd-string)
+  (scp-receive-ack in)
+  (logging/trace &quot;Received ACK&quot;))</pre></tr><tr><td class="docs"><p>Receive command on the specified input stream</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn- scp-receive-command
+  [out in]
+  (let [buffer-size 1024
+        buffer (byte-array buffer-size)]
+    (let [cmd (loop [offset 0]
+                (let [n (.read in buffer offset (- buffer-size offset))]
+                  (logging/tracef
+                   &quot;scp-receive-command: %s&quot;
+                   (String. buffer 0 (+ offset n)))
+                  (if (= \newline (char (aget buffer (+ offset n -1))))
+                    (String. buffer 0 (+ offset n))
+                    (recur (+ offset n)))))]
+      (logging/tracef &quot;Received command %s&quot; cmd)
+      (scp-send-ack out)
+      (logging/trace &quot;Sent ACK&quot;)
+      cmd)))</pre></tr><tr><td class="docs"><p>Send acknowledgement to the specified output stream</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn- scp-copy-file
+  [send recv file {:keys [mode buffer-size preserve]
+                   :or {mode 0644 buffer-size 1492 preserve false}}]
+  (logging/tracef &quot;Sending %s&quot; (.getAbsolutePath file))
+  (when preserve
+    (scp-send-command
+     send recv
+     (format &quot;P %d 0 %d 0\n&quot; (.lastModified file) (.lastModified file))))
+  (scp-send-command
+   send recv
+   (format &quot;C%04o %d %s\n&quot; mode (.length file) (.getName file)))
+  (with-open [fs (java.io.FileInputStream. file)]
+    (io/copy fs send :buffer-size buffer-size))
+  (scp-send-ack send)
+  (logging/trace &quot;Sent ACK after send&quot;)
+  (scp-receive-ack recv)
+  (logging/trace &quot;Received ACK after send&quot;))</pre></tr><tr><td class="docs"><p>Send acknowledgement to the specified output stream</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn- scp-copy-dir
+  [send recv dir {:keys [dir-mode] :or {dir-mode 0755} :as options}]
+  (logging/trace &quot;Sending directory %s&quot; (.getAbsolutePath dir))
+  (scp-send-command
+   send recv
+   (format &quot;D%04o 0 %s&quot; dir-mode (.getName dir)))
+  (doseq [file (.listFiles dir)]
+    (cond
+     (.isFile file) (scp-copy-file send recv file options)
+     (.isDirectory file) (scp-copy-dir send recv file options)))
+  (scp-send-ack send)
+  (logging/trace &quot;Sent ACK after send&quot;)
+  (scp-receive-ack recv)
+  (logging/trace &quot;Received ACK after send&quot;))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defn- scp-files
+  [paths recursive]
+  (let [f (if recursive
+            #(java.io.File. %)
+            (fn [path]
+              (let [file (java.io.File. path)]
+                (when (.isDirectory file)
+                  (slingshot/throw+
+                   {:type :clj-ssh/scp-directory-copy-requested
+                    :message (format
+                              &quot;Copy of dir %s requested without recursive flag&quot;
+                              path)}))
+                file)))]
+    (map f paths)))</pre></tr><tr><td class="docs"><p>Reset the session to use no cipher</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn session-cipher-none
+  [session]
+  (logging/trace &quot;Set session to prefer none cipher&quot;)
+  (doto session
+    (.setConfig
+     &quot;cipher.s2c&quot; &quot;none,aes128-cbc,3des-cbc,blowfish-cbc&quot;)
+    (.setConfig
+     &quot;cipher.c2s&quot; &quot;none,aes128-cbc,3des-cbc,blowfish-cbc&quot;)
+    (.rekey)))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defn scp-parse-times
+  [cmd]
+  (let [s (java.io.StringReader. cmd)]
+    (.skip s 1) ;; skip T
+    (let [scanner (java.util.Scanner. s)
+          mtime (.nextLong scanner)
+          zero (.nextInt scanner)
+          atime (.nextLong scanner)]
+      [mtime atime])))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defn scp-parse-copy
+  [cmd]
+  (let [s (java.io.StringReader. cmd)]
+    (.skip s 1) ;; skip C or D
+    (let [scanner (java.util.Scanner. s)
+          mode (.nextInt scanner 8)
+          length (.nextLong scanner)
+          filename (.next scanner)]
+      [mode length filename])))</pre></tr><tr><td class="docs"><p>Sink a file</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn scp-sink-file
+  [send recv file mode length {:keys [buffer-size] :or {buffer-size 2048}}]
+  (logging/tracef &quot;Sinking %d bytes to file %s&quot; length (.getPath file))
+  (let [buffer (byte-array buffer-size)]
+    (with-open [file-stream (java.io.FileOutputStream. file)]
+      (loop [length length]
+        (let [size (.read recv buffer 0 (min length buffer-size))]
+          (when (pos? size)
+            (.write file-stream buffer 0 size))
+          (when (and (pos? size) (&lt; size length))
+            (recur (- length size))))))
+    (scp-receive-ack recv)
+    (logging/trace &quot;Received ACK after sink of file&quot;)
+    (scp-send-ack send)
+    (logging/trace &quot;Sent ACK after sink of file&quot;)))</pre></tr><tr><td class="docs"><p>Sink scp commands to file</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn scp-sink
+  [send recv file times {:as options}]
+  (let [cmd (scp-receive-command send recv)]
+    (case (first cmd)
+      \C (let [[mode length filename] (scp-parse-copy cmd)
+               file (if (and (.exists file) (.isDirectory file))
+                      (doto (java.io.File. file filename) (.createNewFile))
+                      (doto file (.createNewFile)))]
+           (scp-sink-file send recv file mode length options)
+           (when times
+             (.setLastModified file (first times))))
+      \T (scp-sink send recv file (scp-parse-times cmd) options)
+      \D (let [[mode filename] (scp-parse-copy cmd)
+               dir (java.io.File. file filename)]
+           (when (and (.exists dir) (not (.isDirectory dir)))
+             (.delete dir))
+           (when (not (.exists dir))
+             (.mkdir dir))
+           (scp-sink send recv dir nil options))
+      \E nil)))</pre></tr><tr><td class="docs"><p>Copy local path(s) to remote path via scp.</p>
+
+<p>   Options are:</p>
+
+<p>   :username   username to use for authentication
+   :password   password to use for authentication
+   :port       port to use if no session specified
+   :mode       mode, as a 4 digit octal number (default 0644)
+   :dir-mode   directory mode, as a 4 digit octal number (default 0755)
+   :recursive  flag for recursive operation
+   :preserve   flag for preserving mode, mtime and atime. atime is not available
+               in java, so is set to mtime. mode is not readable in java.</p>
+
+<p>http://blogs.sun.com/janp/entry/how<em>the</em>scp<em>protocol</em>works</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn scp-to
+  [session-or-hostname local-paths remote-path
+   &amp; {:keys [username password port mode dir-mode recursive preserve] :as opts}]
+  (let [local-paths (if (sequential? local-paths) local-paths [local-paths])
+        files (scp-files local-paths recursive)
+        session-given (instance? com.jcraft.jsch.Session session-or-hostname)
+        session (if session-given
+                  session-or-hostname
+                  (let [s (default-session
+                            session-or-hostname
+                            (opts :username)
+                            (opts :port)
+                            (opts :password))]
+                    (if (:cipher-none opts)
+                      (session-cipher-none s)
+                      s)))]
+    (try
+      (when (and session (not (connected? session)))
+        (connect session))
+      (let [[in send] (streams-for-in)
+            cmd (format &quot;scp %s -t %s&quot; (:remote-flags opts &quot;&quot;) remote-path)
+            _ (logging/tracef &quot;scp-to: %s&quot; cmd)
+            [exec recv] (ssh-exec session cmd in :stream opts)]
+        (logging/tracef
+         &quot;scp-to %s %s&quot; (string/join &quot; &quot; local-paths) remote-path)
+        (logging/trace &quot;Receive initial ACK&quot;)
+        (scp-receive-ack recv)
+        (doseq [file files]
+          (logging/tracef &quot;scp-to: from %s&quot; (.getPath file))
+          (if (.isDirectory file)
+            (scp-copy-dir send recv file opts)
+            (scp-copy-file send recv file opts)))
+        (logging/trace &quot;Closing streams&quot;)
+        (.close send)
+        (.close recv)
+        (disconnect exec)
+        nil)
+      (finally
+       (when-not session-given
+         (disconnect session))))))</pre></tr><tr><td class="docs"><p>Copy remote path(s) to local path via scp.</p>
+
+<p>   Options are:</p>
+
+<p>   :username   username to use for authentication
+   :password   password to use for authentication
+   :port       port to use if no session specified
+   :mode       mode, as a 4 digit octal number (default 0644)
+   :dir-mode   directory mode, as a 4 digit octal number (default 0755)
+   :recursive  flag for recursive operation
+   :preserve   flag for preserving mode, mtime and atime. atime is not available
+               in java, so is set to mtime. mode is not readable in java.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn scp-from
+  [session-or-hostname remote-paths local-path
+   &amp; {:keys [username password port mode dir-mode recursive preserve] :as opts}]
+  (let [remote-paths (if (sequential? remote-paths) remote-paths [remote-paths])
+        file (java.io.File. local-path)
+        _ (when (and (.exists file)
+                     (not (.isDirectory file))
+                     (&gt; (count remote-paths) 1))
+            (slingshot/throw+
+             {:type :clj-ssh/scp-copy-multiple-files-to-file-requested
+              :message (format
+                        &quot;Copy of multiple files to file %s requested&quot;
+                        local-path)}))
+        session-given (instance? com.jcraft.jsch.Session session-or-hostname)
+        session (if session-given
+                  session-or-hostname
+                  (let [s (default-session
+                            session-or-hostname
+                            (opts :username)
+                            (opts :port)
+                            (opts :password))]
+                    (if (:cipher-none opts)
+                      (session-cipher-none s)
+                      s)))]
+    (try
+      (when (and session (not (connected? session)))
+        (connect session))
+      (let [[in send] (streams-for-in)
+            flags {:recursive &quot;-r&quot; :preserve &quot;-p&quot;}
+            cmd (format
+                 &quot;scp %s -f %s&quot;
+                 (:remote-flags
+                  opts
+                  (string/join
+                   &quot; &quot;
+                   (-&gt;&gt;
+                    (select-keys opts [:recursive :preserve])
+                    (filter val)
+                    (map (fn [k v] (k flags))))))
+                 (string/join &quot; &quot; remote-paths))
+            _ (logging/tracef &quot;scp-from: %s&quot; cmd)
+            [exec recv] (ssh-exec session cmd in :stream opts)]
+        (logging/tracef
+         &quot;scp-from %s %s&quot; (string/join &quot; &quot; remote-paths) local-path)
+        (scp-send-ack send)
+        (logging/trace &quot;Sent initial ACK&quot;)
+        (scp-sink send recv file nil opts)
+        (logging/trace &quot;Closing streams&quot;)
+        (.close send)
+        (.close recv)
+        (disconnect exec)
+        nil)
+      (finally
+       (when-not session-given
+         (disconnect session))))))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(def ^{:private true} key-types {:rsa KeyPair/RSA :dsa KeyPair/DSA})</pre></tr><tr><td class="docs"><p>Generate a keypair, returned as [private public] byte arrays.
+   Valid types are :rsa and :dsa.  key-size is in bytes. passphrase
+   can be a string or byte array.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn generate-keypair
+  ([key-type key-size passphrase]
+     (generate-keypair *ssh-agent* key-type key-size passphrase))
+  ([agent key-type key-size passphrase]
+     (let [keypair (KeyPair/genKeyPair agent (key-type key-types) key-size)]
+       (when passphrase (.setPassphrase keypair passphrase))
+       (let [pub-baos (java.io.ByteArrayOutputStream.)
+             pri-baos (java.io.ByteArrayOutputStream.)]
+         (.writePublicKey keypair pub-baos &quot;&quot;)
+         (.writePrivateKey keypair pri-baos)
+         [(.toByteArray pri-baos) (.toByteArray pub-baos)]))))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_clj-ssh.keychain">clj-ssh.keychain</li><li class="floating-toc-li" id="floating-toc_clj-ssh.reflect">clj-ssh.reflect</li><li class="floating-toc-li" id="floating-toc_clj-ssh.ssh">clj-ssh.ssh</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+       SyntaxHighlighter.all()</script></body></html>
