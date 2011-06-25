@@ -3,7 +3,7 @@
    moment."
   (:require
    [clojure.tools.logging :as logging]
-   [clojure.contrib.shell :as shell]))
+   [clojure.java.shell :as shell]))
 
 (defn ask-passphrase [path]
   (when-let [console (. System console)]
@@ -21,7 +21,6 @@
 (defmethod keychain-passphrase "Mac OS X"
   [system path]
   (let [result (shell/sh
-                :return-map true
                 "/usr/bin/security" "find-generic-password" "-a"
                 (format "%s" path)
                 "-g")]

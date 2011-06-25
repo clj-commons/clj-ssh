@@ -37,21 +37,24 @@ Leiningen (http://github.com/technomancy/leiningen).
 ## License
 
 Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
-  (:use
-   [clojure.contrib.def :only [defvar defvar- defunbound]])
   (:require
    [clj-ssh.keychain :as keychain]
-   [clojure.contrib.condition :as condition]
-   [clojure.tools.logging :as logging]
-   [clojure.contrib.reflect :as reflect]
+   [clj-ssh.reflect :as reflect]
    [clojure.java.io :as io]
-   [clojure.string :as string])
+   [clojure.string :as string]
+   [clojure.tools.logging :as logging]
+   [slingshot.core :as slingshot])
   (:import [com.jcraft.jsch
             JSch Session Channel ChannelShell ChannelExec ChannelSftp
             Identity IdentityFile Logger KeyPair]))
 
-(defunbound *ssh-agent* "SSH agent used to manage identities.")
-(defvar *default-session-options* {} "Default SSH options")
+(def ^{:doc "SSH agent used to manage identities." :dynamic true}
+  *ssh-agent*)
+
+(def
+  ^{:doc "Default SSH options"
+    :dynamic true}
+  *default-session-options* {})
 
 (def ^{:dynamic true}
   ssh-log-levels
@@ -97,7 +100,7 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
 (defn- default-user []
   (. System getProperty "user.name"))
 
-(def ^String *default-identity*
+(def ^{:dynamic true} ^String *default-identity*
      (.getPath (io/file (. System getProperty "user.home") ".ssh" "id_rsa")))
 
 (defmacro with-default-identity
@@ -261,8 +264,13 @@ keys.  All other option key pairs will be passed as SSH config options."
 
 (defn disconnect
   "Disconnect a session."
-  ([session]
-     (.disconnect session)))
+  [session]
+  (.disconnect session)
+  (when (instance? com.jcraft.jsch.Session session)
+    (when-let [t (reflect/get-field
+                  com.jcraft.jsch.Session 'connectThread session)]
+      (when (.isAlive t)
+        (.interrupt t)))))
 
 (defn connected?
   "Predicate used to test for a connected session."
@@ -275,10 +283,11 @@ keys.  All other option key pairs will be passed as SSH config options."
   [session & body]
   `(let [session# ~session]
      (try
-      (when-not (connected? session#)
-        (connect session#))
-      ~@body
-      (finally (disconnect session#)))))
+       (when-not (connected? session#)
+         (connect session#))
+       ~@body
+       (finally
+        (disconnect session#)))))
 
 (defn open-channel
   "Open a channel of the specified type in the session."
@@ -478,10 +487,9 @@ Options are
       5 (. target#
            (~name (first args#) (second args#) (nth args# 2) (nth args# 3)
                   (nth args# 4)))
-      (throw
+      (slingshot/throw+
        (java.lang.IllegalArgumentException.
-        (str
-         "too many arguments passed.  Limit 5, passed " (count args#)))))))
+        (str "Too many arguments passed.  Limit 5, passed " (count args#)))))))
 
 (def sftp-modemap { :overwrite ChannelSftp/OVERWRITE
                     :resume ChannelSftp/RESUME
@@ -525,8 +533,8 @@ Options are
                       (conj args (sftp-modemap (options :mode)))
                       args)]
            ((memfn-varargs put) channel args))
-    (throw (java.lang.IllegalArgumentException.
-            (str "Unknown SFTP command " cmd)))))
+    (slingshot/throw+
+     (java.lang.IllegalArgumentException. (str "Unknown SFTP command " cmd)))))
 
 (defn sftp
   "Execute SFTP commands.
@@ -597,15 +605,15 @@ Options are
   [in]
   (let [code (.read in)]
     (when-not (zero? code)
-      (condition/raise
-       :type :clj-ssh/scp-failure
-       :message (format
-                 "clj-ssh scp failure: %s"
-                 (case code
-                   1 "scp error"
-                   2 "scp fatal error"
-                   -1 "disconnect error"
-                   "unknown error"))))))
+      (slingshot/throw+
+       {:type :clj-ssh/scp-failure
+        :message (format
+                  "clj-ssh scp failure: %s"
+                  (case code
+                    1 "scp error"
+                    2 "scp fatal error"
+                    -1 "disconnect error"
+                    "unknown error"))}))))
 
 (defn- scp-send-command
   "Send command to the specified output stream"
@@ -677,11 +685,11 @@ Options are
             (fn [path]
               (let [file (java.io.File. path)]
                 (when (.isDirectory file)
-                  (condition/raise
-                   :type :clj-ssh/scp-directory-copy-requested
-                   :message (format
-                             "Copy of dir %s requested without recursive flag"
-                             path)))
+                  (slingshot/throw+
+                   {:type :clj-ssh/scp-directory-copy-requested
+                    :message (format
+                              "Copy of dir %s requested without recursive flag"
+                              path)}))
                 file)))]
     (map f paths)))
 
@@ -830,11 +838,11 @@ Options are
         _ (when (and (.exists file)
                      (not (.isDirectory file))
                      (> (count remote-paths) 1))
-            (condition/raise
-             :type :clj-ssh/scp-copy-multiple-files-to-file-requested
-             :message (format
-                       "Copy of multiple files to file %s requested"
-                       local-path)))
+            (slingshot/throw+
+             {:type :clj-ssh/scp-copy-multiple-files-to-file-requested
+              :message (format
+                        "Copy of multiple files to file %s requested"
+                        local-path)}))
         session-given (instance? com.jcraft.jsch.Session session-or-hostname)
         session (if session-given
                   session-or-hostname
@@ -878,7 +886,7 @@ Options are
        (when-not session-given
          (disconnect session))))))
 
-(defvar- key-types {:rsa KeyPair/RSA :dsa KeyPair/DSA})
+(def ^{:private true} key-types {:rsa KeyPair/RSA :dsa KeyPair/DSA})
 
 (defn generate-keypair
   "Generate a keypair, returned as [private public] byte arrays.
