@@ -52,6 +52,10 @@ Note that any sftp commands that change the state of the sftp session (such as
 cd) do not work with the simplified interface, as a new session is created each
 time.
 
+## Documentation
+
+[Annotated source](http:/hugoduncan.github.com/clj-ssh/uberdoc.html).
+
 ## FAQ
 
 Q: Why doesn't clj-ssh integrate with the OS's ssh agent?
