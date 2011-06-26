@@ -3,15 +3,20 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>clj-ssh</groupId>
   <artifactId>clj-ssh</artifactId>
-  <version>0.3.0-SNAPSHOT</version>
+  <version>0.3.0</version>
   <name>clj-ssh</name>
-  <description>ssh from clojure</description>
+  <description>
+    clj-ssh is a clojure wrapper for he jsch library, and can be used as an
+    ssh client
+  </description>
+
   <scm>
     <connection>scm:git:git://github.com/hugoduncan/clj-ssh.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/hugoduncan/clj-ssh.git</developerConnection>
     <tag>380240ba9bf67fffe69bebdc9aaef711e819063d</tag>
     <url>http://github.com/hugoduncan/clj-ssh</url>
   </scm>
+
   <build>
     <sourceDirectory>src</sourceDirectory>
     <testSourceDirectory>test</testSourceDirectory>
@@ -72,20 +77,14 @@
       </plugin>
     </plugins>
   </build>
+
   <repositories>
-    <repository>
-      <id>clojure</id>
-      <url>http://build.clojure.org/releases</url>
-    </repository>
-    <repository>
-      <id>clojure-snapshots</id>
-      <url>http://build.clojure.org/snapshots</url>
-    </repository>
     <repository>
       <id>clojars</id>
       <url>http://clojars.org/repo/</url>
     </repository>
   </repositories>
+
   <dependencies>
     <dependency>
       <groupId>org.clojure</groupId>
