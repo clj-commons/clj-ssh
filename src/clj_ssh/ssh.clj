@@ -1,4 +1,4 @@
-(ns #^{:author "Hugo Duncan"}
+(ns ^{:author "Hugo Duncan"}
   clj-ssh.ssh
   "SSH in clojure.  Uses jsch.  Provides a ssh function that tries to look
 similar to clojure.contrib.shell/sh.
@@ -37,56 +37,35 @@ Leiningen (http://github.com/technomancy/leiningen).
 ## License
 
 Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
-  (:use
-   [clojure.contrib.def :only [defvar defvar- defunbound]])
   (:require
-   clj-ssh.keychain
-   [clojure.contrib.logging :as logging])
+   [clj-ssh.keychain :as keychain]
+   [clj-ssh.reflect :as reflect]
+   [clojure.java.io :as io]
+   [clojure.string :as string]
+   [clojure.tools.logging :as logging]
+   [slingshot.core :as slingshot])
   (:import [com.jcraft.jsch
             JSch Session Channel ChannelShell ChannelExec ChannelSftp
             Identity IdentityFile Logger KeyPair]))
 
-;; working towards clojure 1.1/1.2 compat
-(try
-  (use '[clojure.contrib.reflect :only [call-method]])
-  (require '[clojure.contrib.io :as io])
-  (catch Exception e
-    (require '[clojure.contrib.java-utils :as io :only [file]])
-    (ns-unmap 'clj-ssh.ssh 'call-method)
-    (use '[clojure.contrib.java-utils :only [wall-hack-method]
-               :rename {wall-hack-method call-method}])))
+(def ^{:doc "SSH agent used to manage identities." :dynamic true}
+  *ssh-agent*)
 
+(def
+  ^{:doc "Default SSH options"
+    :dynamic true}
+  *default-session-options* {})
 
+(def ^{:dynamic true}
+  ssh-log-levels
+  (atom
+   {com.jcraft.jsch.Logger/DEBUG :debug
+    com.jcraft.jsch.Logger/INFO  :info
+    com.jcraft.jsch.Logger/WARN  :warn
+    com.jcraft.jsch.Logger/ERROR :error
+    com.jcraft.jsch.Logger/FATAL :fatal}))
 
-(defunbound *ssh-agent* "SSH agent used to manage identities.")
-(defvar *default-session-options* {} "Default SSH options")
-
-
-(defmacro when-feature
-  [feature-name & body]
-  (when (find-var (symbol "clojure.core" (name feature-name)))
-    `(do ~@body)))
-
-(defmacro when-not-feature
-  [feature-name & body]
-  (when-not (find-var (symbol "clojure.core" (name feature-name)))
-    `(do ~@body)))
-
-(when-not-feature
- bound?
- (defn bound?
-   [& vars#]
-   (every? #(.isBound #^clojure.lang.Var %) vars#)))
-
-;; Enable java logging of jsch when in clojure 1.2
-(when-feature deftype
- (def ^{:dynamic true} *ssh-log-levels*
-      {com.jcraft.jsch.Logger/DEBUG :debug
-       com.jcraft.jsch.Logger/INFO  :info
-       com.jcraft.jsch.Logger/WARN  :warn
-       com.jcraft.jsch.Logger/ERROR :error
-       com.jcraft.jsch.Logger/FATAL :fatal})
- (deftype SshLogger
+(deftype SshLogger
    [log-level]
    com.jcraft.jsch.Logger
    (isEnabled
@@ -94,9 +73,9 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
     (>= level log-level))
    (log
     [_ level message]
-    (logging/log (*ssh-log-levels* level) message nil "clj-ssh.ssh")))
+    (logging/log "clj-ssh.ssh" (@ssh-log-levels level) nil message)))
 
- (JSch/setLogger (SshLogger. com.jcraft.jsch.Logger/DEBUG)))
+ (JSch/setLogger (SshLogger. com.jcraft.jsch.Logger/DEBUG))
 
 (defmacro with-default-session-options
   "Set the default session options"
@@ -109,10 +88,10 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
   [options]
   (alter-var-root #'*default-session-options* #(identity %2) options))
 
-(defn- #^String file-path [string-or-file]
+(defn- ^String file-path [string-or-file]
   (if (string? string-or-file)
     string-or-file
-    (.getPath #^java.io.File string-or-file)))
+    (.getPath ^java.io.File string-or-file)))
 
 (defn ssh-agent?
   "Predicate to test for an ssh-agent."
@@ -121,7 +100,7 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
 (defn- default-user []
   (. System getProperty "user.name"))
 
-(def #^String *default-identity*
+(def ^{:dynamic true} ^String *default-identity*
      (.getPath (io/file (. System getProperty "user.home") ".ssh" "id_rsa")))
 
 (defmacro with-default-identity
@@ -139,17 +118,16 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
 (defn has-identity?
   "Check if the given identity is present."
   ([name] (has-identity? *ssh-agent* name))
-  ([#^JSch agent name] (some #(= name %) (.getIdentityNames agent))))
+  ([^JSch agent name] (some #(= name %) (.getIdentityNames agent))))
 
-(defn #^Identity make-identity
+(defn ^Identity make-identity
   "Create a JSch identity.  This can be used to check whether the key is
    encrypted."
   ([private-key-path public-key-path]
      (make-identity *ssh-agent* private-key-path public-key-path))
-  ([#^JSch agent #^String private-key-path #^String public-key-path]
-     (logging/trace
-      (format "Make identity %s %s" private-key-path public-key-path))
-     (call-method
+  ([^JSch agent ^String private-key-path ^String public-key-path]
+     (logging/tracef "Make identity %s %s" private-key-path public-key-path)
+     (reflect/call-method
       com.jcraft.jsch.IdentityFile 'newInstance [String String JSch]
       nil private-key-path public-key-path agent)))
 
@@ -163,7 +141,7 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
      (if (ssh-agent? agent)
        (add-identity agent private-key nil)
        (add-identity *ssh-agent* agent private-key)))
-  ([#^JSch agent private-key #^String passphrase]
+  ([^JSch agent private-key ^String passphrase]
      (assert agent)
      (.addIdentity
       agent
@@ -171,8 +149,8 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
         private-key
         (file-path private-key))
       (and passphrase (.getBytes passphrase))))
-  ([#^JSch agent #^String name #^bytes private-key #^bytes public-key
-    #^bytes passphrase]
+  ([^JSch agent ^String name ^bytes private-key ^bytes public-key
+    ^bytes passphrase]
      (assert agent)
      (.addIdentity
       agent name private-key public-key passphrase)))
@@ -189,7 +167,7 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
                        (file-path private-key-path)
                        (str private-key-path ".pub"))]
          (if (.isEncrypted identity)
-           (if-let [passphrase (clj-ssh.keychain/passphrase private-key-path)]
+           (if-let [passphrase (keychain/passphrase private-key-path)]
              (add-identity agent identity passphrase)
              (logging/error "Passphrase required, but none findable."))
            (add-identity agent identity))))))
@@ -228,25 +206,25 @@ be added.  An existing agent instance can alternatively be passed."
                 `(create-ssh-agent))]
      ~@body))
 
-(defn #^String capitalize
+(defn ^String capitalize
   "Converts first character of the string to upper-case."
-  [#^String s]
+  [^String s]
   (if (< (count s) 2)
     (.toUpperCase s)
-    (str (.toUpperCase #^String (subs s 0 1))
+    (str (.toUpperCase ^String (subs s 0 1))
          (subs s 1))))
 
-(defn- camelize [#^String a]
+(defn- camelize [^String a]
   (apply str (map capitalize (.split a "-"))))
 
-(defn- #^String as-string [arg]
+(defn- ^String as-string [arg]
   (cond
    (symbol? arg) (name arg)
    (keyword? arg) (name arg)
    :else (str arg)))
 
 (defn- session-impl
-  [#^JSch agent hostname username port #^String password options]
+  [^JSch agent hostname username port ^String password options]
   (let [session (.getSession
                  agent
                  (or username (default-user))
@@ -286,8 +264,13 @@ keys.  All other option key pairs will be passed as SSH config options."
 
 (defn disconnect
   "Disconnect a session."
-  ([session]
-     (.disconnect session)))
+  [session]
+  (.disconnect session)
+  (when (instance? com.jcraft.jsch.Session session)
+    (when-let [t (reflect/get-field
+                  com.jcraft.jsch.Session 'connectThread session)]
+      (when (.isAlive t)
+        (.interrupt t)))))
 
 (defn connected?
   "Predicate used to test for a connected session."
@@ -300,42 +283,57 @@ keys.  All other option key pairs will be passed as SSH config options."
   [session & body]
   `(let [session# ~session]
      (try
-      (when-not (connected? session#)
-        (connect session#))
-      ~@body
-      (finally (disconnect session#)))))
+       (when-not (connected? session#)
+         (connect session#))
+       ~@body
+       (finally
+        (disconnect session#)))))
 
 (defn open-channel
   "Open a channel of the specified type in the session."
-  [#^Session session session-type]
+  [^Session session session-type]
   (.openChannel session (name session-type)))
 
 (defn sftp-channel
   "Open a SFTP channel in the session."
-  [#^Session session]
+  [^Session session]
   (open-channel session :sftp))
 
 (defn exec-channel
   "Open an Exec channel in the session."
-  [#^Session session]
+  [^Session session]
   (open-channel session :exec))
 
 (defn shell-channel
   "Open a Shell channel in the session."
-  [#^Session session]
+  [^Session session]
   (open-channel session :shell))
+
+(def
+  ^{:dynamic true
+    :doc (str "The buffer size (in bytes) for the piped stream used to implement
+    the :stream option for :out. If your ssh commands generate a high volume of
+    output, then this buffer size can become a bottleneck. You might also
+    increase the frequency with which you read the output stream if this is an
+    issue.")}
+  *piped-stream-buffer-size* (* 1024 10))
 
 (defn- streams-for-out
   [out]
   (if (= :stream out)
     (let [os (java.io.PipedOutputStream.)]
-      [os (java.io.PipedInputStream. os)])
+      [os (java.io.PipedInputStream. os *piped-stream-buffer-size*)])
     [(java.io.ByteArrayOutputStream.) nil]))
+
+(defn- streams-for-in
+  []
+  (let [os (java.io.PipedInputStream. *piped-stream-buffer-size*)]
+    [os (java.io.PipedOutputStream. os)]))
 
 (defn ssh-shell
   "Run a ssh-shell."
-  [#^Session session in out opts]
-  (let [#^ChannelShell shell (open-channel session :shell)
+  [^Session session in out opts]
+  (let [^ChannelShell shell (open-channel session :shell)
         [out-stream out-inputstream] (streams-for-out out)]
     (doto shell
       (.setInputStream
@@ -345,7 +343,7 @@ keys.  All other option key pairs will be passed as SSH config options."
        false)
       (.setOutputStream out-stream))
     (when (contains? opts :pty)
-      (call-method
+      (reflect/call-method
        com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE]
        shell (boolean (opts :pty))))
     (if out-inputstream
@@ -362,21 +360,21 @@ keys.  All other option key pairs will be passed as SSH config options."
 
 (defn ssh-exec
   "Run a command via ssh-exec."
-  [#^Session session #^String cmd in out opts]
-  (let [#^ChannelExec exec (open-channel session :exec)
+  [^Session session ^String cmd in out opts]
+  (let [^ChannelExec exec (open-channel session :exec)
         [out-stream out-inputstream] (streams-for-out out)
         [err-stream err-inputstream] (streams-for-out out)]
     (doto exec
       (.setInputStream
        (if (string? in)
-         (java.io.ByteArrayInputStream. (.getBytes #^String in))
+         (java.io.ByteArrayInputStream. (.getBytes ^String in))
          in)
        false)
       (.setOutputStream out-stream)
       (.setErrStream err-stream)
       (.setCommand cmd))
     (when (contains? opts :pty)
-      (call-method
+      (reflect/call-method
        com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE]
        exec (boolean (opts :pty))))
     (if out-inputstream
@@ -423,8 +421,8 @@ cmd specifies a command to exec.  If no cmd is given, a shell is started and inp
 Options are
 
 :in         specifies input to the remote shell. A string or a stream.
-:out        specify :stream to obtain a an [inputstream shell],
-            specify :bytes to obtain a byte array,
+:out        specify :stream to obtain a an [inputstream shell]
+            specify :bytes to obtain a byte array
             or specify a string with an encoding specification for a
             result string.  In the case of :stream, the shell can
             be polled for connected status.
@@ -471,7 +469,7 @@ Options are
 
 (defn ssh-sftp
   "Obtain a connected ftp channel."
-  [#^Session session]
+  [^Session session]
   {:pre (connected? session)}
   (let [channel (open-channel session :sftp)]
     (connect channel)
@@ -489,10 +487,9 @@ Options are
       5 (. target#
            (~name (first args#) (second args#) (nth args# 2) (nth args# 3)
                   (nth args# 4)))
-      (throw
+      (slingshot/throw+
        (java.lang.IllegalArgumentException.
-        (str
-         "too many arguments passed.  Limit 5, passed " (count args#)))))))
+        (str "Too many arguments passed.  Limit 5, passed " (count args#)))))))
 
 (def sftp-modemap { :overwrite ChannelSftp/OVERWRITE
                     :resume ChannelSftp/RESUME
@@ -500,8 +497,8 @@ Options are
 
 (defn ssh-sftp-cmd
   "Command on a ftp channel."
-  [#^ChannelSftp channel cmd args options]
-  (condp = cmd
+  [^ChannelSftp channel cmd args options]
+  (case cmd
     :ls (.ls channel (or (first args) "."))
     :cd (.cd channel (first args))
     :lcd (.lcd channel (first args))
@@ -536,8 +533,8 @@ Options are
                       (conj args (sftp-modemap (options :mode)))
                       args)]
            ((memfn-varargs put) channel args))
-    (throw (java.lang.IllegalArgumentException.
-            (str "Unknown SFTP command " cmd)))))
+    (slingshot/throw+
+     (java.lang.IllegalArgumentException. (str "Unknown SFTP command " cmd)))))
 
 (defn sftp
   "Execute SFTP commands.
@@ -596,9 +593,300 @@ Options are
       (when-not (or session-given channel-given)
         (disconnect session))))))
 
+(defn- scp-send-ack
+  "Send acknowledgement to the specified output stream"
+  ([out] (scp-send-ack out 0))
+  ([out code]
+     (.write out (byte-array [(byte code)]))
+     (.flush out)))
+
+(defn- scp-receive-ack
+  "Check for an acknowledgement byte from the given input stream"
+  [in]
+  (let [code (.read in)]
+    (when-not (zero? code)
+      (slingshot/throw+
+       {:type :clj-ssh/scp-failure
+        :message (format
+                  "clj-ssh scp failure: %s"
+                  (case code
+                    1 "scp error"
+                    2 "scp fatal error"
+                    -1 "disconnect error"
+                    "unknown error"))}))))
+
+(defn- scp-send-command
+  "Send command to the specified output stream"
+  [out in cmd-string]
+  (.write out (.getBytes cmd-string))
+  (.flush out)
+  (logging/tracef "Sent command %s" cmd-string)
+  (scp-receive-ack in)
+  (logging/trace "Received ACK"))
+
+(defn- scp-receive-command
+  "Receive command on the specified input stream"
+  [out in]
+  (let [buffer-size 1024
+        buffer (byte-array buffer-size)]
+    (let [cmd (loop [offset 0]
+                (let [n (.read in buffer offset (- buffer-size offset))]
+                  (logging/tracef
+                   "scp-receive-command: %s"
+                   (String. buffer 0 (+ offset n)))
+                  (if (= \newline (char (aget buffer (+ offset n -1))))
+                    (String. buffer 0 (+ offset n))
+                    (recur (+ offset n)))))]
+      (logging/tracef "Received command %s" cmd)
+      (scp-send-ack out)
+      (logging/trace "Sent ACK")
+      cmd)))
+
+(defn- scp-copy-file
+  "Send acknowledgement to the specified output stream"
+  [send recv file {:keys [mode buffer-size preserve]
+                   :or {mode 0644 buffer-size 1492 preserve false}}]
+  (logging/tracef "Sending %s" (.getAbsolutePath file))
+  (when preserve
+    (scp-send-command
+     send recv
+     (format "P %d 0 %d 0\n" (.lastModified file) (.lastModified file))))
+  (scp-send-command
+   send recv
+   (format "C%04o %d %s\n" mode (.length file) (.getName file)))
+  (with-open [fs (java.io.FileInputStream. file)]
+    (io/copy fs send :buffer-size buffer-size))
+  (scp-send-ack send)
+  (logging/trace "Sent ACK after send")
+  (scp-receive-ack recv)
+  (logging/trace "Received ACK after send"))
+
+(defn- scp-copy-dir
+  "Send acknowledgement to the specified output stream"
+  [send recv dir {:keys [dir-mode] :or {dir-mode 0755} :as options}]
+  (logging/trace "Sending directory %s" (.getAbsolutePath dir))
+  (scp-send-command
+   send recv
+   (format "D%04o 0 %s" dir-mode (.getName dir)))
+  (doseq [file (.listFiles dir)]
+    (cond
+     (.isFile file) (scp-copy-file send recv file options)
+     (.isDirectory file) (scp-copy-dir send recv file options)
+     ))
+  (scp-send-ack send)
+  (logging/trace "Sent ACK after send")
+  (scp-receive-ack recv)
+  (logging/trace "Received ACK after send"))
+
+(defn- scp-files
+  [paths recursive]
+  (let [f (if recursive
+            #(java.io.File. %)
+            (fn [path]
+              (let [file (java.io.File. path)]
+                (when (.isDirectory file)
+                  (slingshot/throw+
+                   {:type :clj-ssh/scp-directory-copy-requested
+                    :message (format
+                              "Copy of dir %s requested without recursive flag"
+                              path)}))
+                file)))]
+    (map f paths)))
+
+(defn session-cipher-none
+  "Reset the session to use no cipher"
+  [session]
+  (logging/trace "Set session to prefer none cipher")
+  (doto session
+    (.setConfig
+     "cipher.s2c" "none,aes128-cbc,3des-cbc,blowfish-cbc")
+    (.setConfig
+     "cipher.c2s" "none,aes128-cbc,3des-cbc,blowfish-cbc")
+    (.rekey)))
+
+(defn scp-parse-times
+  [cmd]
+  (let [s (java.io.StringReader. cmd)]
+    (.skip s 1) ;; skip T
+    (let [scanner (java.util.Scanner. s)
+          mtime (.nextLong scanner)
+          zero (.nextInt scanner)
+          atime (.nextLong scanner)]
+      [mtime atime])))
+
+(defn scp-parse-copy
+  [cmd]
+  (let [s (java.io.StringReader. cmd)]
+    (.skip s 1) ;; skip C or D
+    (let [scanner (java.util.Scanner. s)
+          mode (.nextInt scanner 8)
+          length (.nextLong scanner)
+          filename (.next scanner)]
+      [mode length filename])))
+
+(defn scp-sink-file
+  "Sink a file"
+  [send recv file mode length {:keys [buffer-size] :or {buffer-size 2048}}]
+  (logging/tracef "Sinking %d bytes to file %s" length (.getPath file))
+  (let [buffer (byte-array buffer-size)]
+    (with-open [file-stream (java.io.FileOutputStream. file)]
+      (loop [length length]
+        (let [size (.read recv buffer 0 (min length buffer-size))]
+          (when (pos? size)
+            (.write file-stream buffer 0 size))
+          (when (and (pos? size) (< size length))
+            (recur (- length size))))))
+    (scp-receive-ack recv)
+    (logging/trace "Received ACK after sink of file")
+    (scp-send-ack send)
+    (logging/trace "Sent ACK after sink of file")))
+
+(defn scp-sink
+  "Sink scp commands to file"
+  [send recv file times {:as options}]
+  (let [cmd (scp-receive-command send recv)]
+    (case (first cmd)
+      \C (let [[mode length filename] (scp-parse-copy cmd)
+               file (if (and (.exists file) (.isDirectory file))
+                      (doto (java.io.File. file filename) (.createNewFile))
+                      (doto file (.createNewFile)))]
+           (scp-sink-file send recv file mode length options)
+           (when times
+             (.setLastModified file (first times))))
+      \T (scp-sink send recv file (scp-parse-times cmd) options)
+      \D (let [[mode filename] (scp-parse-copy cmd)
+               dir (java.io.File. file filename)]
+           (when (and (.exists dir) (not (.isDirectory dir)))
+             (.delete dir))
+           (when (not (.exists dir))
+             (.mkdir dir))
+           (scp-sink send recv dir nil options))
+      \E nil)))
 
 
-(defvar- key-types {:rsa KeyPair/RSA :dsa KeyPair/DSA})
+;; http://blogs.sun.com/janp/entry/how_the_scp_protocol_works
+(defn scp-to
+  "Copy local path(s) to remote path via scp.
+
+   Options are:
+
+   :username   username to use for authentication
+   :password   password to use for authentication
+   :port       port to use if no session specified
+   :mode       mode, as a 4 digit octal number (default 0644)
+   :dir-mode   directory mode, as a 4 digit octal number (default 0755)
+   :recursive  flag for recursive operation
+   :preserve   flag for preserving mode, mtime and atime. atime is not available
+               in java, so is set to mtime. mode is not readable in java."
+  [session-or-hostname local-paths remote-path
+   & {:keys [username password port mode dir-mode recursive preserve] :as opts}]
+  (let [local-paths (if (sequential? local-paths) local-paths [local-paths])
+        files (scp-files local-paths recursive)
+        session-given (instance? com.jcraft.jsch.Session session-or-hostname)
+        session (if session-given
+                  session-or-hostname
+                  (let [s (default-session
+                            session-or-hostname
+                            (opts :username)
+                            (opts :port)
+                            (opts :password))]
+                    (if (:cipher-none opts)
+                      (session-cipher-none s)
+                      s)))]
+    (try
+      (when (and session (not (connected? session)))
+        (connect session))
+      (let [[in send] (streams-for-in)
+            cmd (format "scp %s -t %s" (:remote-flags opts "") remote-path)
+            _ (logging/tracef "scp-to: %s" cmd)
+            [exec recv] (ssh-exec session cmd in :stream opts)]
+        (logging/tracef
+         "scp-to %s %s" (string/join " " local-paths) remote-path)
+        (logging/trace "Receive initial ACK")
+        (scp-receive-ack recv)
+        (doseq [file files]
+          (logging/tracef "scp-to: from %s" (.getPath file))
+          (if (.isDirectory file)
+            (scp-copy-dir send recv file opts)
+            (scp-copy-file send recv file opts)))
+        (logging/trace "Closing streams")
+        (.close send)
+        (.close recv)
+        (disconnect exec)
+        nil)
+      (finally
+       (when-not session-given
+         (disconnect session))))))
+
+(defn scp-from
+  "Copy remote path(s) to local path via scp.
+
+   Options are:
+
+   :username   username to use for authentication
+   :password   password to use for authentication
+   :port       port to use if no session specified
+   :mode       mode, as a 4 digit octal number (default 0644)
+   :dir-mode   directory mode, as a 4 digit octal number (default 0755)
+   :recursive  flag for recursive operation
+   :preserve   flag for preserving mode, mtime and atime. atime is not available
+               in java, so is set to mtime. mode is not readable in java."
+  [session-or-hostname remote-paths local-path
+   & {:keys [username password port mode dir-mode recursive preserve] :as opts}]
+  (let [remote-paths (if (sequential? remote-paths) remote-paths [remote-paths])
+        file (java.io.File. local-path)
+        _ (when (and (.exists file)
+                     (not (.isDirectory file))
+                     (> (count remote-paths) 1))
+            (slingshot/throw+
+             {:type :clj-ssh/scp-copy-multiple-files-to-file-requested
+              :message (format
+                        "Copy of multiple files to file %s requested"
+                        local-path)}))
+        session-given (instance? com.jcraft.jsch.Session session-or-hostname)
+        session (if session-given
+                  session-or-hostname
+                  (let [s (default-session
+                            session-or-hostname
+                            (opts :username)
+                            (opts :port)
+                            (opts :password))]
+                    (if (:cipher-none opts)
+                      (session-cipher-none s)
+                      s)))]
+    (try
+      (when (and session (not (connected? session)))
+        (connect session))
+      (let [[in send] (streams-for-in)
+            flags {:recursive "-r" :preserve "-p"}
+            cmd (format
+                 "scp %s -f %s"
+                 (:remote-flags
+                  opts
+                  (string/join
+                   " "
+                   (->>
+                    (select-keys opts [:recursive :preserve])
+                    (filter val)
+                    (map (fn [k v] (k flags))))))
+                 (string/join " " remote-paths))
+            _ (logging/tracef "scp-from: %s" cmd)
+            [exec recv] (ssh-exec session cmd in :stream opts)]
+        (logging/tracef
+         "scp-from %s %s" (string/join " " remote-paths) local-path)
+        (scp-send-ack send)
+        (logging/trace "Sent initial ACK")
+        (scp-sink send recv file nil opts)
+        (logging/trace "Closing streams")
+        (.close send)
+        (.close recv)
+        (disconnect exec)
+        nil)
+      (finally
+       (when-not session-given
+         (disconnect session))))))
+
+(def ^{:private true} key-types {:rsa KeyPair/RSA :dsa KeyPair/DSA})
 
 (defn generate-keypair
   "Generate a keypair, returned as [private public] byte arrays.

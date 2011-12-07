@@ -1,13 +1,23 @@
 (ns clj-ssh.ssh-test
-  (:use [clj-ssh.ssh] :reload-all)
-  (:use [clojure.test])
+  (:use clj-ssh.ssh)
+  (:use clojure.test)
+  (:require [clojure.java.io :as io])
   (:import com.jcraft.jsch.JSch))
 
-;; clojure.contrib 1.1/1.2 compatability
-(try
-  (use '[clojure.contrib.io :as io])
-  (catch Exception e
-    (use '[clojure.contrib.duck-streams :as io])))
+(def debug-log-levels
+  {com.jcraft.jsch.Logger/DEBUG :debug
+   com.jcraft.jsch.Logger/INFO  :debug
+   com.jcraft.jsch.Logger/WARN  :debug
+   com.jcraft.jsch.Logger/ERROR :error
+   com.jcraft.jsch.Logger/FATAL :fatal})
+
+(use-fixtures :once (fn [f]
+                      (let [levels @ssh-log-levels]
+                        (try
+                          (reset! ssh-log-levels debug-log-levels)
+                          (f)
+                          (finally
+                           (reset! ssh-log-levels levels))))))
 
 (defmacro with-private-vars [[ns fns] & tests]
   "Refers private fns from ns and runs tests in context.  From users mailing
@@ -447,6 +457,66 @@ list, Alan Dipert and MeikelBrandmeyer."
   (with-default-identity (private-key-path)
     (with-default-session-options {:strict-host-key-checking :no}
       (test-sftp-transient-with "localhost" :username (username)))))
+
+(defn test-scp-to-with
+  [session]
+  (let [tmpfile1 (java.io.File/createTempFile "clj-ssh" "test")
+        tmpfile2 (java.io.File/createTempFile "clj-ssh" "test")
+        file1 (.getPath tmpfile1)
+        file2 (.getPath tmpfile2)
+        content "content"
+        content2 "content2"]
+    (try
+      (.setWritable tmpfile1 true false)
+      (.setWritable tmpfile2 true false)
+      (io/copy content tmpfile1)
+      (scp-to session file1 file2)
+      (is (= content (slurp file2)) "scp-to should copy content")
+      (io/copy content2 tmpfile1)
+      (scp-to "localhost" file1 file2
+              :cipher-none true
+              :username (username)
+              :strict-host-key-checking :no)
+      (is (= content2 (slurp file2))
+          "scp-to with implicit session should copy content")
+      (finally
+       (.delete tmpfile1)
+       (.delete tmpfile2)))))
+
+(defn test-scp-from-with
+  [session]
+  (let [tmpfile1 (java.io.File/createTempFile "clj-ssh" "test")
+        tmpfile2 (java.io.File/createTempFile "clj-ssh" "test")
+        file1 (.getPath tmpfile1)
+        file2 (.getPath tmpfile2)
+        content "content"
+        content2 "content2"]
+    (try
+      (.setWritable tmpfile1 true false)
+      (.setWritable tmpfile2 true false)
+      (io/copy content tmpfile1)
+      (scp-from session file1 file2)
+      (is (= content (slurp file2))
+          "scp-from should copy content")
+      (io/copy content2 tmpfile1)
+      (scp-from "localhost" file1 file2
+                :cipher-none true
+                :username (username)
+                :strict-host-key-checking :no)
+      (is (= content2 (slurp file2))
+          "scp-from with implicit session should copy content")
+      (finally
+       (.delete tmpfile1)
+       (.delete tmpfile2)))))
+
+(deftest scp-test
+  (with-default-identity (private-key-path)
+    (with-ssh-agent []
+      (let [session (session "localhost" :username (username)
+                             :strict-host-key-checking :no)]
+        (with-connection session
+          (test-scp-to-with session)
+          (test-scp-from-with session))))))
 
 (deftest generate-keypair-test
   (with-ssh-agent []
