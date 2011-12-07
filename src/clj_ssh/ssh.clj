@@ -392,6 +392,25 @@ keys.  All other option key pairs will be passed as SSH config options."
            (.toByteArray err-stream)
            (.toString err-stream out))]))))
 
+(defmacro with-local-tunnel
+  "Creates a context in which a local SSH tunnel is established for the session. (Use before the connection is opened.)"
+  [session local-port remote-port & body]
+  `(try
+     (.setPortForwardingL ~session ~local-port "localhost" ~remote-port)
+     ~@body
+     (finally
+      (.delPortForwardingL ~session "localhost" ~local-port))))
+
+(defn ssh-tunnel
+  "Run a ssh tunnel."
+  [session local-port remote-port]
+  (with-local-tunnel session local-port remote-port
+    (.setDaemonThread session true)
+    (with-connection session
+      (.setServerAliveInterval session 1000)
+      (while (connected? session)
+        (Thread/sleep 100)))))
+
 (defn default-session [host username port password]
   (doto (session-impl
          (or (and (bound? #'*ssh-agent*) *ssh-agent*) (create-ssh-agent))
