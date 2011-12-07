@@ -522,3 +522,22 @@ list, Alan Dipert and MeikelBrandmeyer."
   (with-ssh-agent []
     (let [[priv pub] (generate-keypair :rsa 1024 "hello")]
       (add-identity *ssh-agent* "name" priv pub (.getBytes "hello")))))
+
+(deftest forward-local-port-test
+  (testing "minimal test"
+    (with-ssh-agent [false]
+      (add-identity (private-key-path))
+      (let [session (session "localhost" :username (username)
+                             :strict-host-key-checking :no)]
+        (is (instance? com.jcraft.jsch.Session session))
+        (is (not (connected? session)))
+        (connect session)
+        (is (connected? session))
+        (forward-local-port session 2222 22)
+        (unforward-local-port session 2222)
+        (forward-local-port session 2222 22 "localhost")
+        (unforward-local-port session 2222)
+        (with-local-port-forward [session 2222 22]
+          (is true))
+        (with-local-port-forward [session 2222 22 "localhost"]
+          (is true))))))
