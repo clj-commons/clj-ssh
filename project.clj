@@ -1,8 +1,8 @@
 (defproject clj-ssh "0.3.1-SNAPSHOT"
   :description "ssh from clojure"
-  :dependencies [[org.clojure/clojure "1.2.0"]
+  :dependencies [[org.clojure/clojure "1.2.1"]
                  [org.clojure/tools.logging "0.1.2"]
-                 [slingshot "0.2.0"]
+                 [slingshot "0.9.0"]
                  [com.jcraft/jsch "0.1.44-1"]]
   :dev-dependencies [[log4j/log4j "1.2.14"]]
   :autodoc {:name "clj-ssh"
