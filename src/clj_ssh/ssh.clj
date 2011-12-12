@@ -43,7 +43,7 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
    [clojure.java.io :as io]
    [clojure.string :as string]
    [clojure.tools.logging :as logging]
-   [slingshot.core :as slingshot])
+   [slingshot.slingshot :as slingshot])
   (:import [com.jcraft.jsch
             JSch Session Channel ChannelShell ChannelExec ChannelSftp
             Identity IdentityFile Logger KeyPair]))
