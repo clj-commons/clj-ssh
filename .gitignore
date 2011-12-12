@@ -1,6 +1,7 @@
-pom.xml
 target
 *jar
 lib
 classes
 autodoc/**
+.lein-deps-sum
+pom.xml
