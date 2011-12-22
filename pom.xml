@@ -94,7 +94,7 @@
     <dependency>
       <groupId>slingshot</groupId>
       <artifactId>slingshot</artifactId>
-      <version>0.2.0</version>
+      <version>0.10.0</version>
     </dependency>
     <dependency>
       <groupId>org.clojure</groupId>
@@ -142,6 +142,12 @@
       <id>clojure-1.3</id>
       <properties>
         <clojure.version>1.3.0</clojure.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>clojure-1.4</id>
+      <properties>
+        <clojure.version>1.4.0-alpha3</clojure.version>
       </properties>
     </profile>
   </profiles>

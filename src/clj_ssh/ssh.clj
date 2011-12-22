@@ -42,8 +42,9 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
    [clj-ssh.reflect :as reflect]
    [clojure.java.io :as io]
    [clojure.string :as string]
-   [clojure.tools.logging :as logging]
-   [slingshot.core :as slingshot])
+   [clojure.tools.logging :as logging])
+  (:use
+   [slingshot.slingshot :only [throw+]])
   (:import [com.jcraft.jsch
             JSch Session Channel ChannelShell ChannelExec ChannelSftp
             Identity IdentityFile Logger KeyPair]))
@@ -510,7 +511,7 @@ Options are
       5 (. target#
            (~name (first args#) (second args#) (nth args# 2) (nth args# 3)
                   (nth args# 4)))
-      (slingshot/throw+
+      (throw+
        (java.lang.IllegalArgumentException.
         (str "Too many arguments passed.  Limit 5, passed " (count args#)))))))
 
@@ -556,7 +557,7 @@ Options are
                       (conj args (sftp-modemap (options :mode)))
                       args)]
            ((memfn-varargs put) channel args))
-    (slingshot/throw+
+    (throw+
      (java.lang.IllegalArgumentException. (str "Unknown SFTP command " cmd)))))
 
 (defn sftp
@@ -628,7 +629,7 @@ Options are
   [in]
   (let [code (.read in)]
     (when-not (zero? code)
-      (slingshot/throw+
+      (throw+
        {:type :clj-ssh/scp-failure
         :message (format
                   "clj-ssh scp failure: %s"
@@ -708,7 +709,7 @@ Options are
             (fn [path]
               (let [file (java.io.File. path)]
                 (when (.isDirectory file)
-                  (slingshot/throw+
+                  (throw+
                    {:type :clj-ssh/scp-directory-copy-requested
                     :message (format
                               "Copy of dir %s requested without recursive flag"
@@ -861,7 +862,7 @@ Options are
         _ (when (and (.exists file)
                      (not (.isDirectory file))
                      (> (count remote-paths) 1))
-            (slingshot/throw+
+            (throw+
              {:type :clj-ssh/scp-copy-multiple-files-to-file-requested
               :message (format
                         "Copy of multiple files to file %s requested"
