@@ -43,11 +43,15 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
    [clojure.java.io :as io]
    [clojure.string :as string]
    [clojure.tools.logging :as logging])
-  (:use
-   [slingshot.slingshot :only [throw+]])
   (:import [com.jcraft.jsch
             JSch Session Channel ChannelShell ChannelExec ChannelSftp
             Identity IdentityFile Logger KeyPair]))
+
+;; slingshot version compatability
+(try
+  (use '[slingshot.slingshot :only [throw+]])
+  (catch Exception _
+    (use '[slingshot.core :only [throw+]])))
 
 (def ^{:doc "SSH agent used to manage identities." :dynamic true}
   *ssh-agent*)

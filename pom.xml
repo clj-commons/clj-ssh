@@ -94,7 +94,7 @@
     <dependency>
       <groupId>slingshot</groupId>
       <artifactId>slingshot</artifactId>
-      <version>0.10.0</version>
+      <version>${slingshot.version}</version>
     </dependency>
     <dependency>
       <groupId>org.clojure</groupId>
@@ -155,5 +155,6 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <clojure.version>1.2.0</clojure.version>
+    <slingshot.version>0.2.0</slingshot.version>
   </properties>
 </project>
