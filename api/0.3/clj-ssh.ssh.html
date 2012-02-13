@@ -1,0 +1,428 @@
+<html lang="en">
+  <head>
+    <title>clj-ssh.ssh documentation</title>
+    <link href="css/default.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/page_effects.js"></script>
+  </head>
+  <body>
+    <header>
+      <div id="header">
+        <h1 class="project-title">Clj-ssh 0.3 API documentation</h1>
+      </div>
+    </header>
+    <navigation>
+      <div id="namespaces" class="sidebar">
+        <h3>Namespaces</h3>
+        <ul class="ns-links">
+          <li class="ns-link"><a href="clj-ssh.keychain.html">clj-ssh.keychain</a></li><li class="ns-link"><a href="clj-ssh.reflect.html">clj-ssh.reflect</a></li><li class="ns-link"><a href="clj-ssh.ssh.html">clj-ssh.ssh</a></li>
+        </ul>
+      </div>
+      <div id="vars" class="sidebar">
+        <h3>Public Vars</h3>
+        <ul class="ns-var-links">
+          <li class="ns-var-link"><a href="clj-ssh.ssh.html#var-*default-session-options*">*default-session-options*</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-*piped-stream-buffer-size*">*piped-stream-buffer-size*</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-*ssh-agent*">*ssh-agent*</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-add-identity">add-identity</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-add-identity-with-keychain">add-identity-with-keychain</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-capitalize">capitalize</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-connect">connect</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-connected%3F">connected?</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-create-ssh-agent">create-ssh-agent</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-default-session-options">default-session-options</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-disconnect">disconnect</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-exec-channel">exec-channel</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-forward-local-port">forward-local-port</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-generate-keypair">generate-keypair</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-has-identity%3F">has-identity?</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-make-identity">make-identity</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-open-channel">open-channel</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-scp-from">scp-from</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-scp-sink">scp-sink</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-scp-sink-file">scp-sink-file</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-scp-to">scp-to</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-session">session</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-session-cipher-none">session-cipher-none</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-sftp">sftp</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-sftp-channel">sftp-channel</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-shell-channel">shell-channel</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-ssh">ssh</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-ssh-agent%3F">ssh-agent?</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-ssh-exec">ssh-exec</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-ssh-sftp">ssh-sftp</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-ssh-sftp-cmd">ssh-sftp-cmd</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-ssh-shell">ssh-shell</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-unforward-local-port">unforward-local-port</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-with-connection">with-connection</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-with-default-identity">with-default-identity</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-with-default-session-options">with-default-session-options</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-with-local-port-forward">with-local-port-forward</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-with-ssh-agent">with-ssh-agent</a></li>
+        </ul>
+      </div>
+    </navigation>
+    <article>
+      <div id="content" class="namespace-docs">
+        <h2 class="namespace-title">clj-ssh.ssh documentation</h2>
+        <div class="doc"><p>SSH in clojure.  Uses jsch.  Provides a ssh function that tries to look
+similar to clojure.contrib.shell/sh.</p>
+
+<h2>Usage</h2>
+
+<p>The top level namespace is <code>clj-ssh.ssh</code></p>
+
+<pre><code>(use 'clj-ssh.ssh)
+</code></pre>
+
+<p>There is a simple <code>ssh</code> function, which by default, will try and use a id_rsa
+key in your $HOME/.ssh directory.</p>
+
+<pre><code>(ssh hostname cmd)
+</code></pre>
+
+<p>Strict host key checking can be turned off.</p>
+
+<pre><code>(default-session-options {:strict-host-key-checking :no})
+</code></pre>
+
+<p>More advance usage is possible.</p>
+
+<pre><code>(with-ssh-agent []
+  (add-identity path-to-private-key)
+  (let [session (session hostname :strict-host-key-checking :no)]
+    (with-connection session
+      (let [result (ssh session :in commands-string :result-map true)]
+        (println (result :out)))
+      (let [result (ssh session some-cmd-string)]
+        (println (second result))))))
+</code></pre>
+
+<h2>Installation</h2>
+
+<p>Via maven and the clojars (http://clojars.org/clj-ssh), or
+Leiningen (http://github.com/technomancy/leiningen).</p>
+
+<h2>License</h2>
+
+<p>Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)</p>
+</div>
+        <div class="ns-vars">
+          <div class="public">
+            <h3 id="var-*default-session-options*">*default-session-options*</h3>
+            
+            
+            
+            <div class="doc"><p>Default SSH options</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-*piped-stream-buffer-size*">*piped-stream-buffer-size*</h3>
+            
+            
+            
+            <div class="doc"><p>The buffer size (in bytes) for the piped stream used to implement
+the :stream option for :out. If your ssh commands generate a high volume of
+output, then this buffer size can become a bottleneck. You might also
+increase the frequency with which you read the output stream if this is an
+issue.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-*ssh-agent*">*ssh-agent*</h3>
+            
+            
+            
+            <div class="doc"><p>SSH agent used to manage identities.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-add-identity">add-identity</h3>
+            <div class="usage">[]</div><div class="usage">[private-key]</div><div class="usage">[agent private-key]</div><div class="usage">[agent private-key passphrase]</div><div class="usage">[agent name private-key public-key passphrase]</div>
+            
+            
+            <div class="doc"><p>Add an identity to the agent.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-add-identity-with-keychain">add-identity-with-keychain</h3>
+            <div class="usage">[]</div><div class="usage">[private-key-path]</div><div class="usage">[agent private-key-path]</div>
+            
+            
+            <div class="doc"><p>Add a private key, only if not already known, using the keychain to obtain
+a passphrase if required</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-capitalize">capitalize</h3>
+            <div class="usage">[s]</div>
+            
+            
+            <div class="doc"><p>Converts first character of the string to upper-case.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-connect">connect</h3>
+            <div class="usage">[session]</div><div class="usage">[session timeout]</div>
+            
+            
+            <div class="doc"><p>Connect a session.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-connected%3F">connected?</h3>
+            <div class="usage">[session]</div>
+            
+            
+            <div class="doc"><p>Predicate used to test for a connected session.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-create-ssh-agent">create-ssh-agent</h3>
+            <div class="usage">[]</div><div class="usage">[add-default-identity?]</div><div class="usage">[private-key passphrase?]</div>
+            
+            
+            <div class="doc"><p>Create an ssh-agent. By default try and add the current user's id_rsa key.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-default-session-options">default-session-options</h3>
+            <div class="usage">[options]</div>
+            
+            
+            <div class="doc"><p>Set the default session options</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-disconnect">disconnect</h3>
+            <div class="usage">[session]</div>
+            
+            
+            <div class="doc"><p>Disconnect a session.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-exec-channel">exec-channel</h3>
+            <div class="usage">[session]</div>
+            
+            
+            <div class="doc"><p>Open an Exec channel in the session.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-forward-local-port">forward-local-port</h3>
+            <div class="usage">[session local-port remote-port remote-host]</div><div class="usage">[session local-port remote-port]</div>
+            
+            
+            <div class="doc"><p>Start local port forwarding</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-generate-keypair">generate-keypair</h3>
+            <div class="usage">[key-type key-size passphrase]</div><div class="usage">[agent key-type key-size passphrase]</div>
+            
+            
+            <div class="doc"><p>Generate a keypair, returned as [private public] byte arrays.
+Valid types are :rsa and :dsa.  key-size is in bytes. passphrase
+can be a string or byte array.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-has-identity%3F">has-identity?</h3>
+            <div class="usage">[name]</div><div class="usage">[agent name]</div>
+            
+            
+            <div class="doc"><p>Check if the given identity is present.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-make-identity">make-identity</h3>
+            <div class="usage">[private-key-path public-key-path]</div><div class="usage">[agent private-key-path public-key-path]</div>
+            
+            
+            <div class="doc"><p>Create a JSch identity.  This can be used to check whether the key is
+encrypted.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-open-channel">open-channel</h3>
+            <div class="usage">[session session-type]</div>
+            
+            
+            <div class="doc"><p>Open a channel of the specified type in the session.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-scp-from">scp-from</h3>
+            <div class="usage">[session-or-hostname remote-paths local-path &amp; {:keys [username password port mode dir-mode recursive preserve], :as opts}]</div>
+            
+            
+            <div class="doc"><p>Copy remote path(s) to local path via scp.</p>
+
+<p>Options are:</p>
+
+<p>:username   username to use for authentication
+:password   password to use for authentication
+:port       port to use if no session specified
+:mode       mode, as a 4 digit octal number (default 0644)
+:dir-mode   directory mode, as a 4 digit octal number (default 0755)
+:recursive  flag for recursive operation
+:preserve   flag for preserving mode, mtime and atime. atime is not available
+            in java, so is set to mtime. mode is not readable in java.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-scp-sink">scp-sink</h3>
+            <div class="usage">[send recv file times {:as options}]</div>
+            
+            
+            <div class="doc"><p>Sink scp commands to file</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-scp-sink-file">scp-sink-file</h3>
+            <div class="usage">[send recv file mode length {:keys [buffer-size], :or {buffer-size 2048}}]</div>
+            
+            
+            <div class="doc"><p>Sink a file</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-scp-to">scp-to</h3>
+            <div class="usage">[session-or-hostname local-paths remote-path &amp; {:keys [username password port mode dir-mode recursive preserve], :as opts}]</div>
+            
+            
+            <div class="doc"><p>Copy local path(s) to remote path via scp.</p>
+
+<p>Options are:</p>
+
+<p>:username   username to use for authentication
+:password   password to use for authentication
+:port       port to use if no session specified
+:mode       mode, as a 4 digit octal number (default 0644)
+:dir-mode   directory mode, as a 4 digit octal number (default 0755)
+:recursive  flag for recursive operation
+:preserve   flag for preserving mode, mtime and atime. atime is not available
+            in java, so is set to mtime. mode is not readable in java.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-session">session</h3>
+            <div class="usage">[agent? &amp; options]</div>
+            
+            
+            <div class="doc"><p>Start a SSH session.
+Requires hostname.  you can also pass values for :username, :password and :port
+keys.  All other option key pairs will be passed as SSH config options.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-session-cipher-none">session-cipher-none</h3>
+            <div class="usage">[session]</div>
+            
+            
+            <div class="doc"><p>Reset the session to use no cipher</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-sftp">sftp</h3>
+            <div class="usage">[session-or-hostname cmd &amp; args]</div>
+            
+            
+            <div class="doc"><p>Execute SFTP commands.</p>
+
+<p>  sftp host-or-session cmd &amp; options</p>
+
+<p>cmd specifies a command to exec.  Valid commands are:
+:ls
+:put
+:get
+:chmod
+:chown
+:chgrp
+:cd
+:lcd
+:pwd
+:lpwd
+:rm
+:rmdir
+:stat
+:symlink</p>
+
+<p>Options are
+:username   username to use for authentication
+:password   password to use for authentication
+:port       port to use if no session specified</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-sftp-channel">sftp-channel</h3>
+            <div class="usage">[session]</div>
+            
+            
+            <div class="doc"><p>Open a SFTP channel in the session.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-shell-channel">shell-channel</h3>
+            <div class="usage">[session]</div>
+            
+            
+            <div class="doc"><p>Open a Shell channel in the session.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-ssh">ssh</h3>
+            <div class="usage">[session-or-hostname &amp; args]</div>
+            
+            
+            <div class="doc"><p>Execute commands over ssh.</p>
+
+<p>  ssh host-or-session cmd? &amp; options</p>
+
+<p>cmd specifies a command to exec.  If no cmd is given, a shell is started and input is taken from :in.</p>
+
+<p>Options are</p>
+
+<p>:in         specifies input to the remote shell. A string or a stream.
+:out        specify :stream to obtain a an [inputstream shell]
+            specify :bytes to obtain a byte array
+            or specify a string with an encoding specification for a
+            result string.  In the case of :stream, the shell can
+            be polled for connected status.
+:return-map when followed by boolean true, sh returns a map of
+              :exit =&gt; sub-process's exit code
+              :out  =&gt; sub-process's stdout (as byte[] or String)
+              :err  =&gt; sub-process's stderr (as byte[] or String)
+            when not given or followed by false, ssh returns a vector
+            of the remote shell's stdout followed by its stderr
+:username   username to use for authentication
+:password   password to use for authentication
+:port       port to use if no session specified</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-ssh-agent%3F">ssh-agent?</h3>
+            <div class="usage">[object]</div>
+            
+            
+            <div class="doc"><p>Predicate to test for an ssh-agent.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-ssh-exec">ssh-exec</h3>
+            <div class="usage">[session cmd in out opts]</div>
+            
+            
+            <div class="doc"><p>Run a command via ssh-exec.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-ssh-sftp">ssh-sftp</h3>
+            <div class="usage">[session]</div>
+            
+            
+            <div class="doc"><p>Obtain a connected ftp channel.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-ssh-sftp-cmd">ssh-sftp-cmd</h3>
+            <div class="usage">[channel cmd args options]</div>
+            
+            
+            <div class="doc"><p>Command on a ftp channel.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-ssh-shell">ssh-shell</h3>
+            <div class="usage">[session in out opts]</div>
+            
+            
+            <div class="doc"><p>Run a ssh-shell.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-unforward-local-port">unforward-local-port</h3>
+            <div class="usage">[session local-port]</div>
+            
+            
+            <div class="doc"><p>Remove local port forwarding</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-with-connection">with-connection</h3>
+            <div class="usage">[session &amp; body]</div>
+            
+            
+            <div class="doc"><p>Creates a context in which the session is connected. Ensures the session is
+disconnected on exit.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-with-default-identity">with-default-identity</h3>
+            <div class="usage">[path &amp; body]</div>
+            
+            
+            <div class="doc"><p>Bind the default identity.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-with-default-session-options">with-default-session-options</h3>
+            <div class="usage">[options &amp; body]</div>
+            
+            
+            <div class="doc"><p>Set the default session options</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-with-local-port-forward">with-local-port-forward</h3>
+            <div class="usage">[[session local-port remote-port &amp; [remote-host &amp; _]] &amp; body]</div>
+            
+            
+            <div class="doc"><p>Creates a context in which a local SSH tunnel is established for the session.
+(Use before the connection is opened.)</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-with-ssh-agent">with-ssh-agent</h3>
+            <div class="usage">[[&amp; agent] &amp; body]</div>
+            
+            
+            <div class="doc"><p>Bind an ssh-agent for use as identity manager.
+The argument vector can be empty, in which case a new agent is created.  If
+passed a String or File, then this is passed to the new agent as an identity to
+be added.  An existing agent instance can alternatively be passed.</p>
+</div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </body>
+
+</html>

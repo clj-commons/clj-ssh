@@ -1,0 +1,105 @@
+<html lang="en">
+  <head>
+    <title>Clj-ssh 0.3 API documentation</title>
+    <link href="css/default.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/page_effects.js"></script>
+  </head>
+  <body>
+    <header>
+      <div id="header">
+        <h1 class="project-title">Clj-ssh 0.3 API documentation</h1>
+      </div>
+    </header>
+    <navigation>
+      <div id="namespaces" class="sidebar">
+        <h3>Namespaces</h3>
+        <ul class="ns-links">
+          <li class="ns-link"><a href="clj-ssh.keychain.html">clj-ssh.keychain</a></li><li class="ns-link"><a href="clj-ssh.reflect.html">clj-ssh.reflect</a></li><li class="ns-link"><a href="clj-ssh.ssh.html">clj-ssh.ssh</a></li>
+        </ul>
+      </div>
+    </navigation>
+    <article>
+      <div id="content" class="namespace-index">
+        <h2 class="project-title">Clj-ssh 0.3 API documentation</h2>
+        <div class="doc"><p>Library for using SSH from clojure.</p>
+</div>
+        <div class="project-namespaces">
+          <div class="namespace">
+            <h3 class="ns-link"><a href="clj-ssh.keychain.html">clj-ssh.keychain</a></h3>
+            <div class="doc"><p>Primitive keychain support for clj-ssh.  Only implemented on OSX at the
+moment.</p>
+</div>
+            <div class="index ns-var-links">
+              <p>Public variables and functions:</p>
+              <ul>
+                <li class="ns-var-link"><a href="clj-ssh.keychain.html#var-keychain-passphrase">keychain-passphrase</a></li><li class="ns-var-link"><a href="clj-ssh.keychain.html#var-passphrase">passphrase</a></li>
+              </ul>
+            </div>
+          </div><div class="namespace">
+            <h3 class="ns-link"><a href="clj-ssh.reflect.html">clj-ssh.reflect</a></h3>
+            <div class="doc">
+</div>
+            <div class="index ns-var-links">
+              <p>Public variables and functions:</p>
+              <ul>
+                <li class="ns-var-link"><a href="clj-ssh.reflect.html#var-call-method">call-method</a></li><li class="ns-var-link"><a href="clj-ssh.reflect.html#var-get-field">get-field</a></li>
+              </ul>
+            </div>
+          </div><div class="namespace">
+            <h3 class="ns-link"><a href="clj-ssh.ssh.html">clj-ssh.ssh</a></h3>
+            <div class="doc"><p>SSH in clojure.  Uses jsch.  Provides a ssh function that tries to look
+similar to clojure.contrib.shell/sh.</p>
+
+<h2>Usage</h2>
+
+<p>The top level namespace is <code>clj-ssh.ssh</code></p>
+
+<pre><code>(use 'clj-ssh.ssh)
+</code></pre>
+
+<p>There is a simple <code>ssh</code> function, which by default, will try and use a id_rsa
+key in your $HOME/.ssh directory.</p>
+
+<pre><code>(ssh hostname cmd)
+</code></pre>
+
+<p>Strict host key checking can be turned off.</p>
+
+<pre><code>(default-session-options {:strict-host-key-checking :no})
+</code></pre>
+
+<p>More advance usage is possible.</p>
+
+<pre><code>(with-ssh-agent []
+  (add-identity path-to-private-key)
+  (let [session (session hostname :strict-host-key-checking :no)]
+    (with-connection session
+      (let [result (ssh session :in commands-string :result-map true)]
+        (println (result :out)))
+      (let [result (ssh session some-cmd-string)]
+        (println (second result))))))
+</code></pre>
+
+<h2>Installation</h2>
+
+<p>Via maven and the clojars (http://clojars.org/clj-ssh), or
+Leiningen (http://github.com/technomancy/leiningen).</p>
+
+<h2>License</h2>
+
+<p>Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)</p>
+</div>
+            <div class="index ns-var-links">
+              <p>Public variables and functions:</p>
+              <ul>
+                <li class="ns-var-link"><a href="clj-ssh.ssh.html#var-*default-session-options*">*default-session-options*</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-*piped-stream-buffer-size*">*piped-stream-buffer-size*</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-*ssh-agent*">*ssh-agent*</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-add-identity">add-identity</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-add-identity-with-keychain">add-identity-with-keychain</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-capitalize">capitalize</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-connect">connect</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-connected%3F">connected?</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-create-ssh-agent">create-ssh-agent</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-default-session-options">default-session-options</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-disconnect">disconnect</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-exec-channel">exec-channel</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-forward-local-port">forward-local-port</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-generate-keypair">generate-keypair</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-has-identity%3F">has-identity?</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-make-identity">make-identity</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-open-channel">open-channel</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-scp-from">scp-from</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-scp-sink">scp-sink</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-scp-sink-file">scp-sink-file</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-scp-to">scp-to</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-session">session</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-session-cipher-none">session-cipher-none</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-sftp">sftp</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-sftp-channel">sftp-channel</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-shell-channel">shell-channel</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-ssh">ssh</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-ssh-agent%3F">ssh-agent?</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-ssh-exec">ssh-exec</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-ssh-sftp">ssh-sftp</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-ssh-sftp-cmd">ssh-sftp-cmd</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-ssh-shell">ssh-shell</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-unforward-local-port">unforward-local-port</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-with-connection">with-connection</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-with-default-identity">with-default-identity</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-with-default-session-options">with-default-session-options</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-with-local-port-forward">with-local-port-forward</a></li><li class="ns-var-link"><a href="clj-ssh.ssh.html#var-with-ssh-agent">with-ssh-agent</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </body>
+
+</html>
