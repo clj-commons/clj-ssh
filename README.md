@@ -70,6 +70,7 @@ or more conveniently:
 ## Documentation
 
 [Annotated source](http:/hugoduncan.github.com/clj-ssh/uberdoc.html).
+[API](http:/hugoduncan.github.com/clj-ssh/api/0.3/index.html).
 
 ## FAQ
 
