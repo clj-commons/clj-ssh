@@ -4,3 +4,4 @@ target
 lib
 classes
 autodoc/**
+doc/**

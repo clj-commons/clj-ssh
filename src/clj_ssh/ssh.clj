@@ -42,11 +42,16 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
    [clj-ssh.reflect :as reflect]
    [clojure.java.io :as io]
    [clojure.string :as string]
-   [clojure.tools.logging :as logging]
-   [slingshot.core :as slingshot])
+   [clojure.tools.logging :as logging])
   (:import [com.jcraft.jsch
             JSch Session Channel ChannelShell ChannelExec ChannelSftp
             Identity IdentityFile Logger KeyPair]))
+
+;; slingshot version compatability
+(try
+  (use '[slingshot.slingshot :only [throw+]])
+  (catch Exception _
+    (use '[slingshot.core :only [throw+]])))
 
 (def ^{:doc "SSH agent used to manage identities." :dynamic true}
   *ssh-agent*)
@@ -392,6 +397,29 @@ keys.  All other option key pairs will be passed as SSH config options."
            (.toByteArray err-stream)
            (.toString err-stream out))]))))
 
+(defn forward-local-port
+  "Start local port forwarding"
+  ([session local-port remote-port remote-host]
+     (.setPortForwardingL session local-port remote-host remote-port))
+  ([session local-port remote-port]
+     (forward-local-port session local-port remote-port "localhost")))
+
+(defn unforward-local-port
+  "Remove local port forwarding"
+  [session local-port]
+  (.delPortForwardingL session local-port))
+
+(defmacro with-local-port-forward
+  "Creates a context in which a local SSH tunnel is established for the session.
+   (Use before the connection is opened.)"
+  [[session local-port remote-port & [remote-host & _]] & body]
+  `(try
+     (forward-local-port
+      ~session ~local-port ~remote-port ~(or remote-host "localhost"))
+     ~@body
+     (finally
+      (unforward-local-port ~session ~local-port))))
+
 (defn default-session [host username port password]
   (doto (session-impl
          (or (and (bound? #'*ssh-agent*) *ssh-agent*) (create-ssh-agent))
@@ -487,7 +515,7 @@ Options are
       5 (. target#
            (~name (first args#) (second args#) (nth args# 2) (nth args# 3)
                   (nth args# 4)))
-      (slingshot/throw+
+      (throw+
        (java.lang.IllegalArgumentException.
         (str "Too many arguments passed.  Limit 5, passed " (count args#)))))))
 
@@ -533,7 +561,7 @@ Options are
                       (conj args (sftp-modemap (options :mode)))
                       args)]
            ((memfn-varargs put) channel args))
-    (slingshot/throw+
+    (throw+
      (java.lang.IllegalArgumentException. (str "Unknown SFTP command " cmd)))))
 
 (defn sftp
@@ -605,7 +633,7 @@ Options are
   [in]
   (let [code (.read in)]
     (when-not (zero? code)
-      (slingshot/throw+
+      (throw+
        {:type :clj-ssh/scp-failure
         :message (format
                   "clj-ssh scp failure: %s"
@@ -685,7 +713,7 @@ Options are
             (fn [path]
               (let [file (java.io.File. path)]
                 (when (.isDirectory file)
-                  (slingshot/throw+
+                  (throw+
                    {:type :clj-ssh/scp-directory-copy-requested
                     :message (format
                               "Copy of dir %s requested without recursive flag"
@@ -838,7 +866,7 @@ Options are
         _ (when (and (.exists file)
                      (not (.isDirectory file))
                      (> (count remote-paths) 1))
-            (slingshot/throw+
+            (throw+
              {:type :clj-ssh/scp-copy-multiple-files-to-file-requested
               :message (format
                         "Copy of multiple files to file %s requested"

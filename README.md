@@ -52,9 +52,25 @@ Note that any sftp commands that change the state of the sftp session (such as
 cd) do not work with the simplified interface, as a new session is created each
 time.
 
+SSH tunneling is also supported:
+
+    (with-ssh-agent []
+      (let [session (session "localhost" :strict-host-key-checking :no)]
+        (with-local-tunnel session 8080 80
+          (with-connection session
+            (while (connected? session)
+              (Thread/sleep 100))))))
+
+or more conveniently:
+
+    (with-ssh-agent []
+      (let [session (session "localhost" :strict-host-key-checking :no)]
+        (ssh-tunnel session 8080 80)))
+
 ## Documentation
 
 [Annotated source](http:/hugoduncan.github.com/clj-ssh/uberdoc.html).
+[API](http:/hugoduncan.github.com/clj-ssh/api/0.3/index.html).
 
 ## FAQ
 
@@ -71,7 +87,7 @@ A: Probably a disk full, or permission error.
 Via [clojars](http://clojars.org) and
 [Leiningen](http://github.com/technomancy/leiningen).
 
-    :dependencies [clj-ssh "0.3.0"]
+    :dependencies [clj-ssh "0.3.1"]
 
 or your favourite maven repository aware tool.
 
