@@ -1,6 +1,13 @@
 # Release Notes
 
-Current release is 0.3.0
+Current release is 0.3.1
+
+## 0.3.1
+
+- Allow clj-ssh to work with a wide range of slingshot versions
+  Tested with slingshot 0.2.0 and 0.10.1
+
+- Added SSH tunneling.
 
 ## 0.3.0
 
