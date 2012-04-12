@@ -1,4 +1,4 @@
-(defproject clj-ssh "0.3.1"
+(defproject clj-ssh "0.3.2-SNAPSHOT"
   :description "Library for using SSH from clojure."
   :dependencies [[org.clojure/clojure "1.2.0"]
                  [org.clojure/tools.logging "0.1.2"]
