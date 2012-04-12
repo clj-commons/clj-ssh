@@ -52,20 +52,20 @@ Note that any sftp commands that change the state of the sftp session (such as
 cd) do not work with the simplified interface, as a new session is created each
 time.
 
-SSH tunneling is also supported:
+SSH tunneling is also supported. The following form is desired but may cause an exception when the connection is closed:
 
     (with-ssh-agent []
       (let [session (session "localhost" :strict-host-key-checking :no)]
-        (with-local-tunnel session 8080 80
+        (with-local-port-forward session 8080 80
           (with-connection session
             (while (connected? session)
               (Thread/sleep 100))))))
 
-or more conveniently:
+The following macro, which currently works, provides more convenience:
 
     (with-ssh-agent []
       (let [session (session "localhost" :strict-host-key-checking :no)]
-        (ssh-tunnel session 8080 80)))
+        (with-port-forwarded-connection session 8080 80)))
 
 ## Documentation
 

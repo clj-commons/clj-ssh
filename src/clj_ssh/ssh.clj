@@ -932,3 +932,18 @@ Options are
          (.writePublicKey keypair pub-baos "")
          (.writePrivateKey keypair pri-baos)
          [(.toByteArray pri-baos) (.toByteArray pub-baos)]))))
+
+(defmacro with-port-forwarded-connection
+  "Combines creating a connection (using a session) with forwarding a local port"
+  [[session local-port remote-port & [remote-host & _]] & body]
+    `(try
+     (forward-local-port
+      ~session ~local-port ~remote-port ~(or remote-host "localhost"))
+     (when-not (connected? ~session)
+       (connect ~session))
+     ~@body
+     (finally
+      (unforward-local-port ~session ~local-port)
+      (when (connected? ~session)
+        (disconnect ~session))))
+  )
