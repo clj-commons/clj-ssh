@@ -54,18 +54,13 @@ time.
 
 SSH tunneling is also supported:
 
+```clj
     (with-ssh-agent []
       (let [session (session "localhost" :strict-host-key-checking :no)]
-        (with-local-tunnel session 8080 80
-          (with-connection session
-            (while (connected? session)
-              (Thread/sleep 100))))))
-
-or more conveniently:
-
-    (with-ssh-agent []
-      (let [session (session "localhost" :strict-host-key-checking :no)]
-        (ssh-tunnel session 8080 80)))
+        (with-connection session
+          (with-local-port-forward [session 8080 80]
+            (comment do something with port 8080 here)))))
+```
 
 ## Documentation
 
