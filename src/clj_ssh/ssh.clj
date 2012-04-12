@@ -237,11 +237,13 @@ be added.  An existing agent instance can alternatively be passed."
                  (or port 22))]
     (when password
       (.setPassword session password))
-    (doseq [option options]
+    (doseq [[k v :as option] options]
       (.setConfig
        session
-       (camelize (as-string (first option)))
-       (as-string (second option))))
+       (if (string? k)
+         k
+         (camelize (as-string k)))
+       (as-string v)))
     session))
 
 (defn session
