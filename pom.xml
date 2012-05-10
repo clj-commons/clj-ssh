@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>clj-ssh</groupId>
   <artifactId>clj-ssh</artifactId>
-  <version>0.3.2-SNAPSHOT</version>
+  <version>0.3.2</version>
   <name>clj-ssh</name>
   <description>
     clj-ssh is a clojure wrapper for he jsch library, and can be used as an
