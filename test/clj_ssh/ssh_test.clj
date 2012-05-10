@@ -523,6 +523,23 @@ list, Alan Dipert and MeikelBrandmeyer."
     (let [[priv pub] (generate-keypair :rsa 1024 "hello")]
       (add-identity *ssh-agent* "name" priv pub (.getBytes "hello")))))
 
+(defn port-reachable?
+  ([ip port timeout]
+     (let [socket (doto (java.net.Socket.)
+                    (.setReuseAddress false)
+                    (.setSoLinger false 1)
+                    (.setSoTimeout timeout))]
+       (try
+         (.connect socket (java.net.InetSocketAddress. ip port))
+         true
+         (catch java.io.IOException _)
+         (finally
+           (try (.close socket) (catch java.io.IOException _))))))
+  ([ip port]
+     (port-reachable? ip port 2000))
+  ([port]
+     (port-reachable? "localhost" port)))
+
 (deftest forward-local-port-test
   (testing "minimal test"
     (with-ssh-agent [false]
@@ -531,13 +548,36 @@ list, Alan Dipert and MeikelBrandmeyer."
                              :strict-host-key-checking :no)]
         (is (instance? com.jcraft.jsch.Session session))
         (is (not (connected? session)))
+        (is (not (port-reachable? 2222)))
         (connect session)
         (is (connected? session))
         (forward-local-port session 2222 22)
+        (is (port-reachable? 2222))
         (unforward-local-port session 2222)
         (forward-local-port session 2222 22 "localhost")
         (unforward-local-port session 2222)
         (with-local-port-forward [session 2222 22]
-          (is true))
+          (is (port-reachable? 2222)))
         (with-local-port-forward [session 2222 22 "localhost"]
-          (is true))))))
+          (is (port-reachable? 2222)))))))
+
+(deftest forward-remote-port-test
+  (testing "minimal test"
+    (with-ssh-agent [false]
+      (add-identity (private-key-path))
+      (let [session (session "localhost" :username (username)
+                             :strict-host-key-checking :no)]
+        (is (instance? com.jcraft.jsch.Session session))
+        (is (not (connected? session)))
+        (is (not (port-reachable? 2222)))
+        (connect session)
+        (is (connected? session))
+        (forward-remote-port session 2222 22)
+        (is (port-reachable? 2222))
+        (unforward-remote-port session 2222)
+        (forward-remote-port session 2222 22 "localhost")
+        (unforward-remote-port session 2222)
+        (with-remote-port-forward [session 2222 22]
+          (is (port-reachable? 2222)))
+        (with-remote-port-forward [session 2222 22 "localhost"]
+          (is (port-reachable? 2222)))))))

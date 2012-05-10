@@ -54,18 +54,13 @@ time.
 
 SSH tunneling is also supported:
 
+```clj
     (with-ssh-agent []
       (let [session (session "localhost" :strict-host-key-checking :no)]
-        (with-local-tunnel session 8080 80
-          (with-connection session
-            (while (connected? session)
-              (Thread/sleep 100))))))
-
-or more conveniently:
-
-    (with-ssh-agent []
-      (let [session (session "localhost" :strict-host-key-checking :no)]
-        (ssh-tunnel session 8080 80)))
+        (with-connection session
+          (with-local-port-forward [session 8080 80]
+            (comment do something with port 8080 here)))))
+```
 
 ## Documentation
 
@@ -87,17 +82,12 @@ A: Probably a disk full, or permission error.
 Via [clojars](http://clojars.org) and
 [Leiningen](http://github.com/technomancy/leiningen).
 
-    :dependencies [clj-ssh "0.3.1"]
+    :dependencies [clj-ssh "0.3.2"]
 
 or your favourite maven repository aware tool.
 
 ## License
 
+Copyright © 2012 Hugo Duncan
+
 Licensed under [EPL](http://www.eclipse.org/legal/epl-v10.html)
-
-## TODO
-
-port forwarding
-environment setup
-sftp
-scp
