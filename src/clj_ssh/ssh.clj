@@ -399,6 +399,29 @@ keys.  All other option key pairs will be passed as SSH config options."
            (.toByteArray err-stream)
            (.toString err-stream out))]))))
 
+(defn forward-remote-port
+  "Start remote port forwarding"
+  ([session remote-port local-port local-host]
+     (.setPortForwardingR session remote-port local-host local-port))
+  ([session remote-port local-port]
+     (forward-remote-port session remote-port local-port "localhost")))
+
+(defn unforward-remote-port
+  "Remove remote port forwarding"
+  [session remote-port]
+  (.delPortForwardingR session remote-port))
+
+(defmacro with-remote-port-forward
+  "Creates a context in which a remote SSH tunnel is established for the
+  session. (Use after the connection is opened.)"
+  [[session remote-port local-port & [local-host & _]] & body]
+  `(try
+     (forward-remote-port
+      ~session ~remote-port ~local-port ~(or local-host "localhost"))
+     ~@body
+     (finally
+      (unforward-remote-port ~session ~remote-port))))
+
 (defn forward-local-port
   "Start local port forwarding"
   ([session local-port remote-port remote-host]
@@ -413,7 +436,7 @@ keys.  All other option key pairs will be passed as SSH config options."
 
 (defmacro with-local-port-forward
   "Creates a context in which a local SSH tunnel is established for the session.
-   (Use before the connection is opened.)"
+   (Use after the connection is opened.)"
   [[session local-port remote-port & [remote-host & _]] & body]
   `(try
      (forward-local-port
