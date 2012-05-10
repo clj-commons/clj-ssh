@@ -1,6 +1,16 @@
 # Release Notes
 
-Current release is 0.3.1
+Current release is 0.3.2
+
+## 0.3.2
+
+- Add remote port forwarding support
+
+- Fix documentation for with-local-port-forward
+
+- Allow specification of session options as strings
+  This should allow options like:
+   (default-session-options {"GSSAPIAuthentication" "no"})
 
 ## 0.3.1
 
