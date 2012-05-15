@@ -97,7 +97,12 @@
     <dependency>
       <groupId>com.jcraft</groupId>
       <artifactId>jsch</artifactId>
-      <version>0.1.44-1</version>
+      <version>${jsch.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>jsch-agent-proxy</groupId>
+      <artifactId>jsch-agent-proxy</artifactId>
+      <version>0.0.4-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>log4j</groupId>
@@ -149,5 +154,6 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <clojure.version>1.2.0</clojure.version>
     <slingshot.version>0.2.0</slingshot.version>
+    <jsch.version>0.1.48</jsch.version>
   </properties>
 </project>
