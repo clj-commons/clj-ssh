@@ -329,7 +329,9 @@ list, Alan Dipert and MeikelBrandmeyer."
     (let [result (ssh "localhost" :in "tty -s" :pty true :username (username))]
       (is (= 0 (first result))))
     (let [result (ssh "localhost" :in "tty -s" :pty false :username (username))]
-      (is (= 1 (first result)))))
+      (is (= 1 (first result))))
+    (let [result (ssh "localhost" :in "ssh-add -l" :agent-forwarding true :username (username))]
+      (is (zero? (first result)))))
   (with-default-session-options {:strict-host-key-checking :no}
     (with-default-identity (private-key-path)
       (let [result (ssh "localhost" :in "echo hello" :username (username))]
