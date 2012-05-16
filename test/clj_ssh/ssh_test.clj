@@ -137,7 +137,18 @@ list, Alan Dipert and MeikelBrandmeyer."
        (.getBytes (slurp (public-key-path)))
        nil)
       (is (= 1 (count (.getIdentityNames *ssh-agent*))))
-      (is (= "name" (first (.getIdentityNames *ssh-agent*)))))))
+      (is (= "name" (first (.getIdentityNames *ssh-agent*))))))
+  (testing "ssh-agent"
+    (with-ssh-agent (ssh-agent)
+      (let [n (count (.getIdentityNames *ssh-agent*))]
+        (add-identity
+         *ssh-agent*
+         "name"
+         (.getBytes (slurp (private-key-path)))
+         (.getBytes (slurp (public-key-path)))
+         nil)
+        (is (= (inc n) (count (.getIdentityNames *ssh-agent*)))))
+      (is (some #(= "name" %) (.getIdentityNames *ssh-agent*))))))
 
 (deftest has-identity?-test
   (let [key (private-key-path)]

@@ -38,6 +38,7 @@ Leiningen (http://github.com/technomancy/leiningen).
 
 Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
   (:require
+   [clj-ssh.agent :as agent]
    [clj-ssh.keychain :as keychain]
    [clj-ssh.reflect :as reflect]
    [clojure.java.io :as io]
@@ -176,6 +177,11 @@ Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
              (add-identity agent identity passphrase)
              (logging/error "Passphrase required, but none findable."))
            (add-identity agent identity))))))
+
+(defn ssh-agent
+  "Create an agent that uses the system ssh-agent (or paegant on windows)."
+  []
+  (doto (JSch.) (agent/connect)))
 
 (defn create-ssh-agent
   "Create an ssh-agent. By default try and add the current user's id_rsa key."
