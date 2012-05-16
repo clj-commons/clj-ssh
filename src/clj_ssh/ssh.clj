@@ -359,6 +359,10 @@ keys.  All other option key pairs will be passed as SSH config options."
       (reflect/call-method
        com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE]
        shell (boolean (opts :pty))))
+    (when (contains? opts :agent-forwarding)
+      (reflect/call-method
+       com.jcraft.jsch.ChannelSession 'setAgentForwarding [Boolean/TYPE]
+       shell (boolean (opts :agent-forwarding))))
     (if out-inputstream
       (do
         (connect shell)
@@ -390,6 +394,10 @@ keys.  All other option key pairs will be passed as SSH config options."
       (reflect/call-method
        com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE]
        exec (boolean (opts :pty))))
+    (when (contains? opts :agent-forwarding)
+      (reflect/call-method
+       com.jcraft.jsch.ChannelSession 'setAgentForwarding [Boolean/TYPE]
+       exec (boolean (opts :agent-forwarding))))
     (if out-inputstream
       (do
         (connect exec)

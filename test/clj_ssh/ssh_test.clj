@@ -265,7 +265,14 @@ list, Alan Dipert and MeikelBrandmeyer."
         (let [result (ssh-shell session "exit $(tty -s)" "UTF-8" {:pty true})]
           (is (= 0 (first result))))
         (let [result (ssh-shell session "exit $(tty -s)" "UTF-8" {:pty nil})]
-          (is (= 1 (first result))))))))
+          (is (= 1 (first result))))
+        (let [result (ssh-shell session "ssh-add -l" "UTF-8" {})]
+          (is (pos? (first result))))
+        (let [result (ssh-shell session "ssh-add -l" "UTF-8" {:agent-forwarding false})]
+          (is (pos? (first result))))
+        (let [result (ssh-shell session "ssh-add -l" "UTF-8" {:agent-forwarding true})]
+          (is (re-find #"RSA" (second result)))
+          (is (= 0 (first result))))))))
 
 (deftest ssh-exec-test
   (with-ssh-agent [false]
