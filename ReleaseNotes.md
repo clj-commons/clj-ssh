@@ -1,6 +1,15 @@
 # Release Notes
 
-Current release is 0.3.2
+Current release is 0.3.3
+
+## 0.3.3
+
+- Add a :agent-forwarding option
+  A boolean value is passed with :agent-forwarding to clj-ssh.ssh/ssh.
+
+- Add support for system ssh-agent
+  Support the system ssh-agent (or pageant on windows when using putty) via 
+  jsch-agent-proxy. Introduces a new agent function, clj-ssh.ssh/ssh-agent.
 
 ## 0.3.2
 
