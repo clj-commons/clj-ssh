@@ -137,7 +137,18 @@ list, Alan Dipert and MeikelBrandmeyer."
        (.getBytes (slurp (public-key-path)))
        nil)
       (is (= 1 (count (.getIdentityNames *ssh-agent*))))
-      (is (= "name" (first (.getIdentityNames *ssh-agent*)))))))
+      (is (= "name" (first (.getIdentityNames *ssh-agent*))))))
+  (testing "ssh-agent"
+    (with-ssh-agent (ssh-agent)
+      (let [n (count (.getIdentityNames *ssh-agent*))]
+        (add-identity
+         *ssh-agent*
+         "name"
+         (.getBytes (slurp (private-key-path)))
+         (.getBytes (slurp (public-key-path)))
+         nil)
+        (is (= (inc n) (count (.getIdentityNames *ssh-agent*)))))
+      (is (some #(= "name" %) (.getIdentityNames *ssh-agent*))))))
 
 (deftest has-identity?-test
   (let [key (private-key-path)]
@@ -254,7 +265,14 @@ list, Alan Dipert and MeikelBrandmeyer."
         (let [result (ssh-shell session "exit $(tty -s)" "UTF-8" {:pty true})]
           (is (= 0 (first result))))
         (let [result (ssh-shell session "exit $(tty -s)" "UTF-8" {:pty nil})]
-          (is (= 1 (first result))))))))
+          (is (= 1 (first result))))
+        (let [result (ssh-shell session "ssh-add -l" "UTF-8" {})]
+          (is (pos? (first result))))
+        (let [result (ssh-shell session "ssh-add -l" "UTF-8" {:agent-forwarding false})]
+          (is (pos? (first result))))
+        (let [result (ssh-shell session "ssh-add -l" "UTF-8" {:agent-forwarding true})]
+          (is (re-find #"RSA" (second result)))
+          (is (= 0 (first result))))))))
 
 (deftest ssh-exec-test
   (with-ssh-agent [false]
@@ -311,7 +329,9 @@ list, Alan Dipert and MeikelBrandmeyer."
     (let [result (ssh "localhost" :in "tty -s" :pty true :username (username))]
       (is (= 0 (first result))))
     (let [result (ssh "localhost" :in "tty -s" :pty false :username (username))]
-      (is (= 1 (first result)))))
+      (is (= 1 (first result))))
+    (let [result (ssh "localhost" :in "ssh-add -l" :agent-forwarding true :username (username))]
+      (is (zero? (first result)))))
   (with-default-session-options {:strict-host-key-checking :no}
     (with-default-identity (private-key-path)
       (let [result (ssh "localhost" :in "echo hello" :username (username))]

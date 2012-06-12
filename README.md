@@ -82,7 +82,7 @@ A: Probably a disk full, or permission error.
 Via [clojars](http://clojars.org) and
 [Leiningen](http://github.com/technomancy/leiningen).
 
-    :dependencies [clj-ssh "0.3.2"]
+    :dependencies [clj-ssh "0.3.3"]
 
 or your favourite maven repository aware tool.
 
