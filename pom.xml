@@ -126,7 +126,12 @@
     <dependency>
       <groupId>jsch-agent-proxy</groupId>
       <artifactId>jsch-agent-proxy</artifactId>
-      <version>0.0.4-SNAPSHOT</version>
+      <version>0.0.4</version>
+    </dependency>
+    <dependency>
+      <groupId>jsch-agent-proxy</groupId>
+      <artifactId>jsch-agent-proxy-jna</artifactId>
+      <version>0.0.4</version>
     </dependency>
     <dependency>
       <groupId>log4j</groupId>
