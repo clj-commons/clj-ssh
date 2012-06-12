@@ -1,0 +1,26 @@
+<configuration scan="true" scanPeriod="1 seconds" debug="false">
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="SSHFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>logs/ssh.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>logs/old/ssh.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>3</maxHistory>
+    </rollingPolicy>
+    <encoder>
+      <pattern>%date %level [%thread] %logger{10} %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <logger name="clj-ssh" level="INFO">
+    <appender-ref ref="SSHFILE" />
+  </logger>
+
+  <root level="INFO">
+    <appender-ref ref="CONSOLE" />
+  </root>
+</configuration>

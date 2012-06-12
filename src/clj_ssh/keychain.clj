@@ -25,7 +25,8 @@
                 (format "%s" path)
                 "-g")]
     (when (zero? (result :exit))
-      (second (re-find #"password: \"(.*)\"" (result :err))))))
+      (when-let [pw (second (re-find #"password: \"(.*)\"" (result :err)))]
+        (.getBytes pw "UTF-8")))))
 
 (defn passphrase
   "Obtain a passphrase for the given key path"
