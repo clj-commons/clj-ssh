@@ -1,31 +1,27 @@
 (ns ^{:author "Hugo Duncan"}
   clj-ssh.ssh
-  "SSH in clojure.  Uses jsch.  Provides a ssh function that tries to look
-similar to clojure.contrib.shell/sh.
+  "API for using SSH in clojure.
 
 ## Usage
 
-The top level namespace is `clj-ssh.ssh`
-
     (use 'clj-ssh.ssh)
 
-    (with-ssh-agent (ssh-agent {})
-      (add-identity {:private-key-path path-to-private-key})
-      (let [session (session hostname :strict-host-key-checking :no)]
+    (let [agent (ssh-agent {})]
+      (add-identity agent {:private-key-path path-to-private-key})
+      (let [session (session agent hostname :strict-host-key-checking :no)]
         (with-connection session
-          (let [result (ssh session :in commands-string :result-map true)]
-            (println (result :out)))
-          (let [result (ssh session some-cmd-string)]
-            (println (second result))))))
+          (let [result (ssh session {:in commands-string})]
+            (println (:out result)))
+          (let [result (ssh session {:cmd some-cmd-string})]
+            (println (:out result))))))
 
-## Installation
-
-Via maven and the clojars (http://clojars.org/clj-ssh), or
-Leiningen (http://github.com/technomancy/leiningen).
-
-## License
-
-Licensed under EPL (http://www.eclipse.org/legal/epl-v10.html)"
+    (let [agent (ssh-agent {})]
+      (let [session (session agent \"localhost\" {:strict-host-key-checking :no})]
+        (with-connection session
+          (let [channel (ssh-sftp session)]
+            (with-channel-connection channel
+              (sftp channel :cd \"/remote/path\")
+              (sftp channel :put \"/some/file\" \"filename\"))))))"
   (:require
    [clj-ssh.agent :as agent]
    [clj-ssh.keychain :as keychain]

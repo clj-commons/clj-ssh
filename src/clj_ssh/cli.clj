@@ -1,5 +1,27 @@
 (ns clj-ssh.cli
-  "Provides a REPL friendly interface for clj-ssh."
+  "Provides a REPL friendly interface for clj-ssh.
+
+There is a simple `ssh` function, which by default, will use the system
+ssh-agent.
+
+    (ssh \"hostname\" \"ls\")
+
+Strict host key checking can be turned off.
+
+    (default-session-options {:strict-host-key-checking :no})
+
+By default, your current username is used.  If your key has a passphrase, and
+you are on OSX, then you should be asked for access to your keychain.  If you
+are on any other OS without a ssh-agent, you will need to explicitly add your
+key to the clj-ssh's ssh-agent with the appropriate add-identity call.
+
+SFTP is supported:
+
+    (sftp \"hostname\" :put \"/from/this/path\" \"to/this/path\")
+
+Note that any sftp commands that change the state of the sftp session (such as
+cd) do not work with the simplified interface, as a new session is created each
+time."
   (:require
    [clj-ssh.ssh :as ssh]
    [clojure.string :as string]))
@@ -156,8 +178,7 @@ Options are
 :password   password to use for authentication
 :port       port to use if no session specified
 :with-monitor
-:modes
-"
+:modes"
   [hostname cmd & args]
   (let [{:keys [ssh-agent args]
          :or {ssh-agent *ssh-agent*}
