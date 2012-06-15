@@ -8,27 +8,37 @@ SSH in clojure.  Uses jsch.
 
 The `clj-ssh.cli` namespace provides some functions for ease of use at the REPL.
 
-    (use 'clj-ssh.ssh)
+```clj
+(use 'clj-ssh.cli)
+```
 
-Use `ssh` to execute a command, say `ls`, on a remote host \"my-host\",
+Use `ssh` to execute a command, say `ls`, on a remote host "my-host",
 
-    (ssh \"my-host\" \"ls\")
-      => {:exit 0 :out \"file1\\nfile2\\n\" :err \"\")
+```clj
+(ssh "my-host" "ls")
+  => {:exit 0 :out "file1\nfile2\n" :err "")
+```
 
 By default this will use the system ssh-agent to obtain your ssh keys, and it
 uses your current username, but this can be specified:
 
-    (ssh \"my-host\" \"ls\" :username \"remote-user\")
-      => {:exit 0 :out \"file1\\nfile2\\n\" :err \"\")
+```clj
+(ssh "my-host" "ls" :username "remote-user")
+  => {:exit 0 :out "file1\nfile2\n" :err "")
+```
 
 Strict host key checking can be turned off:
 
-    (default-session-options {:strict-host-key-checking :no})
+```clj
+(default-session-options {:strict-host-key-checking :no})
+```
 
 SFTP is also supported. For example, to copy a local file to a remote host
-\"my-host\":
+"my-host":
 
-    (sftp \"my-host\" :put \"/from/this/path\" \"to/this/path\")
+```clj
+(sftp "my-host" :put "/from/this/path" "to/this/path")
+```
 
 Note that any sftp commands that change the state of the sftp session (such as
 cd) do not work with the simplified interface, as a new session is created each
