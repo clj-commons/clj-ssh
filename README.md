@@ -10,29 +10,33 @@ The `clj-ssh.cli` namespace provides some functions for ease of use at the REPL.
 
     (use 'clj-ssh.ssh)
 
-There is a simple `ssh` function, which by default, will use the system
-ssh-agent.
+Use `ssh` to execute a command, say `ls`, on a remote host \"my-host\",
 
-    (ssh "hostname" "ls")
+    (ssh \"my-host\" \"ls\")
+      => {:exit 0 :out \"file1\\nfile2\\n\" :err \"\")
 
-Strict host key checking can be turned off.
+By default this will use the system ssh-agent to obtain your ssh keys, and it
+uses your current username, but this can be specified:
+
+    (ssh \"my-host\" \"ls\" :username \"remote-user\")
+      => {:exit 0 :out \"file1\\nfile2\\n\" :err \"\")
+
+Strict host key checking can be turned off:
 
     (default-session-options {:strict-host-key-checking :no})
 
-By default, your current username is used.  If your key has a passphrase, and
-you are on OSX, then you should be asked for access to your keychain.  If you
-are on any other OS without a ssh-agent, you will need to explicitly add your
-key to the clj-ssh's ssh-agent with the appropriate add-identity call.
+SFTP is also supported. For example, to copy a local file to a remote host
+\"my-host\":
 
-SFTP is supported:
-
-```clj
-(sftp "hostname" :put "/from/this/path" "to/this/path")
-```
+    (sftp \"my-host\" :put \"/from/this/path\" \"to/this/path\")
 
 Note that any sftp commands that change the state of the sftp session (such as
 cd) do not work with the simplified interface, as a new session is created each
 time.
+
+If your key has a passphrase, you will need to explicitly add your key either to
+the system's ssh-agent, or to clj-ssh's ssh-agent with the appropriate
+`add-identity` call.
 
 ### Non REPL
 
