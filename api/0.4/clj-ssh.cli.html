@@ -1,0 +1,206 @@
+<html lang="en">
+  <head>
+    <title>clj-ssh.cli documentation</title>
+    <link href="css/default.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/page_effects.js"></script>
+  </head>
+  <body>
+    <header>
+      <div id="header">
+        <h1 class="project-title">Clj-ssh 0.4 API documentation</h1>
+      </div>
+    </header>
+    <navigation>
+      <div id="namespaces" class="sidebar">
+        <h3>Namespaces</h3>
+        <ul class="ns-links">
+          <li class="ns-link"><a href="clj-ssh.cli.html">clj-ssh.cli</a></li><li class="ns-link"><a href="clj-ssh.ssh.html">clj-ssh.ssh</a></li>
+        </ul>
+      </div>
+      <div id="vars" class="sidebar">
+        <h3>Public Vars</h3>
+        <ul class="ns-var-links">
+          <li class="ns-var-link"><a href="clj-ssh.cli.html#var-*default-session-options*">*default-session-options*</a></li><li class="ns-var-link"><a href="clj-ssh.cli.html#var-*ssh-agent*">*ssh-agent*</a></li><li class="ns-var-link"><a href="clj-ssh.cli.html#var-add-identity">add-identity</a></li><li class="ns-var-link"><a href="clj-ssh.cli.html#var-add-identity-with-keychain">add-identity-with-keychain</a></li><li class="ns-var-link"><a href="clj-ssh.cli.html#var-default-session-options">default-session-options</a></li><li class="ns-var-link"><a href="clj-ssh.cli.html#var-generate-keypair">generate-keypair</a></li><li class="ns-var-link"><a href="clj-ssh.cli.html#var-has-identity%3F">has-identity?</a></li><li class="ns-var-link"><a href="clj-ssh.cli.html#var-session">session</a></li><li class="ns-var-link"><a href="clj-ssh.cli.html#var-sftp">sftp</a></li><li class="ns-var-link"><a href="clj-ssh.cli.html#var-ssh">ssh</a></li><li class="ns-var-link"><a href="clj-ssh.cli.html#var-with-default-session-options">with-default-session-options</a></li><li class="ns-var-link"><a href="clj-ssh.cli.html#var-with-ssh-agent">with-ssh-agent</a></li>
+        </ul>
+      </div>
+    </navigation>
+    <article>
+      <div id="content" class="namespace-docs">
+        <h2 class="namespace-title">clj-ssh.cli documentation</h2>
+        <div class="doc"><p>Provides a REPL friendly interface for clj-ssh.</p>
+
+<p>There is a simple <code>ssh</code> function, which by default, will use the system
+ssh-agent.</p>
+
+<pre><code>(ssh "hostname" "ls")
+</code></pre>
+
+<p>Strict host key checking can be turned off.</p>
+
+<pre><code>(default-session-options {:strict-host-key-checking :no})
+</code></pre>
+
+<p>By default, your current username is used.  If your key has a passphrase, and
+you are on OSX, then you should be asked for access to your keychain.  If you
+are on any other OS without a ssh-agent, you will need to explicitly add your
+key to the clj-ssh's ssh-agent with the appropriate add-identity call.</p>
+
+<p>SFTP is supported:</p>
+
+<pre><code>(sftp "hostname" :put "/from/this/path" "to/this/path")
+</code></pre>
+
+<p>Note that any sftp commands that change the state of the sftp session (such as
+cd) do not work with the simplified interface, as a new session is created each
+time.</p>
+</div>
+        <div class="ns-vars">
+          <div class="public">
+            <h3 id="var-*default-session-options*">*default-session-options*</h3>
+            
+            
+            
+            <div class="doc"><p>Default SSH options</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-*ssh-agent*">*ssh-agent*</h3>
+            
+            
+            
+            <div class="doc"><p>SSH agent used to manage identities.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-add-identity">add-identity</h3>
+            <div class="usage">[&amp; {:keys [agent name public-key private-key public-key-path private-key-path identity passphrase], :or {agent *ssh-agent*}, :as options}]</div>
+            
+            
+            <div class="doc"><p>Add an identity to the agent.</p>
+
+<p>:private-key       A string specifying the private key
+:public-key        A string specifying the public key
+:private-key-path  A string specifying a path to the private key
+:public-key-path   A string specifying a path to the public key
+:identity          A jsch Identity object (see make-identity)
+:passphrase        A byte array containing the passphrase</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-add-identity-with-keychain">add-identity-with-keychain</h3>
+            <div class="usage">[&amp; {:keys [agent name public-key-path private-key-path identity passphrase], :or {agent *ssh-agent*}, :as options}]</div>
+            
+            
+            <div class="doc"><p>Add a private key, only if not already known, using the keychain to obtain
+a passphrase if required</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-default-session-options">default-session-options</h3>
+            <div class="usage">[options]</div>
+            
+            
+            <div class="doc"><p>Set the default session options</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-generate-keypair">generate-keypair</h3>
+            <div class="usage">[key-type key-size passphrase]</div>
+            
+            
+            <div class="doc"><p>Generate a keypair, returned as [private public] byte arrays.
+Valid types are :rsa and :dsa.  key-size is in bytes. passphrase
+can be a string or byte array.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-has-identity%3F">has-identity?</h3>
+            <div class="usage">[name]</div>
+            
+            
+            <div class="doc"><p>Check if the given identity is present.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-session">session</h3>
+            <div class="usage">[hostname &amp; {:keys [port username agent password], :or {agent *ssh-agent*, port 22}, :as options}]</div>
+            
+            
+            <div class="doc"><p>Start a SSH session.
+Requires hostname.  you can also pass values for :username, :password and :port
+keys.  All other option key pairs will be passed as SSH config options.</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-sftp">sftp</h3>
+            <div class="usage">[hostname cmd &amp; args]</div>
+            
+            
+            <div class="doc"><p>Execute SFTP commands.</p>
+
+<p>  sftp host-or-session cmd &amp; options</p>
+
+<p>cmd specifies a command to exec.  Valid commands are:
+:ls
+:put
+:get
+:chmod
+:chown
+:chgrp
+:cd
+:lcd
+:pwd
+:lpwd
+:rm
+:rmdir
+:stat
+:symlink</p>
+
+<p>Options are
+:username   username to use for authentication
+:password   password to use for authentication
+:port       port to use if no session specified
+:with-monitor
+:modes</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-ssh">ssh</h3>
+            <div class="usage">[hostname &amp; args]</div>
+            
+            
+            <div class="doc"><p>Execute commands over ssh.</p>
+
+<p>Options are:</p>
+
+<p>:cmd        specifies a command to exec.  If no cmd is given, a shell is started
+            and input is taken from :in.
+:in         specifies input to the remote shell. A string or a stream.
+:out        specify :stream to obtain a an [inputstream shell]
+            specify :bytes to obtain a byte array
+            or specify a string with an encoding specification for a
+            result string.  In the case of :stream, the shell can
+            be polled for connected status.
+:username   username to use for authentication
+:password   password to use for authentication
+:port       port to use if no session specified</p>
+
+<p>sh returns a map of
+              :exit =&gt; sub-process's exit code
+              :out  =&gt; sub-process's stdout (as byte[] or String)
+              :err  =&gt; sub-process's stderr (as byte[] or String)</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-with-default-session-options">with-default-session-options</h3>
+            <div class="usage">[options &amp; body]</div>
+            
+            
+            <div class="doc"><p>Set the default session options</p>
+</div>
+          </div><div class="public">
+            <h3 id="var-with-ssh-agent">with-ssh-agent</h3>
+            <div class="usage">[agent &amp; body]</div>
+            
+            
+            <div class="doc"><p>Bind an ssh-agent for use as identity manager. An existing agent instance is
+passed as the first argument.</p>
+</div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </body>
+
+</html>
