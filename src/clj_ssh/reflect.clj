@@ -20,7 +20,7 @@
    obj is nil for static methods, the instance object otherwise.
 
    The method-name is given a symbol or a keyword (something Named)."
-  [klass method-name params obj & args]
+  [^Class klass method-name params obj & args]
   (-> klass (.getDeclaredMethod (name method-name)
                                 (into-array Class params))
       (doto (.setAccessible true))
@@ -29,7 +29,7 @@
 (defn get-field
   "Access to private or protected field.  field-name is a symbol or
   keyword."
-  [klass field-name obj]
+  [^Class klass field-name obj]
   (->
    klass
    (.getDeclaredField (name field-name))
