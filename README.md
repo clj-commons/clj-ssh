@@ -59,9 +59,13 @@ The `clj-ssh.ssh` namespace should be using SSH from functional code.
     (with-connection session
       (let [result (ssh session {:in "echo hello"})]
         (println (result :out)))
-      (let [result (ssh session "/bin/bash" "-c" "ls" "/")]
+      (let [result (ssh session {:cmd "ls"}]
         (println (second result))))))
 ```
+
+The above example shows using `:in` to pass commands to a shell, and using
+`:cmd` to exec a command without a shell. When using `:cmd` you can still pass
+a stream or a string to `:in` to be used as the process' standard input.
 
 ```clj
 (let [agent (ssh-agent {})]
