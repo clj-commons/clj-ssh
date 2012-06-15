@@ -29,30 +29,40 @@
             <h3 class="ns-link"><a href="clj-ssh.cli.html">clj-ssh.cli</a></h3>
             <div class="doc"><p>Provides a REPL friendly interface for clj-ssh.</p>
 
-<p>There is a simple <code>ssh</code> function, which by default, will use the system
-ssh-agent.</p>
-
-<pre><code>(ssh "hostname" "ls")
+<pre><code>(use 'clj-ssh.cli)
 </code></pre>
 
-<p>Strict host key checking can be turned off.</p>
+<p>Use <code>ssh</code> to execute a command, say <code>ls</code>, on a remote host "my-host",</p>
+
+<pre><code>(ssh "my-host" "ls")
+  =&gt; {:exit 0 :out "file1\nfile2\n" :err "")
+</code></pre>
+
+<p>By default this will use the system ssh-agent to obtain your ssh keys, and it
+uses your current username, but this can be specified:</p>
+
+<pre><code>(ssh "my-host" "ls" :username "remote-user")
+  =&gt; {:exit 0 :out "file1\nfile2\n" :err "")
+</code></pre>
+
+<p>Strict host key checking can be turned off:</p>
 
 <pre><code>(default-session-options {:strict-host-key-checking :no})
 </code></pre>
 
-<p>By default, your current username is used.  If your key has a passphrase, and
-you are on OSX, then you should be asked for access to your keychain.  If you
-are on any other OS without a ssh-agent, you will need to explicitly add your
-key to the clj-ssh's ssh-agent with the appropriate add-identity call.</p>
+<p>SFTP is also supported. For example, to copy a local file to a remote host
+"my-host":</p>
 
-<p>SFTP is supported:</p>
-
-<pre><code>(sftp "hostname" :put "/from/this/path" "to/this/path")
+<pre><code>(sftp "my-host" :put "/from/this/path" "to/this/path")
 </code></pre>
 
 <p>Note that any sftp commands that change the state of the sftp session (such as
 cd) do not work with the simplified interface, as a new session is created each
 time.</p>
+
+<p>If your key has a passphrase, you will need to explicitly add your key either to
+the system's ssh-agent, or to clj-ssh's ssh-agent with the appropriate
+<code>add-identity</code> call.</p>
 </div>
             <div class="index ns-var-links">
               <p>Public variables and functions:</p>
