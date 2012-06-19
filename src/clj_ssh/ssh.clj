@@ -205,7 +205,7 @@
   "Start a SSH session.
 Requires hostname.  you can also pass values for :username, :password and :port
 keys.  All other option key pairs will be passed as SSH config options."
-  [^Jsch agent hostname
+  [^JSch agent hostname
    {:keys [port username password] :or {port 22} :as options}]
   (session-impl
    agent hostname
