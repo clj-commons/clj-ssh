@@ -105,7 +105,7 @@ A: Probably a disk full, or permission error.
 Via [clojars](http://clojars.org) and
 [Leiningen](http://github.com/technomancy/leiningen).
 
-    :dependencies [clj-ssh "0.4.0-SNAPSHOT"]
+    :dependencies [clj-ssh "0.4.0"]
 
 or your favourite maven repository aware tool.
 
