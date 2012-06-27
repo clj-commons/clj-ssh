@@ -1,62 +1,87 @@
 # clj-ssh
 
-SSH in clojure.  Uses jsch.  Provides a ssh function that tries to look similar
-to clojure.contrib.shell/sh.
+SSH in clojure.  Uses jsch.
 
 ## Usage
 
-The top level namespace is `clj-ssh.ssh`
+### REPL
 
-    (use 'clj-ssh.ssh)
+The `clj-ssh.cli` namespace provides some functions for ease of use at the REPL.
 
-There is a simple `ssh` function, which by default, will try and use a id_rsa
-key in your $HOME/.ssh directory.
+```clj
+(use 'clj-ssh.cli)
+```
 
-    (ssh "hostname" "ls")
+Use `ssh` to execute a command, say `ls`, on a remote host "my-host",
 
-Strict host key checking can be turned off.
+```clj
+(ssh "my-host" "ls")
+  => {:exit 0 :out "file1\nfile2\n" :err "")
+```
 
-    (default-session-options {:strict-host-key-checking :no})
+By default this will use the system ssh-agent to obtain your ssh keys, and it
+uses your current username, but this can be specified:
 
-By default, your current username and id_rsa key are used.  If your key has a
-passphrase, and you are on OSX, then you should be asked for access to your
-keychain.  If you are on any other OS, you will need to explicitly add your key
-to the clj-ssh's ssh-agent with the appropriate add-identity call.
+```clj
+(ssh "my-host" "ls" :username "remote-user")
+  => {:exit 0 :out "file1\nfile2\n" :err "")
+```
 
-More advance usage is possible.
+Strict host key checking can be turned off:
 
-    (with-ssh-agent []
-      (add-identity "/user/name/.ssh/id_dsa")
-      (let [session (session "localhost" :strict-host-key-checking :no)]
-        (with-connection session
-          (let [result (ssh session :in "echo hello" :result-map true)]
-            (println (result :out)))
-          (let [result (ssh session "/bin/bash" "-c" "ls" "/")]
-            (println (second result))))))
+```clj
+(default-session-options {:strict-host-key-checking :no})
+```
 
-SFTP is supported, both with a simple interface,
+SFTP is also supported. For example, to copy a local file to a remote host
+"my-host":
 
-     (sftp "hostname" :put "/from/this/path" "to/this/path")
-
-as well as more advanced usage.
-
-    (with-ssh-agent []
-      (let [session (session "localhost" :strict-host-key-checking :no)]
-        (with-connection session
-          (let [channel (ssh-sftp session)]
-            (with-connection channel
-              (sftp channel :cd "/remote/path")
-              (sftp channel :put "/some/file" "filename"))))))
+```clj
+(sftp "my-host" :put "/from/this/path" "to/this/path")
+```
 
 Note that any sftp commands that change the state of the sftp session (such as
 cd) do not work with the simplified interface, as a new session is created each
 time.
 
+If your key has a passphrase, you will need to explicitly add your key either to
+the system's ssh-agent, or to clj-ssh's ssh-agent with the appropriate
+`add-identity` call.
+
+### Non REPL
+
+The `clj-ssh.ssh` namespace should be using SSH from functional code.
+
+```clj
+(let [agent (ssh-agent {:use-system-ssh-agent false})]
+  (add-identity agent "/user/name/.ssh/id_rsa")
+  (let [session (session agent "localhost" {:strict-host-key-checking :no})]
+    (with-connection session
+      (let [result (ssh session {:in "echo hello"})]
+        (println (result :out)))
+      (let [result (ssh session {:cmd "ls"}]
+        (println (second result))))))
+```
+
+The above example shows using `:in` to pass commands to a shell, and using
+`:cmd` to exec a command without a shell. When using `:cmd` you can still pass
+a stream or a string to `:in` to be used as the process' standard input.
+
+```clj
+(let [agent (ssh-agent {})]
+  (let [session (session agent "localhost" {:strict-host-key-checking :no})]
+    (with-connection session
+      (let [channel (ssh-sftp session)]
+        (with-channel-connection channel
+          (sftp channel :cd "/remote/path")
+          (sftp channel :put "/some/file" "filename"))))))
+```
+
 SSH tunneling is also supported:
 
 ```clj
-    (with-ssh-agent []
-      (let [session (session "localhost" :strict-host-key-checking :no)]
+    (let [agent (ssh-agent {:use-system-ssh-agent false})]
+      (let [session (session agent "localhost" :strict-host-key-checking :no)]
         (with-connection session
           (with-local-port-forward [session 8080 80]
             (comment do something with port 8080 here)))))
@@ -69,11 +94,9 @@ SSH tunneling is also supported:
 
 ## FAQ
 
-Q: Why doesn't clj-ssh integrate with the OS's ssh agent?
-
-A: Java has no access to the Unix domain socket used by the system ssh-agent.
-
-Q: What does  "4: Failure @ com.jcraft.jsch.ChannelSftp.throwStatusError(ChannelSftp.java:2289)" during an sftp transfer signify?
+Q: What does
+"4: Failure @ com.jcraft.jsch.ChannelSftp.throwStatusError(ChannelSftp.java:2289)"
+during an sftp transfer signify?
 
 A: Probably a disk full, or permission error.
 
@@ -82,7 +105,7 @@ A: Probably a disk full, or permission error.
 Via [clojars](http://clojars.org) and
 [Leiningen](http://github.com/technomancy/leiningen).
 
-    :dependencies [clj-ssh "0.3.3"]
+    :dependencies [clj-ssh "0.4.0"]
 
 or your favourite maven repository aware tool.
 

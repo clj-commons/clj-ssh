@@ -1,6 +1,16 @@
 # Release Notes
 
-Current release is 0.3.3
+Current release is 0.4.0
+
+## 0.4.0
+
+- Split out clj-ssh.cli
+
+  clj-ssh.ssh is designed for composability and programmatic use. It takes 
+  map arguments for options and is fully functional.
+
+  clj-ssh.cli is intended to simplify repl usage. It takes variadic
+  arguments for options and uses dynamic vars to provide defaults.
 
 ## 0.3.3
 
