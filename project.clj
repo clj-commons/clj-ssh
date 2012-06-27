@@ -4,7 +4,8 @@
   :dependencies [[org.clojure/clojure "1.2.1"]
                  [org.clojure/tools.logging "0.1.2"]
                  [jsch-agent-proxy "0.0.4"]
-                 [jsch-agent-proxy/jsch-agent-proxy-jna "0.0.4"]
+                 [jsch-agent-proxy/jsch-agent-proxy-jna "0.0.4"
+                  :exclusions [com.jcraft/jsch-agent-proxy]]
                  [slingshot "0.10.2"]
                  [com.jcraft/jsch "0.1.48"]]
   :dev-dependencies [[org.slf4j/slf4j-api "1.6.1"]
