@@ -50,7 +50,39 @@ the system's ssh-agent, or to clj-ssh's ssh-agent with the appropriate
 
 ### Non REPL
 
-The `clj-ssh.ssh` namespace should be using SSH from functional code.
+The `clj-ssh.ssh` namespace should be used for SSH from functional code.
+
+```clj
+(let [agent (ssh-agent {})]
+  (let [session (session agent "localhost" {:strict-host-key-checking :no})]
+    (with-connection session
+      (let [result (ssh session {:in "echo hello"})]
+        (println (result :out)))
+      (let [result (ssh session {:cmd "ls"}]
+        (println (second result)))))))
+```
+
+The above example shows using `:in` to pass commands to a shell, and using
+`:cmd` to exec a command without a shell. When using `:cmd` you can still pass
+a stream or a string to `:in` to be used as the process' standard input.
+
+By default, the system ssh-agent is used, which means the ssh keys you use at
+the command line level should automatically be picked up (this should also work
+with `pageant` on windows).
+
+You can forward the ssh-agent, which allows you to run ssh based commands on the
+remote host using the credentials in your local ssh-agent:
+
+```clj
+(let [agent (ssh-agent {})]
+  (let [session (session agent "localhost" {:strict-host-key-checking :no})]
+    (with-connection session
+      (let [result (ssh session {:in "ssh somehost ls" :agent-forwarding true})]
+        (println (result :out))))))
+```
+
+If you prefer not to use the system ssh-agent, or one is not running on your
+system, then a local, isolated ssh-agent can be used.
 
 ```clj
 (let [agent (ssh-agent {:use-system-ssh-agent false})]
@@ -58,14 +90,10 @@ The `clj-ssh.ssh` namespace should be using SSH from functional code.
   (let [session (session agent "localhost" {:strict-host-key-checking :no})]
     (with-connection session
       (let [result (ssh session {:in "echo hello"})]
-        (println (result :out)))
-      (let [result (ssh session {:cmd "ls"}]
-        (println (second result))))))
+        (println (result :out)))))
 ```
 
-The above example shows using `:in` to pass commands to a shell, and using
-`:cmd` to exec a command without a shell. When using `:cmd` you can still pass
-a stream or a string to `:in` to be used as the process' standard input.
+SFTP is supported:
 
 ```clj
 (let [agent (ssh-agent {})]
@@ -80,7 +108,7 @@ a stream or a string to `:in` to be used as the process' standard input.
 SSH tunneling is also supported:
 
 ```clj
-    (let [agent (ssh-agent {:use-system-ssh-agent false})]
+    (let [agent (ssh-agent {})]
       (let [session (session agent "localhost" {:strict-host-key-checking :no})]
         (with-connection session
           (with-local-port-forward [session 8080 80]
