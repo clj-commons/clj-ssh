@@ -89,8 +89,8 @@ SSH tunneling is also supported:
 
 ## Documentation
 
-[Annotated source](http:/hugoduncan.github.com/clj-ssh/uberdoc.html).
-[API](http:/hugoduncan.github.com/clj-ssh/api/0.3/index.html).
+[Annotated source](http:/hugoduncan.github.com/clj-ssh/api/0.4/uberdoc.html).
+[API](http:/hugoduncan.github.com/clj-ssh/api/0.4/index.html).
 
 ## FAQ
 
