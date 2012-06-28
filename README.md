@@ -81,7 +81,7 @@ SSH tunneling is also supported:
 
 ```clj
     (let [agent (ssh-agent {:use-system-ssh-agent false})]
-      (let [session (session agent "localhost" :strict-host-key-checking :no)]
+      (let [session (session agent "localhost" {:strict-host-key-checking :no})]
         (with-connection session
           (with-local-port-forward [session 8080 80]
             (comment do something with port 8080 here)))))
