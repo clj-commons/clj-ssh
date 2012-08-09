@@ -27,5 +27,6 @@
           :version "0.4"
           :output-dir "doc/api/0.4"
           :exclude [clj-ssh.agent clj-ssh.reflect clj-ssh.keychain]}
+  :marginalia {:dir "doc/api/0.4"}
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"})
