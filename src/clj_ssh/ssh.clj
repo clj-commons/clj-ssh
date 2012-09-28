@@ -536,7 +536,7 @@ sh returns a map of
 (defn sftp
   "Execute SFTP commands.
 
-  sftp host-or-session cmd & options
+  sftp host-or-session options cmd & args
 
 cmd specifies a command to exec.  Valid commands are:
 :ls
