@@ -1,4 +1,4 @@
-(defproject clj-ssh "0.4.0"
+(defproject clj-ssh "0.4.1-SNAPSHOT"
   :description "Library for using SSH from clojure."
   :url "https://github.com/hugoduncan/clj-ssh"
   :dependencies [[org.clojure/clojure "1.2.1"]
