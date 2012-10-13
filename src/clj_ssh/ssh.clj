@@ -45,8 +45,8 @@
 (def ^{:dynamic true}
   ssh-log-levels
   (atom
-   {com.jcraft.jsch.Logger/DEBUG :debug
-    com.jcraft.jsch.Logger/INFO  :info
+   {com.jcraft.jsch.Logger/DEBUG :trace
+    com.jcraft.jsch.Logger/INFO  :debug
     com.jcraft.jsch.Logger/WARN  :warn
     com.jcraft.jsch.Logger/ERROR :error
     com.jcraft.jsch.Logger/FATAL :fatal}))
