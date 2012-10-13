@@ -45,8 +45,8 @@
 (def ^{:dynamic true}
   ssh-log-levels
   (atom
-   {com.jcraft.jsch.Logger/DEBUG :debug
-    com.jcraft.jsch.Logger/INFO  :info
+   {com.jcraft.jsch.Logger/DEBUG :trace
+    com.jcraft.jsch.Logger/INFO  :debug
     com.jcraft.jsch.Logger/WARN  :warn
     com.jcraft.jsch.Logger/ERROR :error
     com.jcraft.jsch.Logger/FATAL :fatal}))
@@ -93,11 +93,15 @@
 ;;; Agent
 (defn ssh-agent
   "Create a ssh-agent. By default a system ssh-agent is preferred."
-  [{:keys [use-system-ssh-agent] :or {use-system-ssh-agent true}}]
-  (if use-system-ssh-agent
-    (doto (JSch.) (agent/connect))
-    (JSch.)))
-
+  [{:keys [use-system-ssh-agent known-hosts-path]
+    :or {use-system-ssh-agent true
+         known-hosts-path (str (. System getProperty "user.home") "/.ssh/known_hosts")}}]
+  (let [agent (JSch.)]
+    (when use-system-ssh-agent
+      (agent/connect agent))
+    (when known-hosts-path
+      (.setKnownHosts agent known-hosts-path))
+    agent))
 
 ;;; Identities
 (defn has-identity?
