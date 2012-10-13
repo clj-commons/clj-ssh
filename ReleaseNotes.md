@@ -1,6 +1,12 @@
 # Release Notes
 
-Current release is 0.4.0
+Current release is 0.4.1
+
+## 0.4.1
+
+- add option to ssh-agent for :known-hosts-path. Fixes #16.
+
+- remap log levels to be less verbose by default. Fixes #17
 
 ## 0.4.0
 
