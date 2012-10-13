@@ -57,28 +57,36 @@
       (is (= 1 (count (.getIdentityNames agent))))
       (is (= "name" (first (.getIdentityNames agent))))))
   (testing "ssh-agent"
-    ;; adding identities to the system ssh-agent isn't implemented in jsch
-    ;; (with-ssh-agent (ssh-agent {})
-    ;;   (let [n (count (.getIdentityNames *ssh-agent*))]
-    ;;     (add-identity
-    ;;      {:agent *ssh-agent*
-    ;;       :name "name"
-    ;;       :private-key (.getBytes (slurp (private-key-path)))
-    ;;       :public-key (.getBytes (slurp (public-key-path)))})
-    ;;     (is (= (inc n) (count (.getIdentityNames *ssh-agent*)))))
-    ;;   (is (some #(= "name" %) (.getIdentityNames *ssh-agent*))))
-    ))
+    (let [agent (ssh-agent {})]
+      (let [n (count (.getIdentityNames agent))
+            test-key-comment "key for test clj-ssh"
+            has-key (some #(= test-key-comment %) (.getIdentityNames agent))]
+        (add-identity
+         agent
+         {:name "name"
+          :private-key-path (private-key-path)
+          :public-key-path (public-key-path)})
+        (is (or has-key (= (inc n) (count (.getIdentityNames agent)))))
+        (is (some #(= test-key-comment %) (.getIdentityNames agent)))))))
 
 (deftest has-identity?-test
-  (let [key (private-key-path)]
-    (let [agent (ssh-agent {:use-system-ssh-agent false})]
-      (is (not (has-identity? agent key)))
-      (add-identity agent {:private-key-path key})
-      (is (= 1 (count (.getIdentityNames agent))))
-      (is (has-identity? agent key))
-      (add-identity agent {:private-key-path key})
-      (is (= 1 (count (.getIdentityNames agent)))))))
-
+  (let [key (private-key-path)
+        pub-key (public-key-path)]
+    (testing "private-key-path only"
+      (let [agent (ssh-agent {:use-system-ssh-agent false})]
+        (is (not (has-identity? agent key)))
+        (is (zero? (count (.getIdentityNames agent))))
+        (add-identity agent {:private-key-path key})
+        (is (= 1 (count (.getIdentityNames agent))))
+        (is (has-identity? agent key))))
+    (testing "private-key-path and public-key-path"
+      (let [agent (ssh-agent {:use-system-ssh-agent false})]
+        (is (not (has-identity? agent key)))
+        (is (zero? (count (.getIdentityNames agent))))
+        (add-identity agent {:private-key-path key
+                             :public-key-path pub-key})
+        (is (= 1 (count (.getIdentityNames agent))))
+        (is (has-identity? agent key))))))
 
 (deftest session-impl-test
   (let [agent (ssh-agent {:use-system-ssh-agent false})]

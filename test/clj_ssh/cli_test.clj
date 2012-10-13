@@ -46,11 +46,10 @@
   (let [key (private-key-path)]
     (with-ssh-agent (ssh-agent {:use-system-ssh-agent false})
       (is (not (has-identity? key)))
+      (is (zero? (count (.getIdentityNames *ssh-agent*))))
       (add-identity :private-key-path key)
       (is (= 1 (count (.getIdentityNames *ssh-agent*))))
-      (is (has-identity? key))
-      (add-identity :private-key-path key)
-      (is (= 1 (count (.getIdentityNames *ssh-agent*)))))))
+      (is (has-identity? key)))))
 
 (deftest session-test
   (with-ssh-agent (ssh-agent {:use-system-ssh-agent false})

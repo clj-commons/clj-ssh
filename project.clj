@@ -11,4 +11,4 @@
                   :exclusions [com.jcraft/jsch-agent-proxy]]
                  [slingshot "0.10.2"
                   :exclusions [org.clojure/clojure]]
-                 [com.jcraft/jsch "0.1.48"]])
+                 [com.jcraft/jsch "0.1.49"]])

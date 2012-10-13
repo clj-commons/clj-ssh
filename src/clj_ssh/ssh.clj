@@ -39,7 +39,7 @@
     PipedInputStream PipedOutputStream]
    [com.jcraft.jsch
     JSch Session Channel ChannelShell ChannelExec ChannelSftp
-    Identity IdentityFile Logger KeyPair]))
+    Identity IdentityFile Logger KeyPair LocalIdentityRepository]))
 
 ;;; forward jsch's logging to java logging
 (def ^{:dynamic true}
@@ -130,33 +130,54 @@
   [^JSch agent {:keys [^String name
                        ^String public-key
                        ^String private-key
-                       public-key-path
-                       private-key-path
+                       ^String public-key-path
+                       ^String private-key-path
                        ^Identity identity
                        ^bytes passphrase]
                 :as options}]
   {:pre [(map? options)]}
-  (let [name (or name private-key-path public-key)]
+  (let [name (or name private-key-path public-key)
+        id-repository (fn []
+                        (reflect/call-method
+                         com.jcraft.jsch.JSch 'getIdentityRepository []
+                         agent))
+        local-repo? (fn [id-repo]
+                      ;; LocalIdentityRepository is not public, so we can't use
+                      ;; instance?
+                      (= "com.jcraft.jsch.LocalIdentityRepository"
+                         (.getName (type id-repo))))]
     (cond
-      identity
-      (.addIdentity agent identity passphrase)
+     identity
+     (.addIdentity agent identity passphrase)
 
-      (and public-key private-key)
-      (.addIdentity agent name private-key public-key passphrase)
+     (and public-key private-key)
+     (let [id-repo (id-repository)]
+       (if (local-repo? id-repo)
+         (.addIdentity agent name private-key public-key passphrase)
+         (let [keypair (KeyPair/load agent private-key-path public-key-path)]
+           (.add id-repo (.forSSHAgent keypair)))))
 
-      (and public-key-path private-key-path)
-      (.addIdentity
-       agent
-       (file-path private-key-path) (file-path public-key-path) passphrase)
+     (and public-key-path private-key-path)
+     (let [id-repo (id-repository)]
+       (if (local-repo? id-repo)
+         (.addIdentity
+          agent
+          (file-path private-key-path) (file-path public-key-path) passphrase)
+         (let [keypair (KeyPair/load agent private-key-path public-key-path)]
+           (.add id-repo (.forSSHAgent keypair)))))
 
-      private-key-path
-      (.addIdentity agent (file-path private-key-path) passphrase)
+     private-key-path
+     (let [id-repo (id-repository)]
+       (if (local-repo? id-repo)
+         (.addIdentity agent (file-path private-key-path) passphrase)
+         (let [keypair (KeyPair/load agent private-key-path)]
+           (.add id-repo (.forSSHAgent keypair)))))
 
-      :else
-      (throw+
-       {:reason :do-not-know-how-to-add-identity
-        :args options}
-       "Don't know how to add identity"))))
+     :else
+     (throw+
+      {:reason :do-not-know-how-to-add-identity
+       :args options}
+      "Don't know how to add identity"))))
 
 (defn add-identity-with-keychain
   "Add a private key, only if not already known, using the keychain to obtain
