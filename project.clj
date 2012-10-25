@@ -1,4 +1,4 @@
-(defproject clj-ssh "0.4.1"
+(defproject clj-ssh "0.4.2"
   :description "Library for using SSH from clojure."
   :url "https://github.com/hugoduncan/clj-ssh"
   :license {:name "Eclipse Public License"
@@ -11,4 +11,4 @@
                   :exclusions [com.jcraft/jsch-agent-proxy]]
                  [slingshot "0.10.2"
                   :exclusions [org.clojure/clojure]]
-                 [com.jcraft/jsch "0.1.48"]])
+                 [com.jcraft/jsch "0.1.49"]])
