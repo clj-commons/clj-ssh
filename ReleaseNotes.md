@@ -1,6 +1,11 @@
 # Release Notes
 
-Current release is 0.4.1
+Current release is 0.4.2
+
+## 0.4.2
+
+- Update to jsch 0.1.49 and enable adding keys to ssh-agent. Support for
+  adding passphrase-less keys only.
 
 ## 0.4.1
 
