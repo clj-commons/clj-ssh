@@ -76,7 +76,7 @@
   (with-ssh-agent (ssh-agent {:use-system-ssh-agent false})
     (add-identity-with-keychain
       :private-key-path (encrypted-private-key-path)
-      :name "clj-ssh")
+      :passphrase "clj-ssh")
     (let [session (session "localhost")]
       (is (instance? com.jcraft.jsch.Session session))
       (is (not (connected? session)))
