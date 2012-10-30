@@ -1,6 +1,10 @@
 # Release Notes
 
-Current release is 0.4.2
+Current release is 0.4.3
+
+## 0.4.3
+
+- Use passphrase when adding key to agent, and honour the key name
 
 ## 0.4.2
 
