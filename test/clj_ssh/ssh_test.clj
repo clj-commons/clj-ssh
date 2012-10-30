@@ -60,14 +60,13 @@
     (let [agent (ssh-agent {})]
       (let [n (count (.getIdentityNames agent))
             test-key-comment "key for test clj-ssh"
-            has-key (some #(= test-key-comment %) (.getIdentityNames agent))]
+            has-key (some #(= (private-key-path) %) (.getIdentityNames agent))]
         (add-identity
          agent
-         {:name "name"
-          :private-key-path (private-key-path)
+         {:private-key-path (private-key-path)
           :public-key-path (public-key-path)})
         (is (or has-key (= (inc n) (count (.getIdentityNames agent)))))
-        (is (some #(= test-key-comment %) (.getIdentityNames agent)))))))
+        (is (some #(= (private-key-path) %) (.getIdentityNames agent)))))))
 
 (deftest has-identity?-test
   (let [key (private-key-path)
@@ -141,7 +140,7 @@
         (add-identity-with-keychain
           agent
           {:private-key-path (encrypted-private-key-path)
-           :name "clj-ssh"})
+           :passphrase "clj-ssh"})
         (let [session (session
                        agent
                        "localhost"

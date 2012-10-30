@@ -155,6 +155,8 @@
        (if (local-repo? id-repo)
          (.addIdentity agent name private-key public-key passphrase)
          (let [keypair (KeyPair/load agent private-key-path public-key-path)]
+           (when passphrase
+             (.decrypt keypair passphrase))
            (.add id-repo (.forSSHAgent keypair)))))
 
      (and public-key-path private-key-path)
@@ -164,6 +166,9 @@
           agent
           (file-path private-key-path) (file-path public-key-path) passphrase)
          (let [keypair (KeyPair/load agent private-key-path public-key-path)]
+           (when passphrase
+             (.decrypt keypair passphrase))
+           (.setPublicKeyComment keypair name)
            (.add id-repo (.forSSHAgent keypair)))))
 
      private-key-path
@@ -171,6 +176,9 @@
        (if (local-repo? id-repo)
          (.addIdentity agent (file-path private-key-path) passphrase)
          (let [keypair (KeyPair/load agent private-key-path)]
+           (when passphrase
+             (.decrypt keypair passphrase))
+           (.setPublicKeyComment keypair name)
            (.add id-repo (.forSSHAgent keypair)))))
 
      :else
