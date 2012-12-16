@@ -93,9 +93,10 @@
 ;;; Agent
 (defn ssh-agent
   "Create a ssh-agent. By default a system ssh-agent is preferred."
-  [{:keys [use-system-ssh-agent known-hosts-path]
+  [{:keys [use-system-ssh-agent ^String known-hosts-path]
     :or {use-system-ssh-agent true
-         known-hosts-path (str (. System getProperty "user.home") "/.ssh/known_hosts")}}]
+         known-hosts-path (str (. System getProperty "user.home")
+                               "/.ssh/known_hosts")}}]
   (let [agent (JSch.)]
     (when use-system-ssh-agent
       (agent/connect agent))
@@ -145,13 +146,13 @@
                       ;; LocalIdentityRepository is not public, so we can't use
                       ;; instance?
                       (= "com.jcraft.jsch.LocalIdentityRepository"
-                         (.getName (type id-repo))))]
+                         (.getName ^Class (type id-repo))))]
     (cond
      identity
      (.addIdentity agent identity passphrase)
 
      (and public-key private-key)
-     (let [id-repo (id-repository)]
+     (let [^com.jcraft.jsch.IdentityRepository id-repo (id-repository)]
        (if (local-repo? id-repo)
          (.addIdentity agent name private-key public-key passphrase)
          (let [keypair (KeyPair/load agent private-key-path public-key-path)]
@@ -160,7 +161,7 @@
            (.add id-repo (.forSSHAgent keypair)))))
 
      (and public-key-path private-key-path)
-     (let [id-repo (id-repository)]
+     (let [^com.jcraft.jsch.IdentityRepository id-repo (id-repository)]
        (if (local-repo? id-repo)
          (.addIdentity
           agent
@@ -172,7 +173,7 @@
            (.add id-repo (.forSSHAgent keypair)))))
 
      private-key-path
-     (let [id-repo (id-repository)]
+     (let [^com.jcraft.jsch.IdentityRepository id-repo (id-repository)]
        (if (local-repo? id-repo)
          (.addIdentity agent (file-path private-key-path) passphrase)
          (let [keypair (KeyPair/load agent private-key-path)]
@@ -425,7 +426,7 @@ keys.  All other option key pairs will be passed as SSH config options."
           (Thread/sleep 100))
         {:exit (.getExitStatus shell)
          :out (if (= :bytes out)
-                (.toByteArray out-stream)
+                (.toByteArray ^ByteArrayOutputStream out-stream)
                 (.toString out-stream))}))))
 
 (defn ssh-exec
@@ -464,10 +465,10 @@ keys.  All other option key pairs will be passed as SSH config options."
           (Thread/sleep 100))
         {:exit (.getExitStatus exec)
          :out (if (= :bytes out)
-                (.toByteArray out-stream)
+                (.toByteArray ^ByteArrayOutputStream out-stream)
                 (.toString out-stream))
          :err (if (= :bytes out)
-                (.toByteArray err-stream)
+                (.toByteArray ^ByteArrayOutputStream err-stream)
                 (.toString err-stream))}))))
 
 (defn ssh
