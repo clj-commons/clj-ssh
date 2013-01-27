@@ -1,6 +1,13 @@
 # Release Notes
 
-Current release is 0.4.3
+Current release is 0.4.4
+
+## 0.4.4
+
+- Make ssh key test more robust
+  The add-identity-test ssh-agent case was failing for no apparent reason.
+
+- Remove some reflection warnings
 
 ## 0.4.3
 
