@@ -29,8 +29,6 @@
    [clojure.java.io :as io]
    [clojure.string :as string]
    [clojure.tools.logging :as logging])
-  (:use
-   [slingshot.slingshot :only [throw+]])
   (:import
    [java.io
     File InputStream OutputStream StringReader
@@ -183,10 +181,11 @@
            (.add id-repo (.forSSHAgent keypair)))))
 
      :else
-     (throw+
-      {:reason :do-not-know-how-to-add-identity
-       :args options}
-      "Don't know how to add identity"))))
+     (throw
+      (ex-info
+       "Don't know how to add identity"
+       {:reason :do-not-know-how-to-add-identity
+        :args options})))))
 
 (defn add-identity-with-keychain
   "Add a private key, only if not already known, using the keychain to obtain
@@ -214,10 +213,11 @@
           (add-identity agent (assoc options :passphrase passphrase))
           (do
             (logging/error "Passphrase required, but none findable.")
-            (throw+
-             {:reason :passphrase-not-found
-              :key-name name}
-             "Passphrase required for key %s, but none findable." name)))
+            (throw
+             (ex-info
+              (str "Passphrase required for key " name ", but none findable.")
+              {:reason :passphrase-not-found
+               :key-name name}) name)))
         (add-identity agent options)))))
 
 ;;; Sessions
@@ -518,7 +518,7 @@ sh returns a map of
       5 (. target#
            (~name (first args#) (second args#) (nth args# 2) (nth args# 3)
                   (nth args# 4)))
-      (throw+
+      (throw
        (java.lang.IllegalArgumentException.
         (str "Too many arguments passed.  Limit 5, passed " (count args#)))))))
 
@@ -564,7 +564,7 @@ sh returns a map of
                       (conj args (sftp-modemap (options :mode)))
                       args)]
            ((memfn-varargs put ChannelSftp) channel args))
-    (throw+
+    (throw
      (java.lang.IllegalArgumentException. (str "Unknown SFTP command " cmd)))))
 
 (defn sftp
@@ -616,15 +616,16 @@ cmd specifies a command to exec.  Valid commands are:
   [^InputStream in]
   (let [code (.read in)]
     (when-not (zero? code)
-      (throw+
-       {:type :clj-ssh/scp-failure
-        :message (format
-                  "clj-ssh scp failure: %s"
-                  (case code
-                    1 "scp error"
-                    2 "scp fatal error"
-                    -1 "disconnect error"
-                    "unknown error"))}))))
+      (throw
+       (ex-info
+        (format
+         "clj-ssh scp failure: %s"
+         (case code
+           1 "scp error"
+           2 "scp fatal error"
+           -1 "disconnect error"
+           "unknown error"))
+        {:type :clj-ssh/scp-failure})))))
 
 (defn- scp-send-command
   "Send command to the specified output stream"
@@ -695,11 +696,11 @@ cmd specifies a command to exec.  Valid commands are:
             (fn [^String path]
               (let [file (File. path)]
                 (when (.isDirectory file)
-                  (throw+
-                   {:type :clj-ssh/scp-directory-copy-requested
-                    :message (format
-                              "Copy of dir %s requested without recursive flag"
-                              path)}))
+                  (throw
+                   (ex-info
+                    (format
+                     "Copy of dir %s requested without recursive flag" path)
+                    {:type :clj-ssh/scp-directory-copy-requested})))
                 file)))]
     (map f paths)))
 
@@ -838,11 +839,10 @@ cmd specifies a command to exec.  Valid commands are:
         _ (when (and (.exists file)
                      (not (.isDirectory file))
                      (> (count remote-paths) 1))
-            (throw+
-             {:type :clj-ssh/scp-copy-multiple-files-to-file-requested
-              :message (format
-                        "Copy of multiple files to file %s requested"
-                        local-path)}))]
+            (throw
+             (ex-info
+              (format "Copy of multiple files to file %s requested" local-path)
+              {:type :clj-ssh/scp-copy-multiple-files-to-file-requested})))]
     (when (and session (not (connected? session)))
       (connect session))
     (let [[^PipedInputStream in
