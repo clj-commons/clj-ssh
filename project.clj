@@ -1,4 +1,4 @@
-(defproject clj-ssh "0.5.0-SNAPSHOT"
+(defproject clj-ssh "0.5.0"
   :description "Library for using SSH from clojure."
   :url "https://github.com/hugoduncan/clj-ssh"
   :license {:name "Eclipse Public License"

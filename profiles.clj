@@ -2,7 +2,7 @@
  :clojure-1.2.1 {:dependencies [[org.clojure/clojure "1.2.1"]]}
  :clojure-1.3.0 {:dependencies [[org.clojure/clojure "1.3.0"]]}
  :clojure-1.4.0 {:dependencies [[org.clojure/clojure "1.4.0"]]}
- :clojure-1.5.0 {:dependencies [[org.clojure/clojure "1.5.0-RC3"]]}
+ :clojure-1.5.0 {:dependencies [[org.clojure/clojure "1.5.0-RC4"]]}
  :codox {:codox {:writer codox-md.writer/write-docs
                  :version "0.4"
                  :output-dir "doc/api/0.4"
