@@ -1,6 +1,11 @@
 # Release Notes
 
-Current release is 0.4.4
+Current release is 0.5.0
+
+## 0.5.0
+
+- Require clojure 1.4.0
+  Drops usage of slingshot.
 
 ## 0.4.4
 
