@@ -84,6 +84,16 @@
    (keyword? arg) (name arg)
    :else (str arg)))
 
+(def ^java.nio.charset.Charset ascii
+  (java.nio.charset.Charset/forName "US-ASCII"))
+
+(defn- ^{:tag (Class/forName "[B")} as-bytes
+  "Return arg as a byte array.  arg must be a string or a byte array."
+  [arg]
+  (if (string? arg)
+    (.getBytes ^String arg ascii)
+    arg))
+
 (defn ssh-agent?
   "Predicate to test for an ssh-agent."
   [object] (instance? JSch object))
@@ -149,11 +159,13 @@
      identity
      (.addIdentity agent identity passphrase)
 
-     (and public-key private-key)
+     private-key
      (let [^com.jcraft.jsch.IdentityRepository id-repo (id-repository)]
        (if (local-repo? id-repo)
          (.addIdentity agent name private-key public-key passphrase)
-         (let [keypair (KeyPair/load agent private-key-path public-key-path)]
+         (let [^KeyPair keypair
+               (KeyPair/load
+                agent (as-bytes private-key) (as-bytes public-key))]
            (when passphrase
              (.decrypt keypair passphrase))
            (.add id-repo (.forSSHAgent keypair)))))
