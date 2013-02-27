@@ -1,6 +1,11 @@
 # Release Notes
 
-Current release is 0.5.0
+Current release is 0.5.1
+
+## 0.5.1
+
+- Fix adding key string identities for ssh-agent
+  Adding string based ssh keys to an ssh-agent was broken.
 
 ## 0.5.0
 
