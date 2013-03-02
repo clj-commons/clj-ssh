@@ -1,6 +1,10 @@
 # Release Notes
 
-Current release is 0.5.1
+Current release is 0.5.2
+
+## 0.5.2
+
+- Update to official jsch.agentproxy relase jars
 
 ## 0.5.1
 
