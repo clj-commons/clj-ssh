@@ -260,7 +260,7 @@ keys.  All other option key pairs will be passed as SSH config options.</p>
             
             <div class="doc"><p>Execute SFTP commands.</p>
 
-<p>  sftp host-or-session cmd &amp; options</p>
+<p>  sftp host-or-session options cmd &amp; args</p>
 
 <p>cmd specifies a command to exec.  Valid commands are:
 :ls
@@ -317,7 +317,7 @@ keys.  All other option key pairs will be passed as SSH config options.</p>
 </div>
           </div><div class="public">
             <h3 id="var-ssh-agent">ssh-agent</h3>
-            <div class="usage">[{:keys [use-system-ssh-agent], :or {use-system-ssh-agent true}}]</div>
+            <div class="usage">[{:keys [use-system-ssh-agent known-hosts-path], :or {use-system-ssh-agent true, known-hosts-path (str (. System getProperty "user.home") "/.ssh/known_hosts")}}]</div>
             
             
             <div class="doc"><p>Create a ssh-agent. By default a system ssh-agent is preferred.</p>

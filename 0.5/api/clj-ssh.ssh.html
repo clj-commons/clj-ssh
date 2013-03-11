@@ -1,0 +1,488 @@
+<html lang="en">
+  <head>
+    <title>clj-ssh.ssh documentation</title>
+    <link href="css/default.css" type="text/css" rel="stylesheet" />
+    <link href="css/codox-md.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/page_effects.js"></script>
+  </head>
+  <body>
+    <header>
+    <div data-scrollspy="scrollspy" class="topbar">
+      <div class="topbar-inner">
+        <div class="container">
+          <a href="/" class="brand">Pallet</a>
+          <ul class="nav">
+            <li class=""><a href="/doc">Documentation</a></li>
+            <li class=""><a href="/news">News</a></li>
+            <li class=""><a href="/blog">Blog</a></li>
+            <li class=""><a href="https://github.com/pallet/pallet">Code</a></li>
+            <li class=""><a href="/services">Services</a></li>
+            <li class=""><a href="/support">Support</a></li>
+            <li class=""><a href="/contact">Contact</a></li>
+          </ul>
+          <form action="http://www.google.com/search" method="get" class="pull-right">
+            <input placeholder="Search" value="" maxlength="255" name="q" type="text" />
+            <input value="palletops.com" type="hidden" name="sitesearch" />
+          </form>
+        </div>
+      </div>
+    </div>
+      <div id="header">
+        <h1><a href="http://palletops.com"><span class="project-title">Clj-ssh 0.5.4-SNAPSHOT API documentation</span></a></h1>
+      </div>
+    </header>
+    <navigation>
+      <div id="namespaces" class="sidebar">
+        <h3>Namespaces</h3>
+        <ul class="ns-links">
+          <li class="ns-list"><a class="ns-link ns-name" href="clj-ssh.agent.html">clj-ssh.agent</a></li><li class="ns-list"><a class="ns-link ns-name" href="clj-ssh.cli.html">clj-ssh.cli</a></li><li class="ns-list"><a class="ns-link ns-name" href="clj-ssh.keychain.html">clj-ssh.keychain</a></li><li class="ns-list"><a class="ns-link ns-name" href="clj-ssh.reflect.html">clj-ssh.reflect</a></li><li class="ns-list"><a class="ns-link ns-name" href="clj-ssh.ssh.html">clj-ssh.ssh</a></li>
+        </ul>
+      </div>
+      <div id="vars" class="sidebar">
+        <h3>Public Vars</h3>
+        <ul class="ns-var-links">
+          <li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-*piped-stream-buffer-size*">*piped-stream-buffer-size*</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var--%3ESshLogger">-&gt;SshLogger</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-add-identity">add-identity</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-add-identity-with-keychain">add-identity-with-keychain</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-capitalize">capitalize</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-connect">connect</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-connect-channel">connect-channel</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-connected-channel%3F">connected-channel?</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-connected%3F">connected?</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-disconnect">disconnect</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-disconnect-channel">disconnect-channel</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-exec-channel">exec-channel</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-exit-status">exit-status</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-forward-local-port">forward-local-port</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-forward-remote-port">forward-remote-port</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-generate-keypair">generate-keypair</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-has-identity%3F">has-identity?</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-make-identity">make-identity</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-open-channel">open-channel</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-scp-from">scp-from</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-scp-sink">scp-sink</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-scp-sink-file">scp-sink-file</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-scp-to">scp-to</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-session">session</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-session-cipher-none">session-cipher-none</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-sftp">sftp</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-sftp-channel">sftp-channel</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-shell-channel">shell-channel</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-ssh">ssh</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-ssh-agent">ssh-agent</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-ssh-agent%3F">ssh-agent?</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-ssh-exec">ssh-exec</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-ssh-sftp">ssh-sftp</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-ssh-sftp-cmd">ssh-sftp-cmd</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-ssh-shell">ssh-shell</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-unforward-local-port">unforward-local-port</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-unforward-remote-port">unforward-remote-port</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-with-channel-connection">with-channel-connection</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-with-connection">with-connection</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-with-local-port-forward">with-local-port-forward</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.ssh.html#var-with-remote-port-forward">with-remote-port-forward</a></li>
+        </ul>
+      </div>
+    </navigation>
+    <article>
+      <div id="content" class="namespace-docs">
+        <h2 class="namespace-title">clj-ssh.ssh documentation</h2>
+        <div class="doc"><p>API for using SSH in clojure.</p>
+
+<h2>Usage</h2>
+
+<pre><code>(use 'clj-ssh.ssh)
+
+(let [agent (ssh-agent {})]
+  (add-identity agent {:private-key-path path-to-private-key})
+  (let [session (session agent hostname :strict-host-key-checking :no)]
+    (with-connection session
+      (let [result (ssh session {:in commands-string})]
+        (println (:out result)))
+      (let [result (ssh session {:cmd some-cmd-string})]
+        (println (:out result))))))
+
+(let [agent (ssh-agent {})]
+  (let [session (session agent "localhost" {:strict-host-key-checking :no})]
+    (with-connection session
+      (let [channel (ssh-sftp session)]
+        (with-channel-connection channel
+          (sftp channel :cd "/remote/path")
+          (sftp channel :put "/some/file" "filename"))))))
+</code></pre>
+</div>
+        <div class="ns-vars">
+          <div class="public">
+            <h3><a id="var-*piped-stream-buffer-size*" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L396">*piped-stream-buffer-size*</a></h3>
+            <h4 class="var-type var" id="var-type">var</h4>
+            
+            
+            
+            <div class="doc"><p>The buffer size (in bytes) for the piped stream used to implement
+the :stream option for :out. If your ssh commands generate a high volume of
+output, then this buffer size can become a bottleneck. You might also
+increase the frequency with which you read the output stream if this is an
+issue.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var--%3ESshLogger" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L52">-&gt;SshLogger</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[log-level]</div>
+            
+            
+            <div class="doc"><p>Positional factory function for class clj_ssh.ssh.SshLogger.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-add-identity" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L130">add-identity</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[agent {:keys [name public-key private-key public-key-path private-key-path identity passphrase], :as options}]</div>
+            
+            
+            <div class="doc"><p>Add an identity to the agent.</p>
+
+<p>:private-key       A string specifying the private key
+:public-key        A string specifying the public key
+:private-key-path  A string specifying a path to the private key
+:public-key-path   A string specifying a path to the public key
+:identity          A jsch Identity object (see make-identity)
+:passphrase        A byte array containing the passphrase</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-add-identity-with-keychain" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L202">add-identity-with-keychain</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[agent {:keys [name public-key-path private-key-path identity passphrase], :as options}]</div>
+            
+            
+            <div class="doc"><p>Add a private key, only if not already known, using the keychain to obtain
+a passphrase if required</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-capitalize" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L70">capitalize</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[s]</div>
+            
+            
+            <div class="doc"><p>Converts first character of the string to upper-case.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-connect" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L310">connect</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[session]</div><div class="usage">[session timeout]</div>
+            
+            
+            <div class="doc"><p>Connect a session.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-connect-channel" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L344">connect-channel</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[channel]</div>
+            
+            
+            <div class="doc"><p>Connect a channel.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-connected-channel%3F" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L354">connected-channel?</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[channel]</div>
+            
+            
+            <div class="doc"><p>Predicate used to test for a connected channel.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-connected%3F" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L326">connected?</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[session]</div>
+            
+            
+            <div class="doc"><p>Predicate used to test for a connected session.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-disconnect" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L317">disconnect</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[session]</div>
+            
+            
+            <div class="doc"><p>Disconnect a session.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-disconnect-channel" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L349">disconnect-channel</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[channel]</div>
+            
+            
+            <div class="doc"><p>Disconnect a session.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-exec-channel" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L381">exec-channel</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[session]</div>
+            
+            
+            <div class="doc"><p>Open an Exec channel in the session.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-exit-status" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L391">exit-status</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[channel]</div>
+            
+            
+            <div class="doc"><p>Return the exit status of a channel.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-forward-local-port" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L287">forward-local-port</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[session local-port remote-port remote-host]</div><div class="usage">[session local-port remote-port]</div>
+            
+            
+            <div class="doc"><p>Start local port forwarding</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-forward-remote-port" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L263">forward-remote-port</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[session remote-port local-port local-host]</div><div class="usage">[session remote-port local-port]</div>
+            
+            
+            <div class="doc"><p>Start remote port forwarding</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-generate-keypair" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L898">generate-keypair</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[agent key-type key-size passphrase]</div>
+            
+            
+            <div class="doc"><p>Generate a keypair, returned as [private public] byte arrays.
+Valid types are :rsa and :dsa.  key-size is in bytes. passphrase
+can be a string or byte array.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-has-identity%3F" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L116">has-identity?</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[agent name]</div>
+            
+            
+            <div class="doc"><p>Check if the given identity is present.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-make-identity" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L121">make-identity</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[agent private-key-path public-key-path]</div>
+            
+            
+            <div class="doc"><p>Create a JSch identity.  This can be used to check whether the key is
+encrypted.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-open-channel" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L371">open-channel</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[session session-type]</div>
+            
+            
+            <div class="doc"><p>Open a channel of the specified type in the session.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-scp-from" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L839">scp-from</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[session remote-paths local-path &amp; {:keys [username password port mode dir-mode recursive preserve], :as opts}]</div>
+            
+            
+            <div class="doc"><p>Copy remote path(s) to local path via scp.</p>
+
+<p>Options are:</p>
+
+<p>:username   username to use for authentication
+:password   password to use for authentication
+:port       port to use if no session specified
+:mode       mode, as a 4 digit octal number (default 0644)
+:dir-mode   directory mode, as a 4 digit octal number (default 0755)
+:recursive  flag for recursive operation
+:preserve   flag for preserving mode, mtime and atime. atime is not available
+            in java, so is set to mtime. mode is not readable in java.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-scp-sink" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L773">scp-sink</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[send recv file times {:as options}]</div>
+            
+            
+            <div class="doc"><p>Sink scp commands to file</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-scp-sink-file" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L755">scp-sink-file</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[send recv file mode length {:keys [buffer-size], :or {buffer-size 2048}}]</div>
+            
+            
+            <div class="doc"><p>Sink a file</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-scp-to" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L797">scp-to</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[session local-paths remote-path &amp; {:keys [username password port mode dir-mode recursive preserve], :as opts}]</div>
+            
+            
+            <div class="doc"><p>Copy local path(s) to remote path via scp.</p>
+
+<p>Options are:</p>
+
+<p>:username   username to use for authentication
+:password   password to use for authentication
+:port       port to use if no session specified
+:mode       mode, as a 4 digit octal number (default 0644)
+:dir-mode   directory mode, as a 4 digit octal number (default 0755)
+:recursive  flag for recursive operation
+:preserve   flag for preserving mode, mtime and atime. atime is not available
+            in java, so is set to mtime. mode is not readable in java.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-session" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L250">session</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[agent hostname {:keys [port username password], :or {port 22}, :as options}]</div>
+            
+            
+            <div class="doc"><p>Start a SSH session.
+Requires hostname.  you can also pass values for :username, :password and :port
+keys.  All other option key pairs will be passed as SSH config options.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-session-cipher-none" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L724">session-cipher-none</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[session]</div>
+            
+            
+            <div class="doc"><p>Reset the session to use no cipher</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-sftp" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L587">sftp</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[session-or-channel {:keys [with-monitor modes], :as opts} cmd &amp; args]</div>
+            
+            
+            <div class="doc"><p>Execute SFTP commands.</p>
+
+<p>  sftp host-or-session options cmd &amp; args</p>
+
+<p>cmd specifies a command to exec.  Valid commands are:
+:ls
+:put
+:get
+:chmod
+:chown
+:chgrp
+:cd
+:lcd
+:pwd
+:lpwd
+:rm
+:rmdir
+:stat
+:symlink</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-sftp-channel" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L376">sftp-channel</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[session]</div>
+            
+            
+            <div class="doc"><p>Open a SFTP channel in the session.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-shell-channel" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L386">shell-channel</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[session]</div>
+            
+            
+            <div class="doc"><p>Open a Shell channel in the session.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-ssh" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L491">ssh</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[session {:keys [cmd in out], :as options}]</div>
+            
+            
+            <div class="doc"><p>Execute commands over ssh.</p>
+
+<p>Options are:</p>
+
+<p>:cmd        specifies a command string to exec.  If no cmd is given, a shell
+            is started and input is taken from :in.
+:in         specifies input to the remote shell. A string or a stream.
+:out        specify :stream to obtain a an [inputstream shell]
+            specify :bytes to obtain a byte array
+            or specify a string with an encoding specification for a
+            result string.  In the case of :stream, the shell can
+            be polled for connected status.</p>
+
+<p>sh returns a map of
+              :exit =&gt; sub-process's exit code
+              :out  =&gt; sub-process's stdout (as byte[] or String)
+              :err  =&gt; sub-process's stderr (as byte[] or String)</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-ssh-agent" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L102">ssh-agent</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[{:keys [use-system-ssh-agent known-hosts-path], :or {use-system-ssh-agent true, known-hosts-path (str (. System getProperty "user.home") "/.ssh/known_hosts")}}]</div>
+            
+            
+            <div class="doc"><p>Create a ssh-agent. By default a system ssh-agent is preferred.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-ssh-agent%3F" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L97">ssh-agent?</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[object]</div>
+            
+            
+            <div class="doc"><p>Predicate to test for an ssh-agent.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-ssh-exec" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L449">ssh-exec</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[session cmd in out opts]</div>
+            
+            
+            <div class="doc"><p>Run a command via ssh-exec.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-ssh-sftp" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L518">ssh-sftp</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[session]</div>
+            
+            
+            <div class="doc"><p>Obtain a connected ftp channel.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-ssh-sftp-cmd" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L546">ssh-sftp-cmd</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[channel cmd args options]</div>
+            
+            
+            <div class="doc"><p>Command on a ftp channel.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-ssh-shell" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L417">ssh-shell</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[session in out opts]</div>
+            
+            
+            <div class="doc"><p>Run a ssh-shell.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-unforward-local-port" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L294">unforward-local-port</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[session local-port]</div>
+            
+            
+            <div class="doc"><p>Remove local port forwarding</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-unforward-remote-port" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L271">unforward-remote-port</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[session remote-port]</div>
+            
+            
+            <div class="doc"><p>Remove remote port forwarding</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-with-channel-connection" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L359">with-channel-connection</a></h3>
+            <h4 class="var-type macro" id="var-type">macro</h4>
+            <div class="usage">[channel &amp; body]</div>
+            
+            
+            <div class="doc"><p>Creates a context in which the channel is connected. Ensures the channel is
+disconnected on exit.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-with-connection" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L331">with-connection</a></h3>
+            <h4 class="var-type macro" id="var-type">macro</h4>
+            <div class="usage">[session &amp; body]</div>
+            
+            
+            <div class="doc"><p>Creates a context in which the session is connected. Ensures the session is
+disconnected on exit.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-with-local-port-forward" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L299">with-local-port-forward</a></h3>
+            <h4 class="var-type macro" id="var-type">macro</h4>
+            <div class="usage">[[session local-port remote-port &amp; [remote-host &amp; _]] &amp; body]</div>
+            
+            
+            <div class="doc"><p>Creates a context in which a local SSH tunnel is established for the session.
+(Use after the connection is opened.)</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-with-remote-port-forward" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/ssh.clj#L276">with-remote-port-forward</a></h3>
+            <h4 class="var-type macro" id="var-type">macro</h4>
+            <div class="usage">[[session remote-port local-port &amp; [local-host &amp; _]] &amp; body]</div>
+            
+            
+            <div class="doc"><p>Creates a context in which a remote SSH tunnel is established for the
+session. (Use after the connection is opened.)</p>
+</div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </body>
+
+</html>

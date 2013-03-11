@@ -1,0 +1,249 @@
+<html lang="en">
+  <head>
+    <title>clj-ssh.cli documentation</title>
+    <link href="css/default.css" type="text/css" rel="stylesheet" />
+    <link href="css/codox-md.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/page_effects.js"></script>
+  </head>
+  <body>
+    <header>
+    <div data-scrollspy="scrollspy" class="topbar">
+      <div class="topbar-inner">
+        <div class="container">
+          <a href="/" class="brand">Pallet</a>
+          <ul class="nav">
+            <li class=""><a href="/doc">Documentation</a></li>
+            <li class=""><a href="/news">News</a></li>
+            <li class=""><a href="/blog">Blog</a></li>
+            <li class=""><a href="https://github.com/pallet/pallet">Code</a></li>
+            <li class=""><a href="/services">Services</a></li>
+            <li class=""><a href="/support">Support</a></li>
+            <li class=""><a href="/contact">Contact</a></li>
+          </ul>
+          <form action="http://www.google.com/search" method="get" class="pull-right">
+            <input placeholder="Search" value="" maxlength="255" name="q" type="text" />
+            <input value="palletops.com" type="hidden" name="sitesearch" />
+          </form>
+        </div>
+      </div>
+    </div>
+      <div id="header">
+        <h1><a href="http://palletops.com"><span class="project-title">Clj-ssh 0.5.4-SNAPSHOT API documentation</span></a></h1>
+      </div>
+    </header>
+    <navigation>
+      <div id="namespaces" class="sidebar">
+        <h3>Namespaces</h3>
+        <ul class="ns-links">
+          <li class="ns-list"><a class="ns-link ns-name" href="clj-ssh.agent.html">clj-ssh.agent</a></li><li class="ns-list"><a class="ns-link ns-name" href="clj-ssh.cli.html">clj-ssh.cli</a></li><li class="ns-list"><a class="ns-link ns-name" href="clj-ssh.keychain.html">clj-ssh.keychain</a></li><li class="ns-list"><a class="ns-link ns-name" href="clj-ssh.reflect.html">clj-ssh.reflect</a></li><li class="ns-list"><a class="ns-link ns-name" href="clj-ssh.ssh.html">clj-ssh.ssh</a></li>
+        </ul>
+      </div>
+      <div id="vars" class="sidebar">
+        <h3>Public Vars</h3>
+        <ul class="ns-var-links">
+          <li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.cli.html#var-*default-session-options*">*default-session-options*</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.cli.html#var-*ssh-agent*">*ssh-agent*</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.cli.html#var-add-identity">add-identity</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.cli.html#var-add-identity-with-keychain">add-identity-with-keychain</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.cli.html#var-default-session-options">default-session-options</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.cli.html#var-generate-keypair">generate-keypair</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.cli.html#var-has-identity%3F">has-identity?</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.cli.html#var-session">session</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.cli.html#var-sftp">sftp</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.cli.html#var-ssh">ssh</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.cli.html#var-with-default-session-options">with-default-session-options</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="clj-ssh.cli.html#var-with-ssh-agent">with-ssh-agent</a></li>
+        </ul>
+      </div>
+    </navigation>
+    <article>
+      <div id="content" class="namespace-docs">
+        <h2 class="namespace-title">clj-ssh.cli documentation</h2>
+        <div class="doc"><p>Provides a REPL friendly interface for clj-ssh.</p>
+
+<pre><code>(use 'clj-ssh.cli)
+</code></pre>
+
+<p>Use <code>ssh</code> to execute a command, say <code>ls</code>, on a remote host "my-host",</p>
+
+<pre><code>(ssh "my-host" "ls")
+  =&gt; {:exit 0 :out "file1\nfile2\n" :err "")
+</code></pre>
+
+<p>By default this will use the system ssh-agent to obtain your ssh keys, and it
+uses your current username, but this can be specified:</p>
+
+<pre><code>(ssh "my-host" "ls" :username "remote-user")
+  =&gt; {:exit 0 :out "file1\nfile2\n" :err "")
+</code></pre>
+
+<p>Strict host key checking can be turned off:</p>
+
+<pre><code>(default-session-options {:strict-host-key-checking :no})
+</code></pre>
+
+<p>SFTP is also supported. For example, to copy a local file to a remote host
+"my-host":</p>
+
+<pre><code>(sftp "my-host" :put "/from/this/path" "to/this/path")
+</code></pre>
+
+<p>Note that any sftp commands that change the state of the sftp session (such as
+cd) do not work with the simplified interface, as a new session is created each
+time.</p>
+
+<p>If your key has a passphrase, you will need to explicitly add your key either to
+the system's ssh-agent, or to clj-ssh's ssh-agent with the appropriate
+<code>add-identity</code> call.</p>
+</div>
+        <div class="ns-vars">
+          <div class="public">
+            <h3><a id="var-*default-session-options*" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/cli.clj#L88">*default-session-options*</a></h3>
+            <h4 class="var-type var" id="var-type">var</h4>
+            
+            
+            
+            <div class="doc"><p>Default SSH options</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-*ssh-agent*" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/cli.clj#L38">*ssh-agent*</a></h3>
+            <h4 class="var-type var" id="var-type">var</h4>
+            
+            
+            
+            <div class="doc"><p>SSH agent used to manage identities.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-add-identity" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/cli.clj#L52">add-identity</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[&amp; {:keys [agent name public-key private-key public-key-path private-key-path identity passphrase], :or {agent *ssh-agent*}, :as options}]</div>
+            
+            
+            <div class="doc"><p>Add an identity to the agent.</p>
+
+<p>:private-key       A string specifying the private key
+:public-key        A string specifying the public key
+:private-key-path  A string specifying a path to the private key
+:public-key-path   A string specifying a path to the public key
+:identity          A jsch Identity object (see make-identity)
+:passphrase        A byte array containing the passphrase</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-add-identity-with-keychain" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/cli.clj#L74">add-identity-with-keychain</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[&amp; {:keys [agent name public-key-path private-key-path identity passphrase], :or {agent *ssh-agent*}, :as options}]</div>
+            
+            
+            <div class="doc"><p>Add a private key, only if not already known, using the keychain to obtain
+a passphrase if required</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-default-session-options" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/cli.clj#L99">default-session-options</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[options]</div>
+            
+            
+            <div class="doc"><p>Set the default session options</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-generate-keypair" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/cli.clj#L199">generate-keypair</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[key-type key-size passphrase]</div>
+            
+            
+            <div class="doc"><p>Generate a keypair, returned as [private public] byte arrays.
+Valid types are :rsa and :dsa.  key-size is in bytes. passphrase
+can be a string or byte array.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-has-identity%3F" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/cli.clj#L48">has-identity?</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[name]</div>
+            
+            
+            <div class="doc"><p>Check if the given identity is present.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-session" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/cli.clj#L108">session</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[hostname &amp; {:keys [port username agent password], :or {agent *ssh-agent*, port 22}, :as options}]</div>
+            
+            
+            <div class="doc"><p>Start a SSH session.
+Requires hostname.  you can also pass values for :username, :password and :port
+keys.  All other option key pairs will be passed as SSH config options.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-sftp" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/cli.clj#L163">sftp</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[hostname cmd &amp; args]</div>
+            
+            
+            <div class="doc"><p>Execute SFTP commands.</p>
+
+<p>  sftp host-or-session cmd &amp; options</p>
+
+<p>cmd specifies a command to exec.  Valid commands are:
+:ls
+:put
+:get
+:chmod
+:chown
+:chgrp
+:cd
+:lcd
+:pwd
+:lpwd
+:rm
+:rmdir
+:stat
+:symlink</p>
+
+<p>Options are
+:username   username to use for authentication
+:password   password to use for authentication
+:port       port to use if no session specified
+:with-monitor
+:modes</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-ssh" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/cli.clj#L130">ssh</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[hostname &amp; args]</div>
+            
+            
+            <div class="doc"><p>Execute commands over ssh.</p>
+
+<p>Options are:</p>
+
+<p>:cmd        specifies a command to exec.  If no cmd is given, a shell is started
+            and input is taken from :in.
+:in         specifies input to the remote shell. A string or a stream.
+:out        specify :stream to obtain a an [inputstream shell]
+            specify :bytes to obtain a byte array
+            or specify a string with an encoding specification for a
+            result string.  In the case of :stream, the shell can
+            be polled for connected status.
+:username   username to use for authentication
+:password   password to use for authentication
+:port       port to use if no session specified</p>
+
+<p>sh returns a map of
+              :exit =&gt; sub-process's exit code
+              :out  =&gt; sub-process's stdout (as byte[] or String)
+              :err  =&gt; sub-process's stderr (as byte[] or String)</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-with-default-session-options" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/cli.clj#L93">with-default-session-options</a></h3>
+            <h4 class="var-type macro" id="var-type">macro</h4>
+            <div class="usage">[options &amp; body]</div>
+            
+            
+            <div class="doc"><p>Set the default session options</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-with-ssh-agent" class="source var-name" href="https://github.com/hugoduncan/clj-ssh/blob/develop/src/clj_ssh/cli.clj#L41">with-ssh-agent</a></h3>
+            <h4 class="var-type macro" id="var-type">macro</h4>
+            <div class="usage">[agent &amp; body]</div>
+            
+            
+            <div class="doc"><p>Bind an ssh-agent for use as identity manager. An existing agent instance is
+passed as the first argument.</p>
+</div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </body>
+
+</html>
