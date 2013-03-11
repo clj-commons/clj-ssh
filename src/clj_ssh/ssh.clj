@@ -388,6 +388,11 @@ keys.  All other option key pairs will be passed as SSH config options."
   [^Session session]
   (open-channel session :shell))
 
+(defn exit-status
+  "Return the exit status of a channel."
+  [^Channel channel]
+  (.getExitStatus channel))
+
 (def
   ^{:dynamic true
     :doc (str "The buffer size (in bytes) for the piped stream used to implement
