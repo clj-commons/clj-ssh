@@ -1,6 +1,12 @@
 # Release Notes
 
-Current release is 0.5.2
+Current release is 0.5.3
+
+## 0.5.3
+
+- Add ssh/exit-status for querying exit code
+
+- Add type hints to session functions
 
 ## 0.5.2
 
