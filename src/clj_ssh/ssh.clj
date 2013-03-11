@@ -233,7 +233,7 @@
         (add-identity agent options)))))
 
 ;;; Sessions
-(defn- session-impl
+(defn- ^Session session-impl
   [^JSch agent hostname username port ^String password options]
   (let [session (.getSession agent username hostname port)]
     (when password
@@ -247,7 +247,7 @@
        (as-string v)))
     session))
 
-(defn session
+(defn ^Session session
   "Start a SSH session.
 Requires hostname.  you can also pass values for :username, :password and :port
 keys.  All other option key pairs will be passed as SSH config options."
@@ -387,6 +387,11 @@ keys.  All other option key pairs will be passed as SSH config options."
   "Open a Shell channel in the session."
   [^Session session]
   (open-channel session :shell))
+
+(defn exit-status
+  "Return the exit status of a channel."
+  [^Channel channel]
+  (.getExitStatus channel))
 
 (def
   ^{:dynamic true
