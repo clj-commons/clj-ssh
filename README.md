@@ -128,6 +128,16 @@ during an sftp transfer signify?
 
 A: Probably a disk full, or permission error.
 
+### TTY's and background processes
+
+Some useful links about ssh and background processes:
+
+- [Snail book](http://www.snailbook.com/faq/background-jobs.auto.html)
+- [ssh -t question on stackoverflow](http://stackoverflow.com/questions/14679178/why-does-ssh-wait-for-my-subshells-without-t-and-kill-them-with-t)
+- [sudo and tty question on stackoverflow](http://stackoverflow.com/questions/8441637/to-run-sudo-commands-on-a-ec2-instance)
+
+Thanks to [Ryan Stradling](http://github.com/rstradling) for these.
+
 ## Installation
 
 Via [clojars](http://clojars.org) and
