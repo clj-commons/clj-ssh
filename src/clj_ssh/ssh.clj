@@ -162,7 +162,8 @@
      private-key
      (let [^com.jcraft.jsch.IdentityRepository id-repo (id-repository)]
        (if (local-repo? id-repo)
-         (.addIdentity agent name private-key public-key passphrase)
+         (.addIdentity
+          agent name (as-bytes private-key) (as-bytes public-key) passphrase)
          (let [^KeyPair keypair
                (KeyPair/load
                 agent (as-bytes private-key) (as-bytes public-key))]
