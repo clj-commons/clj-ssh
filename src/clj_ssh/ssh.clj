@@ -169,6 +169,7 @@
                 agent (as-bytes private-key) (as-bytes public-key))]
            (when passphrase
              (.decrypt keypair passphrase))
+           (.setPublicKeyComment keypair "Added by clj-ssh")
            (.add id-repo (.forSSHAgent keypair)))))
 
      (and public-key-path private-key-path)
