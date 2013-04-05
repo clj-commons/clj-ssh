@@ -1,6 +1,14 @@
 # Release Notes
 
-Current release is 0.5.3
+Current release is 0.5.4
+
+## 0.5.4
+
+- Ensure literal keys get a non-blank comment
+  When adding a literal key, use "Added by clj-ssh" as the comment.
+
+- Ensure literal key strings are handled correctly
+
 
 ## 0.5.3
 
