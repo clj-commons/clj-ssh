@@ -86,7 +86,7 @@ system, then a local, isolated ssh-agent can be used.
 
 ```clj
 (let [agent (ssh-agent {:use-system-ssh-agent false})]
-  (add-identity agent "/user/name/.ssh/id_rsa")
+  (add-identity agent {:private-key-path "/user/name/.ssh/id_rsa"})
   (let [session (session agent "localhost" {:strict-host-key-checking :no})]
     (with-connection session
       (let [result (ssh session {:in "echo hello"})]
