@@ -86,7 +86,7 @@ system, then a local, isolated ssh-agent can be used.
 
 ```clj
 (let [agent (ssh-agent {:use-system-ssh-agent false})]
-  (add-identity agent "/user/name/.ssh/id_rsa")
+  (add-identity agent {:private-key-path "/user/name/.ssh/id_rsa"})
   (let [session (session agent "localhost" {:strict-host-key-checking :no})]
     (with-connection session
       (let [result (ssh session {:in "echo hello"})]
@@ -143,7 +143,7 @@ Thanks to [Ryan Stradling](http://github.com/rstradling) for these.
 Via [clojars](http://clojars.org) and
 [Leiningen](http://github.com/technomancy/leiningen).
 
-    :dependencies [clj-ssh "0.5.4"]
+    :dependencies [clj-ssh "0.5.5"]
 
 or your favourite maven repository aware tool.
 

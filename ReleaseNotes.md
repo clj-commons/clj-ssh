@@ -1,6 +1,12 @@
 # Release Notes
 
-Current release is 0.5.4
+Current release is 0.5.5
+
+## 0.5.5
+
+- Wrap open-channel exceptions
+  When .openChannel throws an exception, wrap it in an ex-info exception. 
+  This allows easier procession of the exceptions in consuming code.
 
 ## 0.5.4
 
