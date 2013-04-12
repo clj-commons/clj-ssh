@@ -36,7 +36,7 @@
     ByteArrayInputStream ByteArrayOutputStream
     PipedInputStream PipedOutputStream]
    [com.jcraft.jsch
-    JSch Session Channel ChannelShell ChannelExec ChannelSftp
+    JSch Session Channel ChannelShell ChannelExec ChannelSftp JSchException
     Identity IdentityFile Logger KeyPair LocalIdentityRepository]))
 
 ;;; forward jsch's logging to java logging
@@ -373,7 +373,28 @@ keys.  All other option key pairs will be passed as SSH config options."
 (defn open-channel
   "Open a channel of the specified type in the session."
   [^Session session session-type]
-  (.openChannel session (name session-type)))
+  (try
+    (.openChannel session (name session-type))
+    (catch JSchException e
+      (let [msg (.getMessage e)]
+        (cond
+         (= msg "session is down")
+         (throw (ex-info (format "clj-ssh open-channel failure: %s" msg)
+                         {:type :clj-ssh/open-channel-failure
+                          :reason :clj-ssh/session-down}
+                         e))
+         (= msg "channel is not opened.")
+         (throw (ex-info
+                 (format
+                  "clj-ssh open-channel failure: %s (possible session timeout)"
+                  msg)
+                 {:type :clj-ssh/open-channel-failure
+                  :reason :clj-ssh/channel-open-failed}
+                 e))
+         :else (throw (ex-info (format "clj-ssh open-channel failure: %s" msg)
+                               {:type :clj-ssh/open-channel-failure
+                                :reason :clj-ssh/unknown}
+                               e)))))))
 
 (defn sftp-channel
   "Open a SFTP channel in the session."
