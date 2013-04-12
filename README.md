@@ -143,7 +143,7 @@ Thanks to [Ryan Stradling](http://github.com/rstradling) for these.
 Via [clojars](http://clojars.org) and
 [Leiningen](http://github.com/technomancy/leiningen).
 
-    :dependencies [clj-ssh "0.5.4"]
+    :dependencies [clj-ssh "0.5.5"]
 
 or your favourite maven repository aware tool.
 
