@@ -127,8 +127,69 @@
    com.jcraft.jsch.IdentityFile 'newInstance [String String JSch]
    nil private-key-path public-key-path agent))
 
+(defn ^KeyPair keypair
+  "Return a KeyPair object for the given options.
+
+:private-key       A string specifying the private key
+:public-key        A string specifying the public key
+:private-key-path  A string specifying a path to the private key
+:public-key-path   A string specifying a path to the public key
+:passphrase        A byte array containing the passphrase
+:comment           A comment for the key"
+  [^JSch agent {:keys [^String public-key
+                       ^String private-key
+                       ^String public-key-path
+                       ^String private-key-path
+                       ^String comment
+                       ^bytes passphrase]
+                :as options}]
+  {:pre [(map? options)]}
+  (cond
+   private-key
+   (let [^KeyPair keypair
+         (KeyPair/load agent (as-bytes private-key) (as-bytes public-key))]
+     (when passphrase
+       (.decrypt keypair passphrase))
+     (.setPublicKeyComment keypair comment)
+     keypair)
+
+   (and public-key-path private-key-path)
+   (let [keypair (KeyPair/load agent private-key-path public-key-path)]
+     (when passphrase
+       (.decrypt keypair passphrase))
+     (.setPublicKeyComment keypair comment)
+     keypair)
+
+   private-key-path
+   (let [keypair (KeyPair/load agent private-key-path)]
+     (when passphrase
+       (.decrypt keypair passphrase))
+     (.setPublicKeyComment keypair comment)
+     keypair)
+
+   :else
+   (throw
+    (ex-info
+     "Don't know how to create keypair"
+     {:reason :do-not-know-how-to-create-keypair
+      :args options}))))
+
+;; JSch's IdentityFile has a private constructor that would let us avoid this
+;; were it public.
+(deftype KeyPairIdentity [^JSch jsch ^String identity ^KeyPair kpair]
+  Identity
+  (^boolean setPassphrase [_ ^bytes passphrase] (.. kpair (decrypt passphrase)))
+  (getPublicKeyBlob [_] (.. kpair getPublicKeyBlob))
+  (^bytes getSignature [_ ^bytes data] (.. kpair (getSignature data)))
+  (getAlgName [_]
+    (String. (reflect/call-method KeyPair 'getKeyTypeName [] kpair)))
+  (getName [_] identity)
+  (isEncrypted [_] (.. kpair isEncrypted))
+  (clear [_] (.. kpair dispose)))
+
 (defn add-identity
-  "Add an identity to the agent.
+  "Add an identity to the agent.  The identity is passed with the :identity
+keyword argument, or constructed from the other keyword arguments.
 
 :private-key       A string specifying the private key
 :public-key        A string specifying the public key
@@ -145,61 +206,12 @@
                        ^bytes passphrase]
                 :as options}]
   {:pre [(map? options)]}
-  (let [name (or name private-key-path public-key)
-        id-repository (fn []
-                        (reflect/call-method
-                         com.jcraft.jsch.JSch 'getIdentityRepository []
-                         agent))
-        local-repo? (fn [id-repo]
-                      ;; LocalIdentityRepository is not public, so we can't use
-                      ;; instance?
-                      (= "com.jcraft.jsch.LocalIdentityRepository"
-                         (.getName ^Class (type id-repo))))]
-    (cond
-     identity
-     (.addIdentity agent identity passphrase)
-
-     private-key
-     (let [^com.jcraft.jsch.IdentityRepository id-repo (id-repository)]
-       (if (local-repo? id-repo)
-         (.addIdentity
-          agent name (as-bytes private-key) (as-bytes public-key) passphrase)
-         (let [^KeyPair keypair
-               (KeyPair/load
-                agent (as-bytes private-key) (as-bytes public-key))]
-           (when passphrase
-             (.decrypt keypair passphrase))
-           (.setPublicKeyComment keypair "Added by clj-ssh")
-           (.add id-repo (.forSSHAgent keypair)))))
-
-     (and public-key-path private-key-path)
-     (let [^com.jcraft.jsch.IdentityRepository id-repo (id-repository)]
-       (if (local-repo? id-repo)
-         (.addIdentity
-          agent
-          (file-path private-key-path) (file-path public-key-path) passphrase)
-         (let [keypair (KeyPair/load agent private-key-path public-key-path)]
-           (when passphrase
-             (.decrypt keypair passphrase))
-           (.setPublicKeyComment keypair name)
-           (.add id-repo (.forSSHAgent keypair)))))
-
-     private-key-path
-     (let [^com.jcraft.jsch.IdentityRepository id-repo (id-repository)]
-       (if (local-repo? id-repo)
-         (.addIdentity agent (file-path private-key-path) passphrase)
-         (let [keypair (KeyPair/load agent private-key-path)]
-           (when passphrase
-             (.decrypt keypair passphrase))
-           (.setPublicKeyComment keypair name)
-           (.add id-repo (.forSSHAgent keypair)))))
-
-     :else
-     (throw
-      (ex-info
-       "Don't know how to add identity"
-       {:reason :do-not-know-how-to-add-identity
-        :args options})))))
+  (let [^String comment (or name private-key-path public-key)
+        ^Identity identity
+        (or identity
+            (KeyPairIdentity.
+             agent comment (keypair agent (assoc options :comment comment))))]
+    (.addIdentity agent identity passphrase)))
 
 (defn add-identity-with-keychain
   "Add a private key, only if not already known, using the keychain to obtain
