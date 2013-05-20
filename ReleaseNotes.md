@@ -1,6 +1,13 @@
 # Release Notes
 
-Current release is 0.5.5
+## 0.5.6
+
+- Allow generate-keypair to write key files
+
+- Factor out keypair generation
+  Simplifies add-identity by factoring out the keypair creation.
+
+- Update to jsch 0.1.50
 
 ## 0.5.5
 
