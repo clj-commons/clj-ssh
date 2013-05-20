@@ -497,6 +497,12 @@
         (test-scp-to-with session)
         (test-scp-from-with session)))))
 
+(deftest keypair-test
+  (let [agent (ssh-agent {:use-system-ssh-agent false})]
+    (is (keypair agent {:private-key-path (private-key-path)}))
+    (is (keypair agent {:private-key-path (private-key-path)
+                        :public-key-path (public-key-path)}))))
+
 (deftest generate-keypair-test
   (let [agent (ssh-agent {:use-system-ssh-agent false})]
     (let [[priv pub] (generate-keypair agent :rsa 1024 "hello")]
