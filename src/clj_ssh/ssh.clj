@@ -932,11 +932,18 @@ cmd specifies a command to exec.  Valid commands are:
 
 (defn generate-keypair
   "Generate a keypair, returned as [private public] byte arrays.
-   Valid types are :rsa and :dsa.  key-size is in bytes. passphrase
-   can be a string or byte array."
-  [agent key-type key-size passphrase]
+   Valid types are :rsa and :dsa.  key-size is in bytes. passphrase can be a
+   string or byte array.  Optionally writes the keypair to the paths specified
+   using the :private-key-path and :public-key-path keys."
+  [agent key-type key-size passphrase
+   & {:keys [comment private-key-path public-key-path]}]
   (let [keypair (KeyPair/genKeyPair agent (key-type key-types) key-size)]
-    (when passphrase (.setPassphrase keypair passphrase))
+    (when passphrase
+      (.setPassphrase keypair passphrase))
+    (when public-key-path
+      (.writePublicKey keypair public-key-path comment))
+    (when private-key-path
+      (.writePrivateKey keypair private-key-path))
     (let [pub-baos (ByteArrayOutputStream.)
           pri-baos (ByteArrayOutputStream.)]
       (.writePublicKey keypair pub-baos "")
