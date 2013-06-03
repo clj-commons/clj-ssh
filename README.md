@@ -54,7 +54,7 @@ The `clj-ssh.ssh` namespace should be used for SSH from functional code.
 
 ```clj
 (let [agent (ssh-agent {})]
-  (let [session (session agent "localhost" {:strict-host-key-checking :no})]
+  (let [session (session agent "host-ip" {:strict-host-key-checking :no})]
     (with-connection session
       (let [result (ssh session {:in "echo hello"})]
         (println (result :out)))
@@ -75,7 +75,7 @@ remote host using the credentials in your local ssh-agent:
 
 ```clj
 (let [agent (ssh-agent {})]
-  (let [session (session agent "localhost" {:strict-host-key-checking :no})]
+  (let [session (session agent "host-ip" {:strict-host-key-checking :no})]
     (with-connection session
       (let [result (ssh session {:in "ssh somehost ls" :agent-forwarding true})]
         (println (result :out))))))
@@ -87,7 +87,7 @@ system, then a local, isolated ssh-agent can be used.
 ```clj
 (let [agent (ssh-agent {:use-system-ssh-agent false})]
   (add-identity agent {:private-key-path "/user/name/.ssh/id_rsa"})
-  (let [session (session agent "localhost" {:strict-host-key-checking :no})]
+  (let [session (session agent "host-ip" {:strict-host-key-checking :no})]
     (with-connection session
       (let [result (ssh session {:in "echo hello"})]
         (println (result :out)))))
@@ -97,7 +97,7 @@ SFTP is supported:
 
 ```clj
 (let [agent (ssh-agent {})]
-  (let [session (session agent "localhost" {:strict-host-key-checking :no})]
+  (let [session (session agent "host-ip" {:strict-host-key-checking :no})]
     (with-connection session
       (let [channel (ssh-sftp session)]
         (with-channel-connection channel
@@ -109,7 +109,7 @@ SSH tunneling is also supported:
 
 ```clj
     (let [agent (ssh-agent {})]
-      (let [session (session agent "localhost" {:strict-host-key-checking :no})]
+      (let [session (session agent "host-ip" {:strict-host-key-checking :no})]
         (with-connection session
           (with-local-port-forward [session 8080 80]
             (comment do something with port 8080 here)))))
