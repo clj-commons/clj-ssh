@@ -74,20 +74,23 @@
         (is (connected? session)))
       (is (not (connected? session)))))
   (with-ssh-agent (ssh-agent {:use-system-ssh-agent false})
-    (add-identity-with-keychain
-      :private-key-path (encrypted-private-key-path)
-      :passphrase "clj-ssh")
-    (let [session (session "localhost")]
-      (is (instance? com.jcraft.jsch.Session session))
-      (is (not (connected? session)))
-      (connect session)
-      (is (connected? session))
-      (disconnect session)
-      (is (not (connected? session))))
-    (let [session (session "localhost")]
-      (with-connection session
-        (is (connected? session)))
-      (is (not (connected? session)))))
+    (try (add-identity-with-keychain
+          :private-key-path (encrypted-private-key-path)
+          :passphrase "clj-ssh")
+         (let [session (session "localhost")]
+           (is (instance? com.jcraft.jsch.Session session))
+           (is (not (connected? session)))
+           (connect session)
+           (is (connected? session))
+           (disconnect session)
+           (is (not (connected? session))))
+         (let [session (session "localhost")]
+           (with-connection session
+             (is (connected? session)))
+           (is (not (connected? session))))
+         (catch Exception e
+           (when-not (= :clj-ssh/no-passphrase-available (:type (ex-data e)))
+             (throw e)))))
   (with-ssh-agent (ssh-agent {})
     (let [session (session "localhost")]
       (is (instance? com.jcraft.jsch.Session session))
