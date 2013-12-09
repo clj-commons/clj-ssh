@@ -138,30 +138,33 @@
           (is (connected? session)))
         (is (not (connected? session)))))
     (testing "key with passphrase"
-      (let [agent (ssh-agent {:use-system-ssh-agent false})]
-        (add-identity-with-keychain
-          agent
-          {:private-key-path (encrypted-private-key-path)
-           :passphrase "clj-ssh"})
-        (let [session (session
-                       agent
-                       "localhost"
-                       {:username (username)
-                        :strict-host-key-checking :no})]
-          (is (instance? com.jcraft.jsch.Session session))
-          (is (not (connected? session)))
-          (connect session)
-          (is (connected? session))
-          (disconnect session)
-          (is (not (connected? session))))
-        (let [session (session
-                       agent
-                       "localhost"
-                       {:username (username)
-                        :strict-host-key-checking :no})]
-          (with-connection session
-            (is (connected? session)))
-          (is (not (connected? session)))))))
+      (try (let [agent (ssh-agent {:use-system-ssh-agent false})]
+             (add-identity-with-keychain
+              agent
+              {:private-key-path (encrypted-private-key-path)
+               :passphrase "clj-ssh"})
+             (let [session (session
+                            agent
+                            "localhost"
+                            {:username (username)
+                             :strict-host-key-checking :no})]
+               (is (instance? com.jcraft.jsch.Session session))
+               (is (not (connected? session)))
+               (connect session)
+               (is (connected? session))
+               (disconnect session)
+               (is (not (connected? session))))
+             (let [session (session
+                            agent
+                            "localhost"
+                            {:username (username)
+                             :strict-host-key-checking :no})]
+               (with-connection session
+                 (is (connected? session)))
+               (is (not (connected? session)))))
+           (catch Exception e
+           (when-not (= :clj-ssh/no-passphrase-available (:type (ex-data e)))
+             (throw e))))))
   (testing "system ssh-agent"
     (let [agent (ssh-agent {})]
       (let [session (session
