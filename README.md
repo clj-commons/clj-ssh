@@ -54,7 +54,7 @@ The `clj-ssh.ssh` namespace should be used for SSH from functional code.
 
 ```clj
 (let [agent (ssh-agent {})]
-  (let [session (session agent "localhost" {:strict-host-key-checking :no})]
+  (let [session (session agent "host-ip" {:strict-host-key-checking :no})]
     (with-connection session
       (let [result (ssh session {:in "echo hello"})]
         (println (result :out)))
@@ -75,7 +75,7 @@ remote host using the credentials in your local ssh-agent:
 
 ```clj
 (let [agent (ssh-agent {})]
-  (let [session (session agent "localhost" {:strict-host-key-checking :no})]
+  (let [session (session agent "host-ip" {:strict-host-key-checking :no})]
     (with-connection session
       (let [result (ssh session {:in "ssh somehost ls" :agent-forwarding true})]
         (println (result :out))))))
@@ -87,7 +87,7 @@ system, then a local, isolated ssh-agent can be used.
 ```clj
 (let [agent (ssh-agent {:use-system-ssh-agent false})]
   (add-identity agent {:private-key-path "/user/name/.ssh/id_rsa"})
-  (let [session (session agent "localhost" {:strict-host-key-checking :no})]
+  (let [session (session agent "host-ip" {:strict-host-key-checking :no})]
     (with-connection session
       (let [result (ssh session {:in "echo hello"})]
         (println (result :out)))))
@@ -97,7 +97,7 @@ SFTP is supported:
 
 ```clj
 (let [agent (ssh-agent {})]
-  (let [session (session agent "localhost" {:strict-host-key-checking :no})]
+  (let [session (session agent "host-ip" {:strict-host-key-checking :no})]
     (with-connection session
       (let [channel (ssh-sftp session)]
         (with-channel-connection channel
@@ -109,7 +109,7 @@ SSH tunneling is also supported:
 
 ```clj
     (let [agent (ssh-agent {})]
-      (let [session (session agent "localhost" {:strict-host-key-checking :no})]
+      (let [session (session agent "host-ip" {:strict-host-key-checking :no})]
         (with-connection session
           (with-local-port-forward [session 8080 80]
             (comment do something with port 8080 here)))))
@@ -143,9 +143,33 @@ Thanks to [Ryan Stradling](http://github.com/rstradling) for these.
 Via [clojars](http://clojars.org) and
 [Leiningen](http://github.com/technomancy/leiningen).
 
-    :dependencies [clj-ssh "0.5.6"]
+    :dependencies [clj-ssh "0.5.7"]
 
 or your favourite maven repository aware tool.
+
+## Tests
+
+The test rely on several keys being authorized on localhost:
+
+```shell
+ssh-keygen -f ~/.ssh/clj_ssh -t rsa -C "key for test clj-ssh" -N ""
+ssh-keygen -f ~/.ssh/clj_ssh_pp -t rsa -C "key for test clj-ssh" -N "clj-ssh"
+cp ~/.ssh/authorized_keys ~/.ssh/authorized_keys.bak
+echo "from=\"localhost\" $(cat ~/.ssh/clj_ssh.pub)" >> ~/.ssh/authorized_keys
+echo "from=\"localhost\" $(cat ~/.ssh/clj_ssh_pp.pub)" >> ~/.ssh/authorized_keys
+```
+
+The `clj_ssh_pp` key should have a passphrase, and should be registered with your `ssh-agent`.
+
+```shell
+ssh-add ~/.ssh/clj_ssh_pp
+```
+
+On OS X, use:
+
+```shell
+ssh-add -K ~/.ssh/clj_ssh_pp
+```
 
 ## License
 

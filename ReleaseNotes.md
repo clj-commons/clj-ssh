@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.5.7
+
+- Update to jsch.agentproxy 0.0.6
+
 ## 0.5.6
 
 - Allow generate-keypair to write key files
@@ -12,7 +16,7 @@
 ## 0.5.5
 
 - Wrap open-channel exceptions
-  When .openChannel throws an exception, wrap it in an ex-info exception. 
+  When .openChannel throws an exception, wrap it in an ex-info exception.
   This allows easier procession of the exceptions in consuming code.
 
 ## 0.5.4
@@ -69,7 +73,7 @@
 
 - Split out clj-ssh.cli
 
-  clj-ssh.ssh is designed for composability and programmatic use. It takes 
+  clj-ssh.ssh is designed for composability and programmatic use. It takes
   map arguments for options and is fully functional.
 
   clj-ssh.cli is intended to simplify repl usage. It takes variadic
@@ -81,7 +85,7 @@
   A boolean value is passed with :agent-forwarding to clj-ssh.ssh/ssh.
 
 - Add support for system ssh-agent
-  Support the system ssh-agent (or pageant on windows when using putty) via 
+  Support the system ssh-agent (or pageant on windows when using putty) via
   jsch-agent-proxy. Introduces a new agent function, clj-ssh.ssh/ssh-agent.
 
 ## 0.3.2

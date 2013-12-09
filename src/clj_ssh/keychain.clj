@@ -6,9 +6,11 @@
    [clojure.java.shell :as shell]))
 
 (defn ask-passphrase [path]
-  (when-let [console (. System console)]
-    (print "Passphrase for" path ": ")
-    (.readPassword console)))
+  (if-let [console (. System console)]
+    (do (print "Passphrase for" path ": ")
+        (.readPassword console))
+    (throw (ex-info "No means to ask for passphrase"
+                    {:type :clj-ssh/no-passphrase-available}))))
 
 (defmulti keychain-passphrase "Obtain password for path"
   (fn [system path] system))
