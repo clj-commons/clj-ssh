@@ -147,6 +147,30 @@ Via [clojars](http://clojars.org) and
 
 or your favourite maven repository aware tool.
 
+## Tests
+
+The test rely on several keys being authorized on localhost:
+
+```shell
+ssh-keygen -f ~/.ssh/clj_ssh -t rsa -C "key for test clj-ssh" -N ""
+ssh-keygen -f ~/.ssh/clj_ssh_pp -t rsa -C "key for test clj-ssh" -N "clj-ssh"
+cp ~/.ssh/authorized_keys ~/.ssh/authorized_keys.bak
+echo "from=\"localhost\" $(cat ~/.ssh/clj_ssh.pub)" >> ~/.ssh/authorized_keys
+echo "from=\"localhost\" $(cat ~/.ssh/clj_ssh_pp.pub)" >> ~/.ssh/authorized_keys
+```
+
+The `clj_ssh_pp` key should have a passphrase, and should be registered with your `ssh-agent`.
+
+```shell
+ssh-add ~/.ssh/clj_ssh_pp
+```
+
+On OS X, use:
+
+```shell
+ssh-add -K ~/.ssh/clj_ssh_pp
+```
+
 ## License
 
 Copyright © 2012 Hugo Duncan
