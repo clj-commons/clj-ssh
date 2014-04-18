@@ -5,5 +5,5 @@ lib
 classes
 autodoc/**
 doc/**
-.lein-deps-sum
-.lein-failures
+.lein-*
+.nrepl-*
