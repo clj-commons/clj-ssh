@@ -153,6 +153,11 @@
      (.setPublicKeyComment keypair comment)
      keypair)
 
+   public-key
+   (let [^KeyPair keypair (KeyPair/load agent nil (as-bytes public-key))]
+     (.setPublicKeyComment keypair comment)
+     keypair)
+
    (and public-key-path private-key-path)
    (let [keypair (KeyPair/load agent private-key-path public-key-path)]
      (when passphrase
