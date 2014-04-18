@@ -179,6 +179,11 @@
      {:reason :do-not-know-how-to-create-keypair
       :args options}))))
 
+(defn fingerprint
+  "Return a keypair's fingerprint."
+  [^KeyPair keypair]
+  (.getFingerPrint keypair))
+
 ;; JSch's IdentityFile has a private constructor that would let us avoid this
 ;; were it public.
 (deftype KeyPairIdentity [^JSch jsch ^String identity ^KeyPair kpair]
