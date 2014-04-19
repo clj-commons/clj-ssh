@@ -14,4 +14,4 @@
                  [com.jcraft/jsch.agentproxy.pageant ~agentproxy-version]
                  [com.jcraft/jsch.agentproxy.core ~agentproxy-version]
                  [com.jcraft/jsch.agentproxy.jsch ~agentproxy-version]
-                 [com.jcraft/jsch "0.1.50"]])
+                 [com.jcraft/jsch "0.1.51"]])
