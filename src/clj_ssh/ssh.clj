@@ -123,6 +123,11 @@
   [session]
   (protocols/session session))
 
+(defn session?
+  "Predicate to test for a session"
+  [x]
+  (satisfies? x protocols/Session))
+
 ;;; Agent
 (defn ssh-agent
   "Create a ssh-agent. By default a system ssh-agent is preferred."
@@ -322,6 +327,16 @@ keys.  All other option key pairs will be passed as SSH config options."
    port
    password
    (session-options options)))
+
+(defn ^String session-hostname
+  "Return the hostname for a session"
+  [^Session session]
+  (.getHost session))
+
+(defn ^int session-port
+  "Return the port for a session"
+  [^Session session]
+  (.getPort session))
 
 (defn forward-remote-port
   "Start remote port forwarding"
