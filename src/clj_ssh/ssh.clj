@@ -38,7 +38,7 @@
     PipedInputStream PipedOutputStream]
    [com.jcraft.jsch
     JSch Session Channel ChannelShell ChannelExec ChannelSftp JSchException
-    Identity IdentityFile Logger KeyPair LocalIdentityRepository]))
+    Identity IdentityFile IdentityRepository Logger KeyPair LocalIdentityRepository]))
 
 ;;; forward jsch's logging to java logging
 (def ^{:dynamic true}
@@ -208,6 +208,12 @@
   "Return a keypair's fingerprint."
   [^KeyPair keypair]
   (.getFingerPrint keypair))
+
+(defn copy-identities
+  [^JSch from-agent ^JSch to-agent]
+  (let [^IdentityRepository ir (.getIdentityRepository from-agent)]
+    (doseq [^Identity id (.getIdentities ir)]
+      (.addIdentity to-agent id nil))))
 
 ;; JSch's IdentityFile has a private constructor that would let us avoid this
 ;; were it public.
