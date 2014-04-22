@@ -115,6 +115,26 @@ SSH tunneling is also supported:
             (comment do something with port 8080 here)))))
 ```
 
+Jump hosts can be used with the `jump-session`.  Once the session is
+connected, the `the-session` function can be used to obtain a session
+that can be used with `ssh-exec`, etc.  The `the-session` function can
+be used on a session returned by `session`, so you can write code that
+works with both a `jump-session` session and a single host session.
+
+```clj
+(let [s (jump-session
+         (ssh-agent {})
+         [{:hostname "host1" :username "user"
+           :strict-host-key-checking :no}
+          {:hostname "final-host" :username "user"
+           :strict-host-key-checking :no}]
+         {})]
+  (with-connection s
+    (ssh-exec (the-session s) "ls" "" "" {}))
+```
+
+
+
 ## Documentation
 
 [Annotated source](http:/hugoduncan.github.com/clj-ssh/0.5/annotated/uberdoc.html).
@@ -143,7 +163,7 @@ Thanks to [Ryan Stradling](http://github.com/rstradling) for these.
 Via [clojars](http://clojars.org) and
 [Leiningen](http://github.com/technomancy/leiningen).
 
-    :dependencies [clj-ssh "0.5.7"]
+    :dependencies [clj-ssh "0.5.8"]
 
 or your favourite maven repository aware tool.
 

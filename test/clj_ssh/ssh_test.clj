@@ -581,3 +581,24 @@
           (is (port-reachable? 2222)))
         (with-remote-port-forward [session 2222 22 "localhost"]
           (is (port-reachable? 2222)))))))
+
+(deftest jump-session-test
+  (is (let [s (jump-session (ssh-agent {})
+                            [{:hostname "localhost"
+                              :username (username)
+                              :strict-host-key-checking :no}]
+                            {})]
+        (with-connection s
+            (ssh-exec (the-session s) "ls" "" "" {})))
+      "one host")
+  (is (let [s (jump-session (ssh-agent {})
+                            [{:hostname "localhost"
+                              :username (username)
+                              :strict-host-key-checking :no}
+                             {:hostname "localhost"
+                              :username (username)
+                              :strict-host-key-checking :no}]
+                            {})]
+        (with-connection s
+            (ssh-exec (the-session s) "ls" "" "" {})))
+      "two hosts"))

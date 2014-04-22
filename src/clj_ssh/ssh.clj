@@ -26,6 +26,7 @@
    [clj-ssh.agent :as agent]
    [clj-ssh.keychain :as keychain]
    [clj-ssh.reflect :as reflect]
+   [clj-ssh.ssh.protocols :as protocols]
    [clojure.java.io :as io]
    [clojure.string :as string]
    [clojure.tools.logging :as logging])
@@ -37,7 +38,7 @@
     PipedInputStream PipedOutputStream]
    [com.jcraft.jsch
     JSch Session Channel ChannelShell ChannelExec ChannelSftp JSchException
-    Identity IdentityFile Logger KeyPair LocalIdentityRepository]))
+    Identity IdentityFile IdentityRepository Logger KeyPair LocalIdentityRepository]))
 
 ;;; forward jsch's logging to java logging
 (def ^{:dynamic true}
@@ -98,6 +99,35 @@
   "Predicate to test for an ssh-agent."
   [object] (instance? JSch object))
 
+;;; Session extension
+
+;; This is only relevant if you want to support using jump hosts.  If
+;; you do, the you should always use the `the-session` to get the jsch
+;; session object once connected.
+
+;; This is here since JSch Session has a package scoped constructor,
+;; and doesn't implement an interface, so provides no means for
+;; extending it.
+
+(extend-protocol protocols/Session
+  Session
+  (connect
+    ([session] (.connect session))
+    ([session timeout] (.connect session timeout)))
+  (connected? [session] (.isConnected session))
+  (disconnect [session] (.disconnect session))
+  (session [session] session))
+
+(defn ^Session the-session
+  "Return the JSch session for the given session."
+  [session]
+  (protocols/session session))
+
+(defn session?
+  "Predicate to test for a session"
+  [x]
+  (satisfies? x protocols/Session))
+
 ;;; Agent
 (defn ssh-agent
   "Create a ssh-agent. By default a system ssh-agent is preferred."
@@ -153,6 +183,11 @@
      (.setPublicKeyComment keypair comment)
      keypair)
 
+   public-key
+   (let [^KeyPair keypair (KeyPair/load agent nil (as-bytes public-key))]
+     (.setPublicKeyComment keypair comment)
+     keypair)
+
    (and public-key-path private-key-path)
    (let [keypair (KeyPair/load agent private-key-path public-key-path)]
      (when passphrase
@@ -173,6 +208,17 @@
      "Don't know how to create keypair"
      {:reason :do-not-know-how-to-create-keypair
       :args options}))))
+
+(defn fingerprint
+  "Return a keypair's fingerprint."
+  [^KeyPair keypair]
+  (.getFingerPrint keypair))
+
+(defn copy-identities
+  [^JSch from-agent ^JSch to-agent]
+  (let [^IdentityRepository ir (.getIdentityRepository from-agent)]
+    (doseq [^Identity id (.getIdentities ir)]
+      (.addIdentity to-agent id nil))))
 
 ;; JSch's IdentityFile has a private constructor that would let us avoid this
 ;; were it public.
@@ -247,23 +293,31 @@ keyword argument, or constructed from the other keyword arguments.
         (add-identity agent options)))))
 
 ;;; Sessions
+(defn- init-session
+  "Initialise options on a session"
+  [^Session session ^String password options]
+  (when password
+    (.setPassword session password))
+  (doseq [[k v :as option] options]
+    (.setConfig
+     session
+     (if (string? k)
+       k
+       (camelize (as-string k)))
+     (as-string v))))
+
 (defn- ^Session session-impl
   [^JSch agent hostname username port ^String password options]
-  (let [session (.getSession agent username hostname port)]
-    (when password
-      (.setPassword session password))
-    (doseq [[k v :as option] options]
-      (.setConfig
-       session
-       (if (string? k)
-         k
-         (camelize (as-string k)))
-       (as-string v)))
-    session))
+  (doto (.getSession agent username hostname port)
+    (init-session password options)))
+
+(defn- session-options
+  [options]
+  (dissoc options :username :port :password :agent))
 
 (defn ^Session session
   "Start a SSH session.
-Requires hostname.  you can also pass values for :username, :password and :port
+Requires hostname.  You can also pass values for :username, :password and :port
 keys.  All other option key pairs will be passed as SSH config options."
   [^JSch agent hostname
    {:keys [port username password] :or {port 22} :as options}]
@@ -272,7 +326,17 @@ keys.  All other option key pairs will be passed as SSH config options."
    (or username (System/getProperty "user.name"))
    port
    password
-   (dissoc options :username :port :password :agent)))
+   (session-options options)))
+
+(defn ^String session-hostname
+  "Return the hostname for a session"
+  [^Session session]
+  (.getHost session))
+
+(defn ^int session-port
+  "Return the port for a session"
+  [^Session session]
+  (.getPort session))
 
 (defn forward-remote-port
   "Start remote port forwarding"
@@ -299,7 +363,7 @@ keys.  All other option key pairs will be passed as SSH config options."
       (unforward-remote-port ~session ~remote-port))))
 
 (defn forward-local-port
-  "Start local port forwarding"
+  "Start local port forwarding. Returns the actual local port."
   ([^Session session local-port remote-port remote-host]
      (.setPortForwardingL session local-port remote-host remote-port))
   ([session local-port remote-port]
@@ -323,24 +387,25 @@ keys.  All other option key pairs will be passed as SSH config options."
 
 (defn connect
   "Connect a session."
-  ([^Session session]
-     (.connect session))
-  ([^Session session timeout]
-     (.connect session timeout)))
+  ([session]
+     (protocols/connect session))
+  ([session timeout]
+     (protocols/connect session timeout)))
 
 (defn disconnect
   "Disconnect a session."
-  [^Session session]
-  (.disconnect session)
-  (when-let [^Thread t (reflect/get-field
-                        com.jcraft.jsch.Session 'connectThread session)]
+  [session]
+  (protocols/disconnect session)
+  (when-let [^Thread t (and (instance? Session session)
+                            (reflect/get-field
+                             com.jcraft.jsch.Session 'connectThread session))]
     (when (.isAlive t)
       (.interrupt t))))
 
 (defn connected?
   "Predicate used to test for a connected session."
-  [^Session session]
-  (.isConnected session))
+  [session]
+  (protocols/connected? session))
 
 (defmacro with-connection
   "Creates a context in which the session is connected. Ensures the session is
@@ -353,6 +418,81 @@ keys.  All other option key pairs will be passed as SSH config options."
        ~@body
        (finally
         (disconnect session#)))))
+
+;;; Jump Hosts
+(defn- jump-connect [agent hosts sessions timeout]
+  (let [host (first hosts)
+        s (session agent (:hostname host) (dissoc host :hostname))
+        throw-e (fn [e s]
+                  (throw
+                   (ex-info
+                    (str "Failed to connect "
+                         (.getUserName s) "@"
+                         (.getHost s) ":"
+                         (.getPort s)
+                         " " (pr-str (into [] (.getIdentityNames agent)))
+                         " " (pr-str hosts))
+                    {:hosts hosts}
+                    e)))]
+    (swap! sessions (fnil conj []) s)
+    (try
+      (connect s timeout)
+      (catch Exception e (throw-e e s)))
+    (.setDaemonThread s true)
+    (loop [hosts (rest hosts)
+           prev-s s]
+      (if-let [{:keys [hostname port username password]
+                :or {port 22}
+                :as options}
+               (first hosts)]
+        (let [p (forward-local-port prev-s 0 port hostname)
+              options (-> options
+                          (dissoc :hostname)
+                          (assoc :port p))
+              s (session agent "localhost" options)]
+          (.setDaemonThread s true)
+          (.setHostKeyAlias s hostname)
+          (swap! sessions conj s)
+          (try
+            (connect s timeout)
+            (catch Exception e (throw-e e s)))
+          (recur (rest hosts) s))))))
+
+(defn- jump-connected? [sessions]
+  (seq @sessions))
+
+(defn- jump-disconnect
+  [sessions]
+  (doseq [s (reverse @sessions)]
+    (.disconnect s))
+  (reset! sessions nil))
+
+(defn- jump-the-session
+  [sessions]
+  (assert (jump-connected? sessions) "not connected")
+  (last @sessions))
+
+(deftype JumpHostSession [agent hosts sessions timeout]
+  protocols/Session
+  (connect [session] (protocols/connect session timeout))
+  (connect [session timeout] (jump-connect agent hosts sessions timeout))
+  (connected? [session] (jump-connected? sessions))
+  (disconnect [session] (jump-disconnect sessions))
+  (session [session] (jump-the-session sessions)))
+
+;; http://www.jcraft.com/jsch/examples/JumpHosts.java.html
+(defn jump-session
+  "Connect via a sequence of jump hosts.  Returns a session.  Once the
+session is connected, use `the-session` to get a jsch Session object.
+
+Each host is a map with :hostname, :username, :password and :port
+keys.  All other key pairs in each host map will be passed as SSH
+config options."
+  [^JSch agent hosts {:keys [timeout]}]
+  (when-not (seq hosts)
+    (throw (ex-info "Must provide at least one host to connect to"
+                    {:hosts hosts})))
+  (JumpHostSession. agent hosts (atom []) (or timeout 0)))
 
 ;;; Channels
 (defn connect-channel

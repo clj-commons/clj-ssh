@@ -1,17 +1,19 @@
 language: clojure
 lein: lein2
 before_script:
-  - ssh-keygen -N "" -f ~/.ssh/id_rsa
-  - cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
-  - ssh-keygen -f ~/.ssh/clj_ssh -t rsa -C "key for test clj-ssh" -N ""
-  - ssh-keygen -f ~/.ssh/clj_ssh_pp -t rsa -C "key for test clj-ssh" -N "clj-ssh"
-  - echo "from=\"127.0.0.1,localhost,0.0.0.0\" $(cat ~/.ssh/clj_ssh.pub)" >> ~/.ssh/authorized_keys
-  - echo "from=\"127.0.0.1,localhost,0.0.0.0\" $(cat ~/.ssh/clj_ssh_pp.pub)" >> ~/.ssh/authorized_keys
-  - eval $(ssh-agent)
-  - echo "clj-ssh" > pp
-  - chmod +x pp
-  - setsid ssh-add ~/.ssh/clj_ssh_pp < pp # add the key to the keychain
-
+- ssh-keygen -N "" -f ~/.ssh/id_rsa
+- cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+- ssh-keygen -f ~/.ssh/clj_ssh -t rsa -C "key for test clj-ssh" -N ""
+- ssh-keygen -f ~/.ssh/clj_ssh_pp -t rsa -C "key for test clj-ssh" -N "clj-ssh"
+- echo "from=\"127.0.0.1,localhost,0.0.0.0\" $(cat ~/.ssh/clj_ssh.pub)" >> ~/.ssh/authorized_keys
+- echo "from=\"127.0.0.1,localhost,0.0.0.0\" $(cat ~/.ssh/clj_ssh_pp.pub)" >> ~/.ssh/authorized_keys
+- eval $(ssh-agent)
+- echo "clj-ssh" > pp
+- chmod +x pp
+- setsid ssh-add ~/.ssh/clj_ssh_pp < pp
 script: lein2 test
-# notifications:
-#   irc: "irc.freenode.org#pallet"
+after_success:
+- lein2 pallet-release push
+env:
+  global:
+    secure: eOBqYhJhOJMtRiMKs9ZgG4pEHFy7YqiBZ5NUEWUYD6qav6sMRHqqR5F04NRI37SmnIupzeTChqfRgX0DOwHeTl4u+QJnwRDH2z3avu75FbtZWgiGrxzE39SESpVj/zsyDrEUzT7ZiMayXKyNa3ObiJ8vBUFT7x/OZyRp/1rJxHU=
