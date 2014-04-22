@@ -1,3 +1,8 @@
+## 0.5.9
+
+- Publish new jars
+  The 0.5.8 jars were not correctly published and are identical to 0.5.7.
+
 ## 0.5.8
 
 - Enable introspection of sessions
