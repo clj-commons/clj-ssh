@@ -1,4 +1,9 @@
-{:dev {:dependencies [[ch.qos.logback/logback-classic "1.0.0"]]}
+{:dev
+ {:dependencies [[ch.qos.logback/logback-classic "1.0.0"]]
+  :plugins [[lein-pallet-release "RELEASE"]]
+  :pallet-release
+  {:url "https://pbors:${GH_TOKEN}@github.com/hugoduncan/clj-ssh.git",
+   :branch "master"}}
  :clojure-1.2.1 {:dependencies [[org.clojure/clojure "1.2.1"]]}
  :clojure-1.3.0 {:dependencies [[org.clojure/clojure "1.3.0"]]}
  :clojure-1.4.0 {:dependencies [[org.clojure/clojure "1.4.0"]]}
@@ -13,10 +18,4 @@
                :src-linenum-anchor-prefix "L"}
        :aliases {"marg" ["marg" "-d" "doc/0.5/annotated"]
                  "codox" ["doc"]
-                 "doc" ["do" "codox," "marg"]}}
- :release
- {:plugins [[lein-set-version "0.2.1"]]
-  :set-version
-  {:updates [{:path "README.md"
-              :no-snapshot true
-              :search-regex #"clj-ssh \"\d+\.\d+\.\d+\""}]}}}
+                 "doc" ["do" "codox," "marg"]}}}
