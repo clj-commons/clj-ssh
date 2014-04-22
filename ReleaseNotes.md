@@ -1,4 +1,34 @@
-# Release Notes
+## 0.5.8
+
+- Enable introspection of sessions
+  Adds the session? predicate for testing for a Session object, an the
+  session-hostname and session-port functions for querying a session.
+
+- Enable copying identities between agents
+  The copy-identities can be used to copy identities from one agent to
+  another.  This is useful to allow copying identities from a system agent
+  to a non system agent.
+
+- Add support for jump hosts
+  The jump-session function is used to obtain a session that can be
+  connected across jump hosts.
+
+  The `the-session` function is added to obtain a jsch session from a
+  connected jump-session, or a connected jsch Session, and can be used in
+  code that wants to support jump sessions.
+
+- Add fingerprint function on keypairs
+
+- Allow keypair construction from just a public key
+
+- Update tools.logging to 0.2.6
+
+- Update to jsch 0.1.51
+  Adds support for private keys in PKCS#8 format.
+
+  Fixes several session crash issues.
+
+- Update to jsch.agentproxy 0.0.7
 
 ## 0.5.7
 
