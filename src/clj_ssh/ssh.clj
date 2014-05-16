@@ -88,6 +88,9 @@
 (def ^java.nio.charset.Charset ascii
   (java.nio.charset.Charset/forName "US-ASCII"))
 
+(def ^java.nio.charset.Charset utf-8
+  (java.nio.charset.Charset/forName "UTF-8"))
+
 (defn- ^{:tag (Class/forName "[B")} as-bytes
   "Return arg as a byte array.  arg must be a string or a byte array."
   [arg]
@@ -589,30 +592,42 @@ config options."
   (let [os (PipedInputStream. (int *piped-stream-buffer-size*))]
     [os (PipedOutputStream. os)]))
 
+(defn string-stream
+  "Return an input stream with content from the string s."
+  [^String s]
+  {:pre [(string? s)]}
+  (ByteArrayInputStream. (.getBytes s utf-8)))
+
+(defn ssh-shell-proc
+  "Run a ssh-shell."
+  [^Session session in {:keys [agent-forwarding pty out err] :as opts}]
+  {:pre [in]}
+  (let [^ChannelShell shell (open-channel session :shell)]
+    (doto shell
+      (.setInputStream in false))
+    (when out
+      (.setOutputStream shell out))
+    (when (contains? opts :pty)
+      (.setPty shell (boolean (opts :pty))))
+    (when (contains? opts :agent-forwarding)
+      (.setAgentForwarding shell (boolean (opts :agent-forwarding))))
+    (let [resp {:channel shell
+                :out (or out (.getInputStream shell))
+                :in (or in (.getOutputStream shell))}]
+      (connect-channel shell)
+      resp)))
+
 (defn ssh-shell
   "Run a ssh-shell."
   [^Session session in out opts]
-  (let [^ChannelShell shell (open-channel session :shell)
-        [out-stream out-inputstream] (streams-for-out out)]
-    (doto shell
-      (.setInputStream
-       (if (string? in)
-         (ByteArrayInputStream. (.getBytes (str in ";exit $?;\n")))
-         in)
-       false)
-      (.setOutputStream out-stream))
-    (when (contains? opts :pty)
-      (reflect/call-method
-       com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE]
-       shell (boolean (opts :pty))))
-    (when (contains? opts :agent-forwarding)
-      (reflect/call-method
-       com.jcraft.jsch.ChannelSession 'setAgentForwarding [Boolean/TYPE]
-       shell (boolean (opts :agent-forwarding))))
+  (let [[out-stream out-inputstream] (streams-for-out out)
+        resp (ssh-shell-proc
+              session
+              (if (string? in) (string-stream (str in ";exit $?;\n")) in)
+              (merge {:out out-stream} opts))
+        ^ChannelShell shell (:channel resp)]
     (if out-inputstream
-      (do
-        (connect-channel shell)
-        {:channel shell :out-stream out-inputstream})
+      {:channel shell :out-stream out-inputstream}
       (with-channel-connection shell
         (while (connected-channel? shell)
           (Thread/sleep 100))
@@ -621,37 +636,49 @@ config options."
                 (.toByteArray ^ByteArrayOutputStream out-stream)
                 (.toString out-stream))}))))
 
+(defn ssh-exec-proc
+  "Run a command via exec, returning a map with the process streams."
+  [^Session session ^String cmd
+   {:keys [agent-forwarding pty in out err] :as opts}]
+  (let [^ChannelExec exec (open-channel session :exec)]
+    (doto exec
+      (.setCommand cmd)
+      (.setInputStream in false))
+    (when (contains? opts :pty)
+      (.setPty exec (boolean (opts :pty))))
+    (when (contains? opts :agent-forwarding)
+      (.setAgentForwarding exec (boolean (opts :agent-forwarding))))
+
+    (when out
+      (.setOutputStream exec out))
+    (when err
+      (.setErrStream exec err))
+    (let [resp {:channel exec
+                :out (or out (.getInputStream exec))
+                :err (or err (.getErrStream exec))
+                :in (or in (.getOutputStream exec))}]
+      (connect-channel exec)
+      resp)))
+
 (defn ssh-exec
   "Run a command via ssh-exec."
   [^Session session ^String cmd in out opts]
-  (let [^ChannelExec exec (open-channel session :exec)
-        [^PipedOutputStream out-stream
+  (let [[^PipedOutputStream out-stream
          ^PipedInputStream out-inputstream] (streams-for-out out)
         [^PipedOutputStream err-stream
-         ^PipedInputStream err-inputstream] (streams-for-out out)]
-    (doto exec
-      (.setInputStream
-       (if (string? in)
-         (ByteArrayInputStream. (.getBytes ^String in))
-         in)
-       false)
-      (.setOutputStream out-stream)
-      (.setErrStream err-stream)
-      (.setCommand cmd))
-    (when (contains? opts :pty)
-      (reflect/call-method
-       com.jcraft.jsch.ChannelSession 'setPty [Boolean/TYPE]
-       exec (boolean (opts :pty))))
-    (when (contains? opts :agent-forwarding)
-      (reflect/call-method
-       com.jcraft.jsch.ChannelSession 'setAgentForwarding [Boolean/TYPE]
-       exec (boolean (opts :agent-forwarding))))
+         ^PipedInputStream err-inputstream] (streams-for-out out)
+        proc (ssh-exec-proc
+              session cmd
+              (merge
+               {:in (if (string? in) (string-stream in) in)
+                :out out-stream
+                :err err-stream}
+               opts))
+        ^ChannelExec exec (:channel proc)]
     (if out-inputstream
-      (do
-        (connect-channel exec)
-        {:channel exec
-         :out-stream out-inputstream
-         :err-stream err-inputstream})
+      {:channel exec
+       :out-stream out-inputstream
+       :err-stream err-inputstream}
       (with-channel-connection exec
         (while (connected-channel? exec)
           (Thread/sleep 100))
