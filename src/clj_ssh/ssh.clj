@@ -129,7 +129,7 @@
 (defn session?
   "Predicate to test for a session"
   [x]
-  (satisfies? x protocols/Session))
+  (satisfies? protocols/Session x))
 
 ;;; Agent
 (defn ssh-agent
