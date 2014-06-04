@@ -1,3 +1,12 @@
+## 0.5.10
+
+- Fix session? predicate
+
+- Factor out ssh-exec-proc and ssh-shell-proc
+  These provide a lower level interface with more flexible stream handling.
+
+- Add java.awt.headless to default java opts
+
 ## 0.5.9
 
 - Publish new jars
