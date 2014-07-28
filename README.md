@@ -191,6 +191,10 @@ On OS X, use:
 ssh-add -K ~/.ssh/clj_ssh_pp
 ```
 
+## Other Libraries
+
+For plain `ftp`, you might want to look at [clj-ftp](https://github.com/miner/clj-ftp).
+
 ## License
 
 Copyright © 2012 Hugo Duncan
