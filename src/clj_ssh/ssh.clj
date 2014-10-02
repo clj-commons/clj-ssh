@@ -1003,6 +1003,7 @@ cmd specifies a command to exec.  Valid commands are:
 
 
 ;; http://blogs.sun.com/janp/entry/how_the_scp_protocol_works
+;; https://blogs.oracle.com/janp/entry/how_the_scp_protocol_works
 (defn scp-to
   "Copy local path(s) to remote path via scp.
 
