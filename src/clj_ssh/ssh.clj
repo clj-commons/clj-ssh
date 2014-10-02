@@ -132,6 +132,11 @@
   (satisfies? protocols/Session x))
 
 ;;; Agent
+(def ^:private hosts-file
+  "Something to lock to tray and prevent concurrent updates/reads to
+  hosts file."
+  (Object.))
+
 (defn ssh-agent
   "Create a ssh-agent. By default a system ssh-agent is preferred."
   [{:keys [use-system-ssh-agent ^String known-hosts-path]
@@ -142,7 +147,8 @@
     (when use-system-ssh-agent
       (agent/connect agent))
     (when known-hosts-path
-      (.setKnownHosts agent known-hosts-path))
+      (locking hosts-file
+        (.setKnownHosts agent known-hosts-path)))
     agent))
 
 ;;; Identities
@@ -391,9 +397,11 @@ keys.  All other option key pairs will be passed as SSH config options."
 (defn connect
   "Connect a session."
   ([session]
-     (protocols/connect session))
+     (locking hosts-file
+       (protocols/connect session)))
   ([session timeout]
-     (protocols/connect session timeout)))
+     (locking hosts-file
+       (protocols/connect session timeout))))
 
 (defn disconnect
   "Disconnect a session."
