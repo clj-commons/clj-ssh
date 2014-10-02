@@ -602,3 +602,36 @@
         (with-connection s
             (ssh-exec (the-session s) "ls" "" "" {})))
       "two hosts"))
+
+
+(deftest out-stream-test
+  (let [s (session (ssh-agent {}) "localhost" {})]
+    (with-connection s
+      (testing "exec"
+        (testing ":out :string"
+          (let [proc (ssh s {:cmd "ls"})]
+            (is (zero? (:exit proc)))
+            (is (pos? (count (:out proc))) "no options")))
+        (testing ":out :stream"
+          (let [proc (ssh s {:cmd "ls" :out :stream :pty true})]
+            (is (connected-channel? (:channel proc))
+                ":channel connected")
+            (is (> (count (slurp (:out-stream proc))) 1) ":out-stream")
+            (is (not (connected-channel? (:channel proc)))
+                ":channel not connected")
+            (is (zero? (exit-status (:channel proc)))
+                "zero exit status"))))
+      (testing "shell"
+        (testing ":out :string"
+          (let [proc (ssh s {:in "ls"})]
+            (is (pos? (count (:out proc))) ":out has content")
+            (is (zero? (:exit proc)) "zero exit status")))
+        (testing ":out stream"
+          (let [proc (ssh s {:in "ls" :out :stream})]
+            (is (connected-channel? (:channel proc))
+                ":channel connected")
+            (is (> (count (slurp (:out-stream proc))) 1) ":out-stream")
+            (is (not (connected-channel? (:channel proc)))
+                ":channel not connected")
+            (is (zero? (exit-status (:channel proc)))
+                "zero exit status")))))))

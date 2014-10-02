@@ -135,11 +135,14 @@ Options are:
 :cmd        specifies a command to exec.  If no cmd is given, a shell is started
             and input is taken from :in.
 :in         specifies input to the remote shell. A string or a stream.
+
 :out        specify :stream to obtain a an [inputstream shell]
             specify :bytes to obtain a byte array
             or specify a string with an encoding specification for a
-            result string.  In the case of :stream, the shell can
-            be polled for connected status.
+            result string.
+            In the case of :stream, the shell can be polled for connected
+            status, and the session (in the :session key of the return value)
+            must be disconnected by the caller.
 :username   username to use for authentication
 :password   password to use for authentication
 :port       port to use if no session specified
@@ -152,13 +155,17 @@ sh returns a map of
   (let [{:keys [cmd in out username password port ssh-agent args]
          :or {ssh-agent *ssh-agent*}
          :as options} (parse-args args)
-        session (default-session ssh-agent hostname options)]
-    (ssh/with-connection session
-      (ssh/ssh
-       session
-       (if (seq args)
-         (merge {:cmd (string/join " " args)} options)
-         options)))))
+         session (default-session ssh-agent hostname options)
+         arg (if (seq args)
+               (merge {:cmd (string/join " " args)} options)
+               options)]
+    (if (= :stream (:out options))
+      (do
+        (ssh/connect session)
+        (assoc (ssh/ssh session arg)
+          :session session))
+      (ssh/with-connection session
+        (ssh/ssh session arg)))))
 
 (defn sftp
   "Execute SFTP commands.
