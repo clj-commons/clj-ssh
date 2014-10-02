@@ -619,11 +619,10 @@ config options."
       (.setPty shell (boolean (opts :pty))))
     (when (contains? opts :agent-forwarding)
       (.setAgentForwarding shell (boolean (opts :agent-forwarding))))
-    (let [resp {:channel shell
-                :out (or out (.getInputStream shell))
-                :in (or in (.getOutputStream shell))}]
-      (connect-channel shell)
-      resp)))
+    (connect-channel shell)
+    {:channel shell
+     :out (or out (.getInputStream shell))
+     :in (or in (.getOutputStream shell))}))
 
 (defn ssh-shell
   "Run a ssh-shell."
