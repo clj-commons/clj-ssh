@@ -163,7 +163,7 @@ Thanks to [Ryan Stradling](http://github.com/rstradling) for these.
 Via [clojars](http://clojars.org) and
 [Leiningen](http://github.com/technomancy/leiningen).
 
-    :dependencies [clj-ssh "0.5.10"]
+    :dependencies [clj-ssh "0.5.11"]
 
 or your favourite maven repository aware tool.
 
@@ -190,6 +190,10 @@ On OS X, use:
 ```shell
 ssh-add -K ~/.ssh/clj_ssh_pp
 ```
+
+## Other Libraries
+
+For plain `ftp`, you might want to look at [clj-ftp](https://github.com/miner/clj-ftp).
 
 ## License
 

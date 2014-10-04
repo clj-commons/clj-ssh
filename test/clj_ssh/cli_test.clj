@@ -176,3 +176,34 @@
        (finally
         (.delete tmpfile1)
         (.delete tmpfile2))))))
+
+
+(deftest out-stream-test
+  (testing "exec"
+    (testing ":out :string"
+      (let [proc (ssh "localhost" "ls")]
+        (is (zero? (:exit proc)))
+        (is (pos? (count (:out proc))) "no options")))
+    (testing ":out :stream"
+      (let [proc (ssh "localhost" "ls" :out :stream :pty true)]
+        (is (clj-ssh.ssh/connected-channel? (:channel proc))
+            ":channel not connected")
+        (is (> (count (slurp (:out-stream proc))) 1) ":out-stream")
+        (Thread/sleep 100)
+        (is (zero? (clj-ssh.ssh/exit-status (:channel proc)))
+            "zero exit status")
+        (clj-ssh.ssh/disconnect (:session proc)))))
+  (testing "shell"
+    (testing ":out :string"
+      (let [proc (ssh "localhost" :in "ls")]
+        (is (pos? (count (:out proc))) ":out has content")
+        (is (zero? (:exit proc)) "zero exit status")))
+    (testing ":out stream"
+      (let [proc (ssh "localhost" :in "ls" :out :stream)]
+        (is (clj-ssh.ssh/connected-channel? (:channel proc))
+            ":channel connected")
+        (is (> (count (slurp (:out-stream proc))) 1) ":out-stream")
+        (Thread/sleep 100)
+        (is (zero? (clj-ssh.ssh/exit-status (:channel proc)))
+            "zero exit status")
+        (clj-ssh.ssh/disconnect (:session proc))))))
