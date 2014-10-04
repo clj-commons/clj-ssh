@@ -1,3 +1,13 @@
+## 0.5.11
+
+- Lock known hosts file
+  Try and prevent concurrent read and writes to the known hosts file.
+
+- Fix :out :stream in the cli namespace
+  Caller becomes responsible for closing the session.
+
+  Closes #29
+
 ## 0.5.10
 
 - Fix session? predicate
