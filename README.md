@@ -58,7 +58,7 @@ The `clj-ssh.ssh` namespace should be used for SSH from functional code.
     (with-connection session
       (let [result (ssh session {:in "echo hello"})]
         (println (result :out)))
-      (let [result (ssh session {:cmd "ls"}]
+      (let [result (ssh session {:cmd "ls"})]
         (println (second result)))))))
 ```
 
