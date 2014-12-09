@@ -902,7 +902,7 @@ cmd specifies a command to exec.  Valid commands are:
 (defn- scp-copy-dir
   "Send acknowledgement to the specified output stream"
   [send recv ^File dir {:keys [dir-mode] :or {dir-mode 0755} :as options}]
-  (logging/trace "Sending directory %s" (.getAbsolutePath dir))
+  (logging/tracef "Sending directory %s" (.getAbsolutePath dir))
   (scp-send-command
    send recv
    (format "D%04o 0 %s" dir-mode (.getName dir)))
