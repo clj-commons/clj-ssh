@@ -1084,8 +1084,9 @@ cmd specifies a command to exec.  Valid commands are:
                  (->>
                   (select-keys opts [:recursive :preserve])
                   (filter val)
-                  (map (fn [k v] (k flags))))))
+                  (map (comp flags key)))))
                (string/join " " remote-paths))
+          _ (println cmd)
           _ (logging/tracef "scp-from: %s" cmd)
           {:keys [^ChannelExec channel
                   ^PipedInputStream out-stream]}
