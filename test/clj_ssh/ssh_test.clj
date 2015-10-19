@@ -612,11 +612,40 @@
           (let [proc (ssh s {:cmd "ls"})]
             (is (zero? (:exit proc)))
             (is (pos? (count (:out proc))) "no options")))
+        (testing ":out :string with STDERR"
+          (let [proc (ssh s {:cmd "echo stdout; echo stderr 1>&2"})]
+            (is (= "stdout\n" (:out proc)) ":out")
+            (is (= "stderr\n" (:err proc)) ":err")
+            (is (zero? (:exit proc)))))
+        (testing ":out :bytes"
+          (let [proc (ssh s {:cmd "ls" :out :bytes})]
+            (is (zero? (:exit proc)))
+            (is (pos? (count (:out proc))) "no options")))
+        (testing ":out :bytes with STDERR"
+          (let [proc (ssh s {:cmd "echo stdout; echo stderr 1>&2"
+                             :out :bytes})]
+            (is (= "stdout\n" (String. (:out proc))) ":out")
+            (is (= "stderr\n" (String. (:err proc))) ":err")
+            (is (zero? (:exit proc)))))
         (testing ":out :stream"
           (let [proc (ssh s {:cmd "ls" :out :stream :pty true})]
             (is (connected-channel? (:channel proc))
                 ":channel connected")
             (is (> (count (slurp (:out-stream proc))) 1) ":out-stream")
+            (is (not (connected-channel? (:channel proc)))
+                ":channel not connected")
+            (is (zero? (exit-status (:channel proc)))
+                "zero exit status")))
+        (testing ":out :stream with STDERR"
+          (let [proc (ssh s {:cmd "echo stdout; echo stderr 1>&2"
+                             :out :stream
+                             :pty true})]
+            (is (connected-channel? (:channel proc))
+                ":channel connected")
+            (let [out (slurp (:out-stream proc))
+                  err (slurp (:err-stream proc))]
+              (is (= "stdout\n" out ":out-stream"))
+              (is (= "stderr\n" err ":err-stream")))
             (is (not (connected-channel? (:channel proc)))
                 ":channel not connected")
             (is (zero? (exit-status (:channel proc)))
