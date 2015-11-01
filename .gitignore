@@ -7,3 +7,5 @@ autodoc/**
 doc/**
 .lein-*
 .nrepl-*
+.idea
+*.iml
