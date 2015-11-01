@@ -295,10 +295,10 @@ keyword argument, or constructed from the other keyword arguments.
           (do
             (logging/error "Passphrase required, but none findable.")
             (throw
-             (ex-info
-              (str "Passphrase required for key " name ", but none findable.")
-              {:reason :passphrase-not-found
-               :key-name name}) name)))
+              (ex-info
+                (str "Passphrase required for key " name ", but none findable.")
+                {:reason   :passphrase-not-found
+                 :key-name name} name))))
         (add-identity agent options)))))
 
 ;;; Sessions
