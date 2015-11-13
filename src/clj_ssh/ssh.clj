@@ -1,5 +1,5 @@
 (ns ^{:author "Hugo Duncan"}
-  clj-ssh.ssh
+clj-ssh.ssh
   "API for using SSH in clojure.
 
 ## Usage
@@ -23,44 +23,44 @@
               (sftp channel :cd \"/remote/path\")
               (sftp channel :put \"/some/file\" \"filename\"))))))"
   (:require
-   [clj-ssh.agent :as agent]
-   [clj-ssh.keychain :as keychain]
-   [clj-ssh.reflect :as reflect]
-   [clj-ssh.ssh.protocols :as protocols]
-   [clojure.java.io :as io]
-   [clojure.string :as string]
-   [clojure.tools.logging :as logging])
+    [clj-ssh.agent :as agent]
+    [clj-ssh.keychain :as keychain]
+    [clj-ssh.reflect :as reflect]
+    [clj-ssh.ssh.protocols :as protocols]
+    [clojure.java.io :as io]
+    [clojure.string :as string]
+    [clojure.tools.logging :as logging])
   (:import
-   [java.io
-    File InputStream OutputStream StringReader
-    FileInputStream FileOutputStream
-    ByteArrayInputStream ByteArrayOutputStream
-    PipedInputStream PipedOutputStream]
-   [com.jcraft.jsch
-    JSch Session Channel ChannelShell ChannelExec ChannelSftp JSchException
-    Identity IdentityFile IdentityRepository Logger KeyPair LocalIdentityRepository]))
+    [java.io
+     File InputStream OutputStream StringReader
+     FileInputStream FileOutputStream
+     ByteArrayInputStream ByteArrayOutputStream
+     PipedInputStream PipedOutputStream]
+    [com.jcraft.jsch
+     JSch Session Channel ChannelShell ChannelExec ChannelSftp JSchException
+     Identity IdentityFile IdentityRepository Logger KeyPair LocalIdentityRepository]))
 
 ;;; forward jsch's logging to java logging
 (def ^{:dynamic true}
-  ssh-log-levels
+ssh-log-levels
   (atom
-   {com.jcraft.jsch.Logger/DEBUG :trace
-    com.jcraft.jsch.Logger/INFO  :debug
-    com.jcraft.jsch.Logger/WARN  :warn
-    com.jcraft.jsch.Logger/ERROR :error
-    com.jcraft.jsch.Logger/FATAL :fatal}))
+    {com.jcraft.jsch.Logger/DEBUG :trace
+     com.jcraft.jsch.Logger/INFO  :debug
+     com.jcraft.jsch.Logger/WARN  :warn
+     com.jcraft.jsch.Logger/ERROR :error
+     com.jcraft.jsch.Logger/FATAL :fatal}))
 
 (deftype SshLogger
-   [log-level]
-   com.jcraft.jsch.Logger
-   (isEnabled
+  [log-level]
+  com.jcraft.jsch.Logger
+  (isEnabled
     [_ level]
     (>= level log-level))
-   (log
+  (log
     [_ level message]
     (logging/log "clj-ssh.ssh" (@ssh-log-levels level) nil message)))
 
- (JSch/setLogger (SshLogger. com.jcraft.jsch.Logger/DEBUG))
+(JSch/setLogger (SshLogger. com.jcraft.jsch.Logger/DEBUG))
 
 ;;; Helpers
 (defn- ^String file-path [string-or-file]
@@ -81,9 +81,9 @@
 
 (defn- ^String as-string [arg]
   (cond
-   (symbol? arg) (name arg)
-   (keyword? arg) (name arg)
-   :else (str arg)))
+    (symbol? arg) (name arg)
+    (keyword? arg) (name arg)
+    :else (str arg)))
 
 (def ^java.nio.charset.Charset ascii
   (java.nio.charset.Charset/forName "US-ASCII"))
@@ -140,9 +140,9 @@
 (defn ssh-agent
   "Create a ssh-agent. By default a system ssh-agent is preferred."
   [{:keys [use-system-ssh-agent ^String known-hosts-path]
-    :or {use-system-ssh-agent true
-         known-hosts-path (str (. System getProperty "user.home")
-                               "/.ssh/known_hosts")}}]
+    :or   {use-system-ssh-agent true
+           known-hosts-path     (str (. System getProperty "user.home")
+                                     "/.ssh/known_hosts")}}]
   (let [agent (JSch.)]
     (when use-system-ssh-agent
       (agent/connect agent))
@@ -163,8 +163,8 @@
   [^JSch agent ^String private-key-path ^String public-key-path]
   (logging/tracef "Make identity %s %s" private-key-path public-key-path)
   (reflect/call-method
-   com.jcraft.jsch.IdentityFile 'newInstance [String String JSch]
-   nil private-key-path public-key-path agent))
+    com.jcraft.jsch.IdentityFile 'newInstance [String String JSch]
+    nil private-key-path public-key-path agent))
 
 (defn ^KeyPair keypair
   "Return a KeyPair object for the given options.
@@ -181,42 +181,42 @@
                        ^String private-key-path
                        ^String comment
                        ^bytes passphrase]
-                :as options}]
+                :as   options}]
   {:pre [(map? options)]}
   (cond
-   private-key
-   (let [^KeyPair keypair
-         (KeyPair/load agent (as-bytes private-key) (as-bytes public-key))]
-     (when passphrase
-       (.decrypt keypair passphrase))
-     (.setPublicKeyComment keypair comment)
-     keypair)
+    private-key
+    (let [^KeyPair keypair
+          (KeyPair/load agent (as-bytes private-key) (as-bytes public-key))]
+      (when passphrase
+        (.decrypt keypair passphrase))
+      (.setPublicKeyComment keypair comment)
+      keypair)
 
-   public-key
-   (let [^KeyPair keypair (KeyPair/load agent nil (as-bytes public-key))]
-     (.setPublicKeyComment keypair comment)
-     keypair)
+    public-key
+    (let [^KeyPair keypair (KeyPair/load agent nil (as-bytes public-key))]
+      (.setPublicKeyComment keypair comment)
+      keypair)
 
-   (and public-key-path private-key-path)
-   (let [keypair (KeyPair/load agent private-key-path public-key-path)]
-     (when passphrase
-       (.decrypt keypair passphrase))
-     (.setPublicKeyComment keypair comment)
-     keypair)
+    (and public-key-path private-key-path)
+    (let [keypair (KeyPair/load agent private-key-path public-key-path)]
+      (when passphrase
+        (.decrypt keypair passphrase))
+      (.setPublicKeyComment keypair comment)
+      keypair)
 
-   private-key-path
-   (let [keypair (KeyPair/load agent private-key-path)]
-     (when passphrase
-       (.decrypt keypair passphrase))
-     (.setPublicKeyComment keypair comment)
-     keypair)
+    private-key-path
+    (let [keypair (KeyPair/load agent private-key-path)]
+      (when passphrase
+        (.decrypt keypair passphrase))
+      (.setPublicKeyComment keypair comment)
+      keypair)
 
-   :else
-   (throw
-    (ex-info
-     "Don't know how to create keypair"
-     {:reason :do-not-know-how-to-create-keypair
-      :args options}))))
+    :else
+    (throw
+      (ex-info
+        "Don't know how to create keypair"
+        {:reason :do-not-know-how-to-create-keypair
+         :args   options}))))
 
 (defn fingerprint
   "Return a keypair's fingerprint."
@@ -259,13 +259,13 @@ keyword argument, or constructed from the other keyword arguments.
                        ^String private-key-path
                        ^Identity identity
                        ^bytes passphrase]
-                :as options}]
+                :as   options}]
   {:pre [(map? options)]}
   (let [^String comment (or name private-key-path public-key)
         ^Identity identity
         (or identity
             (KeyPairIdentity.
-             agent comment (keypair agent (assoc options :comment comment))))]
+              agent comment (keypair agent (assoc options :comment comment))))]
     (.addIdentity agent identity passphrase)))
 
 (defn add-identity-with-keychain
@@ -276,29 +276,29 @@ keyword argument, or constructed from the other keyword arguments.
                        ^String private-key-path
                        ^Identity identity
                        ^bytes passphrase]
-                :as options}]
+                :as   options}]
   (logging/debugf
-   "add-identity-with-keychain has-identity? %s" (has-identity? agent name))
+    "add-identity-with-keychain has-identity? %s" (has-identity? agent name))
   (when-not (has-identity? agent name)
     (let [name (or name private-key-path)
           public-key-path (or public-key-path (str private-key-path ".pub"))
           identity (if private-key-path
                      (make-identity
-                      agent
-                      (file-path private-key-path)
-                      (file-path public-key-path)))]
+                       agent
+                       (file-path private-key-path)
+                       (file-path public-key-path)))]
       (logging/debugf
-       "add-identity-with-keychain is-encrypted? %s" (.isEncrypted identity))
+        "add-identity-with-keychain is-encrypted? %s" (.isEncrypted identity))
       (if (.isEncrypted identity)
         (if-let [passphrase (keychain/passphrase private-key-path)]
           (add-identity agent (assoc options :passphrase passphrase))
           (do
             (logging/error "Passphrase required, but none findable.")
             (throw
-             (ex-info
-              (str "Passphrase required for key " name ", but none findable.")
-              {:reason :passphrase-not-found
-               :key-name name}) name)))
+              (ex-info
+                (str "Passphrase required for key " name ", but none findable.")
+                {:reason   :passphrase-not-found
+                 :key-name name}))))
         (add-identity agent options)))))
 
 ;;; Sessions
@@ -309,11 +309,11 @@ keyword argument, or constructed from the other keyword arguments.
     (.setPassword session password))
   (doseq [[k v :as option] options]
     (.setConfig
-     session
-     (if (string? k)
-       k
-       (camelize (as-string k)))
-     (as-string v))))
+      session
+      (if (string? k)
+        k
+        (camelize (as-string k)))
+      (as-string v))))
 
 (defn- ^Session session-impl
   [^JSch agent hostname username port ^String password options]
@@ -331,11 +331,11 @@ keys.  All other option key pairs will be passed as SSH config options."
   [^JSch agent hostname
    {:keys [port username password] :or {port 22} :as options}]
   (session-impl
-   agent hostname
-   (or username (System/getProperty "user.name"))
-   port
-   password
-   (session-options options)))
+    agent hostname
+    (or username (System/getProperty "user.name"))
+    port
+    password
+    (session-options options)))
 
 (defn ^String session-hostname
   "Return the hostname for a session"
@@ -350,10 +350,10 @@ keys.  All other option key pairs will be passed as SSH config options."
 (defn forward-remote-port
   "Start remote port forwarding"
   ([^Session session remote-port local-port ^String local-host]
-     (.setPortForwardingR
-      session (int remote-port) local-host (int local-port)))
+   (.setPortForwardingR
+     session (int remote-port) local-host (int local-port)))
   ([session remote-port local-port]
-     (forward-remote-port session remote-port local-port "localhost")))
+   (forward-remote-port session remote-port local-port "localhost")))
 
 (defn unforward-remote-port
   "Remove remote port forwarding"
@@ -366,17 +366,17 @@ keys.  All other option key pairs will be passed as SSH config options."
   [[session remote-port local-port & [local-host & _]] & body]
   `(try
      (forward-remote-port
-      ~session ~remote-port ~local-port ~(or local-host "localhost"))
+       ~session ~remote-port ~local-port ~(or local-host "localhost"))
      ~@body
      (finally
-      (unforward-remote-port ~session ~remote-port))))
+       (unforward-remote-port ~session ~remote-port))))
 
 (defn forward-local-port
   "Start local port forwarding. Returns the actual local port."
   ([^Session session local-port remote-port remote-host]
-     (.setPortForwardingL session local-port remote-host remote-port))
+   (.setPortForwardingL session local-port remote-host remote-port))
   ([session local-port remote-port]
-     (forward-local-port session local-port remote-port "localhost")))
+   (forward-local-port session local-port remote-port "localhost")))
 
 (defn unforward-local-port
   "Remove local port forwarding"
@@ -389,19 +389,19 @@ keys.  All other option key pairs will be passed as SSH config options."
   [[session local-port remote-port & [remote-host & _]] & body]
   `(try
      (forward-local-port
-      ~session ~local-port ~remote-port ~(or remote-host "localhost"))
+       ~session ~local-port ~remote-port ~(or remote-host "localhost"))
      ~@body
      (finally
-      (unforward-local-port ~session ~local-port))))
+       (unforward-local-port ~session ~local-port))))
 
 (defn connect
   "Connect a session."
   ([session]
-     (locking hosts-file
-       (protocols/connect session)))
+   (locking hosts-file
+     (protocols/connect session)))
   ([session timeout]
-     (locking hosts-file
-       (protocols/connect session timeout))))
+   (locking hosts-file
+     (protocols/connect session timeout))))
 
 (defn disconnect
   "Disconnect a session."
@@ -409,7 +409,7 @@ keys.  All other option key pairs will be passed as SSH config options."
   (protocols/disconnect session)
   (when-let [^Thread t (and (instance? Session session)
                             (reflect/get-field
-                             com.jcraft.jsch.Session 'connectThread session))]
+                              com.jcraft.jsch.Session 'connectThread session))]
     (when (.isAlive t)
       (.interrupt t))))
 
@@ -428,7 +428,7 @@ keys.  All other option key pairs will be passed as SSH config options."
          (connect session#))
        ~@body
        (finally
-        (disconnect session#)))))
+         (disconnect session#)))))
 
 ;;; Jump Hosts
 (defn- jump-connect [agent hosts sessions timeout]
@@ -436,15 +436,15 @@ keys.  All other option key pairs will be passed as SSH config options."
         s (session agent (:hostname host) (dissoc host :hostname))
         throw-e (fn [e s]
                   (throw
-                   (ex-info
-                    (str "Failed to connect "
-                         (.getUserName s) "@"
-                         (.getHost s) ":"
-                         (.getPort s)
-                         " " (pr-str (into [] (.getIdentityNames agent)))
-                         " " (pr-str hosts))
-                    {:hosts hosts}
-                    e)))]
+                    (ex-info
+                      (str "Failed to connect "
+                           (.getUserName s) "@"
+                           (.getHost s) ":"
+                           (.getPort s)
+                           " " (pr-str (into [] (.getIdentityNames agent)))
+                           " " (pr-str hosts))
+                      {:hosts hosts}
+                      e)))]
     (swap! sessions (fnil conj []) s)
     (try
       (connect s timeout)
@@ -453,8 +453,8 @@ keys.  All other option key pairs will be passed as SSH config options."
     (loop [hosts (rest hosts)
            prev-s s]
       (if-let [{:keys [hostname port username password]
-                :or {port 22}
-                :as options}
+                :or   {port 22}
+                :as   options}
                (first hosts)]
         (let [p (forward-local-port prev-s 0 port hostname)
               options (-> options
@@ -531,7 +531,7 @@ config options."
          (connect-channel channel#))
        ~@body
        (finally
-        (disconnect-channel channel#)))))
+         (disconnect-channel channel#)))))
 
 (defn open-channel
   "Open a channel of the specified type in the session."
@@ -541,23 +541,23 @@ config options."
     (catch JSchException e
       (let [msg (.getMessage e)]
         (cond
-         (= msg "session is down")
-         (throw (ex-info (format "clj-ssh open-channel failure: %s" msg)
-                         {:type :clj-ssh/open-channel-failure
-                          :reason :clj-ssh/session-down}
-                         e))
-         (= msg "channel is not opened.")
-         (throw (ex-info
-                 (format
-                  "clj-ssh open-channel failure: %s (possible session timeout)"
-                  msg)
-                 {:type :clj-ssh/open-channel-failure
-                  :reason :clj-ssh/channel-open-failed}
-                 e))
-         :else (throw (ex-info (format "clj-ssh open-channel failure: %s" msg)
-                               {:type :clj-ssh/open-channel-failure
-                                :reason :clj-ssh/unknown}
-                               e)))))))
+          (= msg "session is down")
+          (throw (ex-info (format "clj-ssh open-channel failure: %s" msg)
+                          {:type   :clj-ssh/open-channel-failure
+                           :reason :clj-ssh/session-down}
+                          e))
+          (= msg "channel is not opened.")
+          (throw (ex-info
+                   (format
+                     "clj-ssh open-channel failure: %s (possible session timeout)"
+                     msg)
+                   {:type   :clj-ssh/open-channel-failure
+                    :reason :clj-ssh/channel-open-failed}
+                   e))
+          :else (throw (ex-info (format "clj-ssh open-channel failure: %s" msg)
+                                {:type   :clj-ssh/open-channel-failure
+                                 :reason :clj-ssh/unknown}
+                                e)))))))
 
 (defn sftp-channel
   "Open a SFTP channel in the session."
@@ -581,7 +581,7 @@ config options."
 
 (def
   ^{:dynamic true
-    :doc (str "The buffer size (in bytes) for the piped stream used to implement
+    :doc     (str "The buffer size (in bytes) for the piped stream used to implement
     the :stream option for :out. If your ssh commands generate a high volume of
     output, then this buffer size can become a bottleneck. You might also
     increase the frequency with which you read the output stream if this is an
@@ -621,27 +621,27 @@ config options."
       (.setAgentForwarding shell (boolean (opts :agent-forwarding))))
     (connect-channel shell)
     {:channel shell
-     :out (or out (.getInputStream shell))
-     :in (or in (.getOutputStream shell))}))
+     :out     (or out (.getInputStream shell))
+     :in      (or in (.getOutputStream shell))}))
 
 (defn ssh-shell
   "Run a ssh-shell."
   [^Session session in out opts]
   (let [[out-stream out-inputstream] (streams-for-out out)
         resp (ssh-shell-proc
-              session
-              (if (string? in) (string-stream (str in ";exit $?;\n")) in)
-              (merge {:out out-stream} opts))
+               session
+               (if (string? in) (string-stream (str in ";exit $?;\n")) in)
+               (merge {:out out-stream} opts))
         ^ChannelShell shell (:channel resp)]
     (if out-inputstream
       {:channel shell :out-stream out-inputstream}
       (with-channel-connection shell
-        (while (connected-channel? shell)
-          (Thread/sleep 100))
-        {:exit (.getExitStatus shell)
-         :out (if (= :bytes out)
-                (.toByteArray ^ByteArrayOutputStream out-stream)
-                (.toString out-stream))}))))
+                               (while (connected-channel? shell)
+                                 (Thread/sleep 100))
+                               {:exit (.getExitStatus shell)
+                                :out  (if (= :bytes out)
+                                        (.toByteArray ^ByteArrayOutputStream out-stream)
+                                        (.toString out-stream))}))))
 
 (defn ssh-exec-proc
   "Run a command via exec, returning a map with the process streams."
@@ -661,9 +661,9 @@ config options."
     (when err
       (.setErrStream exec err))
     (let [resp {:channel exec
-                :out (or out (.getInputStream exec))
-                :err (or err (.getErrStream exec))
-                :in (or in (.getOutputStream exec))}]
+                :out     (or out (.getInputStream exec))
+                :err     (or err (.getErrStream exec))
+                :in      (or in (.getOutputStream exec))}]
       (connect-channel exec)
       resp)))
 
@@ -675,27 +675,27 @@ config options."
         [^PipedOutputStream err-stream
          ^PipedInputStream err-inputstream] (streams-for-out out)
         proc (ssh-exec-proc
-              session cmd
-              (merge
-               {:in (if (string? in) (string-stream in) in)
-                :out out-stream
-                :err err-stream}
-               opts))
+               session cmd
+               (merge
+                 {:in  (if (string? in) (string-stream in) in)
+                  :out out-stream
+                  :err err-stream}
+                 opts))
         ^ChannelExec exec (:channel proc)]
     (if out-inputstream
-      {:channel exec
+      {:channel    exec
        :out-stream out-inputstream
        :err-stream err-inputstream}
       (with-channel-connection exec
-        (while (connected-channel? exec)
-          (Thread/sleep 100))
-        {:exit (.getExitStatus exec)
-         :out (if (= :bytes out)
-                (.toByteArray ^ByteArrayOutputStream out-stream)
-                (.toString out-stream))
-         :err (if (= :bytes out)
-                (.toByteArray ^ByteArrayOutputStream err-stream)
-                (.toString err-stream))}))))
+                               (while (connected-channel? exec)
+                                 (Thread/sleep 100))
+                               {:exit (.getExitStatus exec)
+                                :out  (if (= :bytes out)
+                                        (.toByteArray ^ByteArrayOutputStream out-stream)
+                                        (.toString out-stream))
+                                :err  (if (= :bytes out)
+                                        (.toByteArray ^ByteArrayOutputStream err-stream)
+                                        (.toString err-stream))}))))
 
 (defn ssh
   "Execute commands over ssh.
@@ -734,23 +734,23 @@ sh returns a map of
 
 (defmacro memfn-varargs [name klass]
   `(fn [^{:tag ~klass} target# args#]
-    (condp = (count args#)
-      0 (. target# (~name))
-      1 (. target# (~name (first args#)))
-      2 (. target# (~name (first args#) (second args#)))
-      3 (. target# (~name (first args#) (second args#) (nth args# 2)))
-      4 (. target#
-           (~name (first args#) (second args#) (nth args# 2) (nth args# 3)))
-      5 (. target#
-           (~name (first args#) (second args#) (nth args# 2) (nth args# 3)
-                  (nth args# 4)))
-      (throw
-       (java.lang.IllegalArgumentException.
-        (str "Too many arguments passed.  Limit 5, passed " (count args#)))))))
+     (condp = (count args#)
+       0 (. target# (~name))
+       1 (. target# (~name (first args#)))
+       2 (. target# (~name (first args#) (second args#)))
+       3 (. target# (~name (first args#) (second args#) (nth args# 2)))
+       4 (. target#
+            (~name (first args#) (second args#) (nth args# 2) (nth args# 3)))
+       5 (. target#
+            (~name (first args#) (second args#) (nth args# 2) (nth args# 3)
+              (nth args# 4)))
+       (throw
+         (java.lang.IllegalArgumentException.
+           (str "Too many arguments passed.  Limit 5, passed " (count args#)))))))
 
-(def sftp-modemap { :overwrite ChannelSftp/OVERWRITE
-                    :resume ChannelSftp/RESUME
-                    :append ChannelSftp/APPEND })
+(def sftp-modemap {:overwrite ChannelSftp/OVERWRITE
+                   :resume    ChannelSftp/RESUME
+                   :append    ChannelSftp/APPEND})
 
 (defn ssh-sftp-cmd
   "Command on a ftp channel."
@@ -791,7 +791,7 @@ sh returns a map of
                       args)]
            ((memfn-varargs put ChannelSftp) channel args))
     (throw
-     (java.lang.IllegalArgumentException. (str "Unknown SFTP command " cmd)))))
+      (java.lang.IllegalArgumentException. (str "Unknown SFTP command " cmd)))))
 
 (defn sftp
   "Execute SFTP commands.
@@ -834,8 +834,8 @@ cmd specifies a command to exec.  Valid commands are:
   "Send acknowledgement to the specified output stream"
   ([^OutputStream out] (scp-send-ack out 0))
   ([^OutputStream out code]
-     (.write out (byte-array [(byte code)]))
-     (.flush out)))
+   (.write out (byte-array [(byte code)]))
+   (.flush out)))
 
 (defn- scp-receive-ack
   "Check for an acknowledgement byte from the given input stream"
@@ -843,15 +843,15 @@ cmd specifies a command to exec.  Valid commands are:
   (let [code (.read in)]
     (when-not (zero? code)
       (throw
-       (ex-info
-        (format
-         "clj-ssh scp failure: %s"
-         (case code
-           1 "scp error"
-           2 "scp fatal error"
-           -1 "disconnect error"
-           "unknown error"))
-        {:type :clj-ssh/scp-failure})))))
+        (ex-info
+          (format
+            "clj-ssh scp failure: %s"
+            (case code
+              1 "scp error"
+              2 "scp fatal error"
+              -1 "disconnect error"
+              "unknown error"))
+          {:type :clj-ssh/scp-failure})))))
 
 (defn- scp-send-command
   "Send command to the specified output stream"
@@ -870,8 +870,8 @@ cmd specifies a command to exec.  Valid commands are:
     (let [cmd (loop [offset 0]
                 (let [n (.read in buffer offset (- buffer-size offset))]
                   (logging/tracef
-                   "scp-receive-command: %s"
-                   (String. buffer (int 0) (int (+ offset n))))
+                    "scp-receive-command: %s"
+                    (String. buffer (int 0) (int (+ offset n))))
                   (if (= \newline (char (aget buffer (+ offset n -1))))
                     (String. buffer (int 0) (int (+ offset n)))
                     (recur (+ offset n)))))]
@@ -883,15 +883,15 @@ cmd specifies a command to exec.  Valid commands are:
 (defn- scp-copy-file
   "Send acknowledgement to the specified output stream"
   [send recv ^File file {:keys [mode buffer-size preserve]
-                   :or {mode 0644 buffer-size 1492 preserve false}}]
+                         :or   {mode 0644 buffer-size 1492 preserve false}}]
   (logging/tracef "Sending %s" (.getAbsolutePath file))
   (when preserve
     (scp-send-command
-     send recv
-     (format "P %d 0 %d 0\n" (.lastModified file) (.lastModified file))))
+      send recv
+      (format "P %d 0 %d 0\n" (.lastModified file) (.lastModified file))))
   (scp-send-command
-   send recv
-   (format "C%04o %d %s\n" mode (.length file) (.getName file)))
+    send recv
+    (format "C%04o %d %s\n" mode (.length file) (.getName file)))
   (with-open [fs (FileInputStream. file)]
     (io/copy fs send :buffer-size buffer-size))
   (scp-send-ack send)
@@ -904,12 +904,12 @@ cmd specifies a command to exec.  Valid commands are:
   [send recv ^File dir {:keys [dir-mode] :or {dir-mode 0755} :as options}]
   (logging/trace "Sending directory %s" (.getAbsolutePath dir))
   (scp-send-command
-   send recv
-   (format "D%04o 0 %s" dir-mode (.getName dir)))
+    send recv
+    (format "D%04o 0 %s" dir-mode (.getName dir)))
   (doseq [^File file (.listFiles dir)]
     (cond
-     (.isFile file) (scp-copy-file send recv file options)
-     (.isDirectory file) (scp-copy-dir send recv file options)))
+      (.isFile file) (scp-copy-file send recv file options)
+      (.isDirectory file) (scp-copy-dir send recv file options)))
   (scp-send-ack send)
   (logging/trace "Sent ACK after send")
   (scp-receive-ack recv)
@@ -923,10 +923,10 @@ cmd specifies a command to exec.  Valid commands are:
               (let [file (File. path)]
                 (when (.isDirectory file)
                   (throw
-                   (ex-info
-                    (format
-                     "Copy of dir %s requested without recursive flag" path)
-                    {:type :clj-ssh/scp-directory-copy-requested})))
+                    (ex-info
+                      (format
+                        "Copy of dir %s requested without recursive flag" path)
+                      {:type :clj-ssh/scp-directory-copy-requested})))
                 file)))]
     (map f paths)))
 
@@ -936,15 +936,15 @@ cmd specifies a command to exec.  Valid commands are:
   (logging/trace "Set session to prefer none cipher")
   (doto session
     (.setConfig
-     "cipher.s2c" "none,aes128-cbc,3des-cbc,blowfish-cbc")
+      "cipher.s2c" "none,aes128-cbc,3des-cbc,blowfish-cbc")
     (.setConfig
-     "cipher.c2s" "none,aes128-cbc,3des-cbc,blowfish-cbc")
+      "cipher.c2s" "none,aes128-cbc,3des-cbc,blowfish-cbc")
     (.rekey)))
 
 (defn scp-parse-times
   [cmd]
   (let [s (StringReader. cmd)]
-    (.skip s 1) ;; skip T
+    (.skip s 1)                                             ;; skip T
     (let [scanner (java.util.Scanner. s)
           mtime (.nextLong scanner)
           zero (.nextInt scanner)
@@ -954,7 +954,7 @@ cmd specifies a command to exec.  Valid commands are:
 (defn scp-parse-copy
   [cmd]
   (let [s (StringReader. cmd)]
-    (.skip s 1) ;; skip C or D
+    (.skip s 1)                                             ;; skip C or D
     (let [scanner (java.util.Scanner. s)
           mode (.nextInt scanner 8)
           length (.nextLong scanner)
@@ -1032,7 +1032,7 @@ cmd specifies a command to exec.  Valid commands are:
           exec channel
           recv out-stream]
       (logging/tracef
-       "scp-to %s %s" (string/join " " local-paths) remote-path)
+        "scp-to %s %s" (string/join " " local-paths) remote-path)
       (logging/trace "Receive initial ACK")
       (scp-receive-ack recv)
       (doseq [^File file files]
@@ -1067,25 +1067,25 @@ cmd specifies a command to exec.  Valid commands are:
                      (not (.isDirectory file))
                      (> (count remote-paths) 1))
             (throw
-             (ex-info
-              (format "Copy of multiple files to file %s requested" local-path)
-              {:type :clj-ssh/scp-copy-multiple-files-to-file-requested})))]
+              (ex-info
+                (format "Copy of multiple files to file %s requested" local-path)
+                {:type :clj-ssh/scp-copy-multiple-files-to-file-requested})))]
     (when (and session (not (connected? session)))
       (connect session))
     (let [[^PipedInputStream in
            ^PipedOutputStream send] (streams-for-in)
           flags {:recursive "-r" :preserve "-p"}
           cmd (format
-               "scp %s -f %s"
-               (:remote-flags
-                opts
-                (string/join
-                 " "
-                 (->>
-                  (select-keys opts [:recursive :preserve])
-                  (filter val)
-                  (map (fn [k v] (k flags))))))
-               (string/join " " remote-paths))
+                "scp %s -f %s"
+                (:remote-flags
+                  opts
+                  (string/join
+                    " "
+                    (->>
+                      (select-keys opts [:recursive :preserve])
+                      (filter val)
+                      (map (fn [k v] (k flags))))))
+                (string/join " " remote-paths))
           _ (logging/tracef "scp-from: %s" cmd)
           {:keys [^ChannelExec channel
                   ^PipedInputStream out-stream]}
@@ -1093,7 +1093,7 @@ cmd specifies a command to exec.  Valid commands are:
           exec channel
           recv out-stream]
       (logging/tracef
-       "scp-from %s %s" (string/join " " remote-paths) local-path)
+        "scp-from %s %s" (string/join " " remote-paths) local-path)
       (scp-send-ack send)
       (logging/trace "Sent initial ACK")
       (scp-sink send recv file nil opts)

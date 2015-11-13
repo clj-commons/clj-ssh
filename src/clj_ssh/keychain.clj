@@ -2,8 +2,8 @@
   "Primitive keychain support for clj-ssh.  Only implemented on OSX at the
    moment."
   (:require
-   [clojure.tools.logging :as logging]
-   [clojure.java.shell :as shell]))
+    [clojure.tools.logging :as logging]
+    [clojure.java.shell :as shell]))
 
 (defn ask-passphrase [path]
   (if-let [console (. System console)]
@@ -13,7 +13,7 @@
                     {:type :clj-ssh/no-passphrase-available}))))
 
 (defmulti keychain-passphrase "Obtain password for path"
-  (fn [system path] system))
+          (fn [system path] system))
 
 (defmethod keychain-passphrase :default
   [system path]
@@ -23,12 +23,12 @@
 (defmethod keychain-passphrase "Mac OS X"
   [system path]
   (let [result (shell/sh
-                "/usr/bin/security" "find-generic-password" "-a"
-                (format "%s" path)
-                "-g")]
+                 "/usr/bin/security" "find-generic-password" "-a"
+                 (format "%s" path)
+                 "-g")]
     (when (zero? (result :exit))
       (when-let [^String pw (second
-                             (re-find #"password: \"(.*)\"" (result :err)))]
+                              (re-find #"password: \"(.*)\"" (result :err)))]
         (.getBytes pw "UTF-8")))))
 
 (defn passphrase
