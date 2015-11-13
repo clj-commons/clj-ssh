@@ -1,14 +1,14 @@
 (ns clj-ssh.agent
   "Agent integration (using jsch-agent-proxy)"
   (:require
-   [clojure.tools.logging :as logging])
+    [clojure.tools.logging :as logging])
   (:import
-   com.jcraft.jsch.JSch
-   [com.jcraft.jsch.agentproxy
-    AgentProxyException Connector RemoteIdentityRepository]
-   [com.jcraft.jsch.agentproxy.connector
-    PageantConnector SSHAgentConnector]
-   com.jcraft.jsch.agentproxy.usocket.JNAUSocketFactory))
+    com.jcraft.jsch.JSch
+    [com.jcraft.jsch.agentproxy
+     AgentProxyException Connector RemoteIdentityRepository]
+    [com.jcraft.jsch.agentproxy.connector
+     PageantConnector SSHAgentConnector]
+    com.jcraft.jsch.agentproxy.usocket.JNAUSocketFactory))
 
 (defn sock-agent-connector
   []
@@ -18,7 +18,7 @@
         (SSHAgentConnector. usf))
       (catch AgentProxyException e
         (logging/warnf
-         e "Failed to load JNA connector, although SSH_AUTH_SOCK is set")))))
+          e "Failed to load JNA connector, although SSH_AUTH_SOCK is set")))))
 
 (defn pageant-connector
   []
@@ -27,7 +27,7 @@
       (PageantConnector.)
       (catch AgentProxyException e
         (logging/warn
-         e "Failed to load Pageant connector, although running on windows")))))
+          e "Failed to load Pageant connector, although running on windows")))))
 
 (defn connect
   "Connect the specified jsch object to the system ssh-agent."

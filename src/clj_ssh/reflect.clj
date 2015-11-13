@@ -31,7 +31,7 @@
   keyword."
   [^Class klass field-name obj]
   (->
-   klass
-   (.getDeclaredField (name field-name))
-   (doto (.setAccessible true))
-   (.get obj)))
+    klass
+    (.getDeclaredField (name field-name))
+    (doto (.setAccessible true))
+    (.get obj)))

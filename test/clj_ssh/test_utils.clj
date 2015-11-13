@@ -1,6 +1,6 @@
 (ns clj-ssh.test-utils
   (:use
-   [clj-ssh.ssh :only [ssh-log-levels]])
+    [clj-ssh.ssh :only [ssh-log-levels]])
   (:import com.jcraft.jsch.Logger))
 
 (def debug-log-levels
@@ -28,20 +28,20 @@
         done (atom false)
         progress (atom 0)
         continue (atom true)]
-    [ (proxy [com.jcraft.jsch.SftpProgressMonitor] []
-        (init [op src dest max]
-              (do
-                (reset! operation op)
-                (reset! source src)
-                (reset! destination dest)
-                (reset! number max)
-                (reset! done false)))
-        (count [n]
-               (reset! progress n)
-               @continue)
-        (end []
-             (reset! done true)))
-      [operation source destination number done progress continue]]))
+    [(proxy [com.jcraft.jsch.SftpProgressMonitor] []
+       (init [op src dest max]
+         (do
+           (reset! operation op)
+           (reset! source src)
+           (reset! destination dest)
+           (reset! number max)
+           (reset! done false)))
+       (count [n]
+         (reset! progress n)
+         @continue)
+       (end []
+         (reset! done true)))
+     [operation source destination number done progress continue]]))
 
 (defn sftp-monitor-done [state]
   @(nth state 4))

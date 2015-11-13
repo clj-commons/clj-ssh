@@ -31,12 +31,12 @@ If your key has a passphrase, you will need to explicitly add your key either to
 the system's ssh-agent, or to clj-ssh's ssh-agent with the appropriate
 `add-identity` call."
   (:require
-   [clj-ssh.ssh :as ssh]
-   [clojure.string :as string]))
+    [clj-ssh.ssh :as ssh]
+    [clojure.string :as string]))
 
 ;;; Agent
 (def ^{:doc "SSH agent used to manage identities." :dynamic true}
-  *ssh-agent* (ssh/ssh-agent {}))
+*ssh-agent* (ssh/ssh-agent {}))
 
 (defmacro with-ssh-agent
   "Bind an ssh-agent for use as identity manager. An existing agent instance is
@@ -66,8 +66,8 @@ the system's ssh-agent, or to clj-ssh's ssh-agent with the appropriate
              private-key-path
              ^Identity identity
              ^bytes passphrase]
-      :or {agent *ssh-agent*}
-      :as options}]
+      :or   {agent *ssh-agent*}
+      :as   options}]
   {:pre [(map? options)]}
   (ssh/add-identity agent (dissoc options :agent)))
 
@@ -80,13 +80,13 @@ the system's ssh-agent, or to clj-ssh's ssh-agent with the appropriate
              ^String private-key-path
              ^Identity identity
              ^bytes passphrase]
-      :or {agent *ssh-agent*}
-      :as options}]
+      :or   {agent *ssh-agent*}
+      :as   options}]
   (ssh/add-identity-with-keychain agent (dissoc options :agent)))
 
 ;;; Session
 (def
-  ^{:doc "Default SSH options"
+  ^{:doc     "Default SSH options"
     :dynamic true}
   *default-session-options* {})
 
@@ -110,8 +110,8 @@ the system's ssh-agent, or to clj-ssh's ssh-agent with the appropriate
 Requires hostname.  you can also pass values for :username, :password and :port
 keys.  All other option key pairs will be passed as SSH config options."
   [hostname & {:keys [port username agent password]
-               :or {agent *ssh-agent* port 22}
-               :as options}]
+               :or   {agent *ssh-agent* port 22}
+               :as   options}]
   (default-session agent hostname (dissoc options :agent)))
 
 ;;; Operations
@@ -153,19 +153,19 @@ sh returns a map of
               :err  => sub-process's stderr (as byte[] or String)"
   [hostname & args]
   (let [{:keys [cmd in out username password port ssh-agent args]
-         :or {ssh-agent *ssh-agent*}
-         :as options} (parse-args args)
-         session (default-session ssh-agent hostname options)
-         arg (if (seq args)
-               (merge {:cmd (string/join " " args)} options)
-               options)]
+         :or   {ssh-agent *ssh-agent*}
+         :as   options} (parse-args args)
+        session (default-session ssh-agent hostname options)
+        arg (if (seq args)
+              (merge {:cmd (string/join " " args)} options)
+              options)]
     (if (= :stream (:out options))
       (do
         (ssh/connect session)
         (assoc (ssh/ssh session arg)
           :session session))
       (ssh/with-connection session
-        (ssh/ssh session arg)))))
+                           (ssh/ssh session arg)))))
 
 (defn sftp
   "Execute SFTP commands.
@@ -196,11 +196,11 @@ Options are
 :modes"
   [hostname cmd & args]
   (let [{:keys [ssh-agent args]
-         :or {ssh-agent *ssh-agent*}
-         :as options} (parse-args args)
+         :or   {ssh-agent *ssh-agent*}
+         :as   options} (parse-args args)
         session (default-session ssh-agent hostname options)]
     (ssh/with-connection session
-      (apply ssh/sftp session (dissoc options :args) cmd args))))
+                         (apply ssh/sftp session (dissoc options :args) cmd args))))
 
 ;;; Keypairs
 (defn generate-keypair
@@ -208,4 +208,4 @@ Options are
    Valid types are :rsa and :dsa.  key-size is in bytes. passphrase
    can be a string or byte array."
   ([key-type key-size passphrase]
-     (ssh/generate-keypair *ssh-agent* key-type key-size passphrase)))
+   (ssh/generate-keypair *ssh-agent* key-type key-size passphrase)))
