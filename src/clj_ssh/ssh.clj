@@ -298,7 +298,7 @@ keyword argument, or constructed from the other keyword arguments.
              (ex-info
               (str "Passphrase required for key " name ", but none findable.")
               {:reason :passphrase-not-found
-               :key-name name}) name)))
+               :key-name name}))))
         (add-identity agent options)))))
 
 ;;; Sessions
