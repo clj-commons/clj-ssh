@@ -6,7 +6,7 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/tools.logging "0.3.1"
+                 [org.clojure/tools.logging "0.2.6"
                   :exclusions [org.clojure/clojure]]
                  [com.jcraft/jsch.agentproxy.usocket-jna ~agentproxy-version]
                  [com.jcraft/jsch.agentproxy.usocket-nc ~agentproxy-version]
@@ -14,5 +14,5 @@
                  [com.jcraft/jsch.agentproxy.pageant ~agentproxy-version]
                  [com.jcraft/jsch.agentproxy.core ~agentproxy-version]
                  [com.jcraft/jsch.agentproxy.jsch ~agentproxy-version]
-                 [com.jcraft/jsch "0.1.53"]]
+                 [com.jcraft/jsch "0.1.51"]]
   :jvm-opts ["-Djava.awt.headless=true"])
