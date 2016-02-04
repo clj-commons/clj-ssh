@@ -16,3 +16,4 @@
                  [com.jcraft/jsch.agentproxy.jsch ~agentproxy-version]
                  [com.jcraft/jsch "0.1.51"]]
   :jvm-opts ["-Djava.awt.headless=true"])
+
