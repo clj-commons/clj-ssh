@@ -542,18 +542,19 @@
                       :strict-host-key-checking :no})]
         (is (instance? com.jcraft.jsch.Session session))
         (is (not (connected? session)))
-        (is (not (port-reachable? 2222)))
+        (is (not (port-reachable? 22222)))
         (connect session)
         (is (connected? session))
-        (forward-local-port session 2222 22)
-        (is (port-reachable? 2222))
-        (unforward-local-port session 2222)
-        (forward-local-port session 2222 22 "localhost")
-        (unforward-local-port session 2222)
-        (with-local-port-forward [session 2222 22]
-          (is (port-reachable? 2222)))
-        (with-local-port-forward [session 2222 22 "localhost"]
-          (is (port-reachable? 2222)))))))
+        (forward-local-port session 22222 22)
+        (is (port-reachable? 22222))
+        (unforward-local-port session 22222)
+        (forward-local-port session 22223 22 "localhost")
+        (is (port-reachable? 22223))
+        (unforward-local-port session 22223)
+        (with-local-port-forward [session 22224 22]
+          (is (port-reachable? 22224)))
+        (with-local-port-forward [session 22225 22 "localhost"]
+          (is (port-reachable? 22225)))))))
 
 (deftest forward-remote-port-test
   (testing "minimal test"
@@ -569,18 +570,18 @@
                       :strict-host-key-checking :no})]
         (is (instance? com.jcraft.jsch.Session session))
         (is (not (connected? session)))
-        (is (not (port-reachable? 2222)))
+        (is (not (port-reachable? 22222)))
         (connect session)
         (is (connected? session))
-        (forward-remote-port session 2222 22)
-        (is (port-reachable? 2222))
-        (unforward-remote-port session 2222)
-        (forward-remote-port session 2222 22 "localhost")
-        (unforward-remote-port session 2222)
-        (with-remote-port-forward [session 2222 22]
-          (is (port-reachable? 2222)))
-        (with-remote-port-forward [session 2222 22 "localhost"]
-          (is (port-reachable? 2222)))))))
+        (forward-remote-port session 22222 22)
+        (is (port-reachable? 22222))
+        (unforward-remote-port session 22222)
+        (forward-remote-port session 22222 22 "localhost")
+        (unforward-remote-port session 22222)
+        (with-remote-port-forward [session 22222 22]
+          (is (port-reachable? 22222)))
+        (with-remote-port-forward [session 22222 22 "localhost"]
+          (is (port-reachable? 22222)))))))
 
 (deftest jump-session-test
   (is (let [s (jump-session (ssh-agent {})
