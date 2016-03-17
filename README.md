@@ -58,7 +58,7 @@ The `clj-ssh.ssh` namespace should be used for SSH from functional code.
     (with-connection session
       (let [result (ssh session {:in "echo hello"})]
         (println (result :out)))
-      (let [result (ssh session {:cmd "ls"}]
+      (let [result (ssh session {:cmd "ls"})]
         (println (second result)))))))
 ```
 
@@ -163,7 +163,7 @@ Thanks to [Ryan Stradling](http://github.com/rstradling) for these.
 Via [clojars](http://clojars.org) and
 [Leiningen](http://github.com/technomancy/leiningen).
 
-    :dependencies [clj-ssh "0.5.12"]
+    :dependencies [clj-ssh "0.5.13"]
 
 or your favourite maven repository aware tool.
 

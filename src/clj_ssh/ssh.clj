@@ -686,16 +686,15 @@ config options."
       {:channel exec
        :out-stream out-inputstream
        :err-stream err-inputstream}
-      (with-channel-connection exec
-        (while (connected-channel? exec)
-          (Thread/sleep 100))
-        {:exit (.getExitStatus exec)
-         :out (if (= :bytes out)
-                (.toByteArray ^ByteArrayOutputStream out-stream)
-                (.toString out-stream))
-         :err (if (= :bytes out)
-                (.toByteArray ^ByteArrayOutputStream err-stream)
-                (.toString err-stream))}))))
+      (do (while (connected-channel? exec)
+            (Thread/sleep 100))
+          {:exit (.getExitStatus exec)
+           :out (if (= :bytes out)
+                  (.toByteArray ^ByteArrayOutputStream out-stream)
+                  (.toString out-stream))
+           :err (if (= :bytes out)
+                  (.toByteArray ^ByteArrayOutputStream err-stream)
+                  (.toString err-stream))}))))
 
 (defn ssh
   "Execute commands over ssh.
@@ -856,7 +855,7 @@ cmd specifies a command to exec.  Valid commands are:
 (defn- scp-send-command
   "Send command to the specified output stream"
   [^OutputStream out ^InputStream in ^String cmd-string]
-  (.write out (.getBytes cmd-string))
+  (.write out (.getBytes (str cmd-string "\n")))
   (.flush out)
   (logging/tracef "Sent command %s" cmd-string)
   (scp-receive-ack in)
@@ -882,27 +881,26 @@ cmd specifies a command to exec.  Valid commands are:
 
 (defn- scp-copy-file
   "Send acknowledgement to the specified output stream"
-  [send recv ^File file {:keys [mode buffer-size preserve]
+  [^OutputStream send ^InputStream recv ^File file {:keys [mode buffer-size preserve]
                    :or {mode 0644 buffer-size 1492 preserve false}}]
-  (logging/tracef "Sending %s" (.getAbsolutePath file))
+
   (when preserve
     (scp-send-command
      send recv
-     (format "P %d 0 %d 0\n" (.lastModified file) (.lastModified file))))
+     (format "P%d 0 %d 0" (.lastModified file) (.lastModified file))))
   (scp-send-command
    send recv
-   (format "C%04o %d %s\n" mode (.length file) (.getName file)))
-  (with-open [fs (FileInputStream. file)]
-    (io/copy fs send :buffer-size buffer-size))
+   (format "C%04o %d %s" mode (.length file) (.getName file)))
+  (logging/tracef "Sending %s" (.getAbsolutePath file))
+  (io/copy file send :buffer-size buffer-size)
   (scp-send-ack send)
-  (logging/trace "Sent ACK after send")
-  (scp-receive-ack recv)
-  (logging/trace "Received ACK after send"))
+  (logging/trace "Receiving ACK after send")
+  (scp-receive-ack recv))
 
 (defn- scp-copy-dir
   "Send acknowledgement to the specified output stream"
   [send recv ^File dir {:keys [dir-mode] :or {dir-mode 0755} :as options}]
-  (logging/trace "Sending directory %s" (.getAbsolutePath dir))
+  (logging/tracef "Sending directory %s" (.getAbsolutePath dir))
   (scp-send-command
    send recv
    (format "D%04o 0 %s" dir-mode (.getName dir)))
@@ -910,10 +908,7 @@ cmd specifies a command to exec.  Valid commands are:
     (cond
      (.isFile file) (scp-copy-file send recv file options)
      (.isDirectory file) (scp-copy-dir send recv file options)))
-  (scp-send-ack send)
-  (logging/trace "Sent ACK after send")
-  (scp-receive-ack recv)
-  (logging/trace "Received ACK after send"))
+  (scp-send-command send recv "E"))
 
 (defn- scp-files
   [paths recursive]
@@ -1025,7 +1020,7 @@ cmd specifies a command to exec.  Valid commands are:
       (connect session))
     (let [[^PipedInputStream in
            ^PipedOutputStream send] (streams-for-in)
-          cmd (format "scp %s -t %s" (:remote-flags opts "") remote-path)
+          cmd (format "scp %s %s -t %s" (:remote-flags opts "") (if recursive "-r" "") remote-path)
           _ (logging/tracef "scp-to: %s" cmd)
           {:keys [^ChannelExec channel ^PipedInputStream out-stream]}
           (ssh-exec session cmd in :stream opts)
@@ -1084,8 +1079,9 @@ cmd specifies a command to exec.  Valid commands are:
                  (->>
                   (select-keys opts [:recursive :preserve])
                   (filter val)
-                  (map (fn [k v] (k flags))))))
+                  (map (comp flags key)))))
                (string/join " " remote-paths))
+          _ (println cmd)
           _ (logging/tracef "scp-from: %s" cmd)
           {:keys [^ChannelExec channel
                   ^PipedInputStream out-stream]}
