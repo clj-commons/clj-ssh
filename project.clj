@@ -5,8 +5,7 @@
   :url "https://github.com/hugoduncan/clj-ssh"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.4.0"]
-                 [org.clojure/tools.logging "0.2.6"
+  :dependencies [[org.clojure/tools.logging "0.2.6"
                   :exclusions [org.clojure/clojure]]
                  [com.jcraft/jsch.agentproxy.usocket-jna ~agentproxy-version]
                  [com.jcraft/jsch.agentproxy.usocket-nc ~agentproxy-version]
@@ -15,4 +14,5 @@
                  [com.jcraft/jsch.agentproxy.core ~agentproxy-version]
                  [com.jcraft/jsch.agentproxy.jsch ~agentproxy-version]
                  [com.jcraft/jsch "0.1.53"]]
-  :jvm-opts ["-Djava.awt.headless=true"])
+  :jvm-opts ["-Djava.awt.headless=true"]
+  :profiles {:provided {:dependencies [[org.clojure/clojure "1.4.0"]]}})
