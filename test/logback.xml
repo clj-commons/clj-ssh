@@ -20,6 +20,10 @@
     <appender-ref ref="SSHFILE" />
   </logger>
 
+  <logger name="com.jcraft" level="DEBUG">
+    <appender-ref ref="CONSOLE" />
+  </logger>
+
   <root level="INFO">
     <appender-ref ref="CONSOLE" />
   </root>
