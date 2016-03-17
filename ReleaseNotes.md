@@ -1,3 +1,21 @@
+## 0.5.13
+
+- Make clojure dependency have provided scope
+  Closes #25
+
+- Fix race condition in ssh-exec function when command finishes before we
+  enter with-channel-connection
+
+- ssh/download: fix :recursive and :preserve flags arity errors.
+  Recursive still doesn't work correctly: clj-ssh writes every file into the
+  same output.
+
+- Fixed recursive scp invocation.
+
+- fix trace/tracef mixup.
+
+- Fix missing parens
+
 ## 0.5.12
 
 - Update jsch and jsch agentproxy
