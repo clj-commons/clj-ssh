@@ -615,8 +615,6 @@
             (is (pos? (count (:out proc))) "no options")))
         (testing ":out :stream"
           (let [proc (ssh s {:cmd "ls" :out :stream :pty true})]
-            (is (connected-channel? (:channel proc))
-                ":channel connected")
             (is (> (count (slurp (:out-stream proc))) 1) ":out-stream")
             (is (not (connected-channel? (:channel proc)))
                 ":channel not connected")
@@ -629,8 +627,6 @@
             (is (zero? (:exit proc)) "zero exit status")))
         (testing ":out stream"
           (let [proc (ssh s {:in "ls" :out :stream})]
-            (is (connected-channel? (:channel proc))
-                ":channel connected")
             (is (> (count (slurp (:out-stream proc))) 1) ":out-stream")
             (is (not (connected-channel? (:channel proc)))
                 ":channel not connected")
