@@ -1,3 +1,12 @@
+## 0.5.12
+
+- Update jsch and jsch agentproxy
+  jsch 0.1.53 agentproxy-version 0.0.9
+
+- Remove extra arg to throw
+  This makes clj-ssh compatible with Clojure 1.8, which does not allow the
+  extra argument to throw.
+
 ## 0.5.11
 
 - Lock known hosts file
