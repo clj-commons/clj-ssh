@@ -686,16 +686,15 @@ config options."
       {:channel exec
        :out-stream out-inputstream
        :err-stream err-inputstream}
-      (with-channel-connection exec
-        (while (connected-channel? exec)
-          (Thread/sleep 100))
-        {:exit (.getExitStatus exec)
-         :out (if (= :bytes out)
-                (.toByteArray ^ByteArrayOutputStream out-stream)
-                (.toString out-stream))
-         :err (if (= :bytes out)
-                (.toByteArray ^ByteArrayOutputStream err-stream)
-                (.toString err-stream))}))))
+      (do (while (connected-channel? exec)
+            (Thread/sleep 100))
+          {:exit (.getExitStatus exec)
+           :out (if (= :bytes out)
+                  (.toByteArray ^ByteArrayOutputStream out-stream)
+                  (.toString out-stream))
+           :err (if (= :bytes out)
+                  (.toByteArray ^ByteArrayOutputStream err-stream)
+                  (.toString err-stream))}))))
 
 (defn ssh
   "Execute commands over ssh.
