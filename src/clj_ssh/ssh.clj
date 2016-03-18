@@ -1081,7 +1081,6 @@ cmd specifies a command to exec.  Valid commands are:
                   (filter val)
                   (map (comp flags key)))))
                (string/join " " remote-paths))
-          _ (println cmd)
           _ (logging/tracef "scp-from: %s" cmd)
           {:keys [^ChannelExec channel
                   ^PipedInputStream out-stream]}
