@@ -1,3 +1,7 @@
+## 0.5.14
+
+- Remove println from scp code
+
 ## 0.5.13
 
 - Make clojure dependency have provided scope
