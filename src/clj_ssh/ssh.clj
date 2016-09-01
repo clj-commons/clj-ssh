@@ -146,7 +146,8 @@
   (let [agent (JSch.)]
     (when use-system-ssh-agent
       (agent/connect agent))
-    (when known-hosts-path
+    (when (and known-hosts-path
+               (.exists (io/file known-hosts-path)))
       (locking hosts-file
         (.setKnownHosts agent known-hosts-path)))
     agent))
