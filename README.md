@@ -98,7 +98,7 @@ read the known_hosts file
 
 ```clj
 (let [agent (ssh-agent {:use-system-ssh-agent false
-                        :known-host-path :no-default-path})]
+                        :known-hosts-path :no-default-path})]
   (add-identity agent {:private-key-path "/user/name/.ssh/id_rsa"})
   (let [session (session agent "host-ip" {:strict-host-key-checking :no})]
     (with-connection session
