@@ -92,6 +92,20 @@ system, then a local, isolated ssh-agent can be used.
       (let [result (ssh session {:in "echo hello"})]
         (println (result :out)))))
 ```
+If the known_hosts file is not in the default location, and you don't need to read it anyways,
+because you turned off strict-host-key-checking, you can advise ssh-agent to not attempt to 
+read the known_hosts file 
+
+```clj
+(let [agent (ssh-agent {:use-system-ssh-agent false
+                        :known-host-path :no-default-path})]
+  (add-identity agent {:private-key-path "/user/name/.ssh/id_rsa"})
+  (let [session (session agent "host-ip" {:strict-host-key-checking :no})]
+    (with-connection session
+      (let [result (ssh session {:in "echo hello"})]
+        (println (result :out)))))
+```
+
 
 SFTP is supported:
 
