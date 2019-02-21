@@ -146,7 +146,7 @@
   (let [agent (JSch.)]
     (when use-system-ssh-agent
       (agent/connect agent))
-    (when known-hosts-path
+    (when-not (= :no-default-path known-hosts-path)
       (locking hosts-file
         (.setKnownHosts agent known-hosts-path)))
     agent))
