@@ -1,5 +1,5 @@
 language: clojure
-lein: lein2
+lein: lein
 before_script:
 - ssh-keygen -N "" -f ~/.ssh/id_rsa
 - cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
@@ -11,9 +11,9 @@ before_script:
 - echo "clj-ssh" > pp
 - chmod +x pp
 - setsid ssh-add ~/.ssh/clj_ssh_pp < pp
-script: lein2 test
+script: lein test
 after_success:
-- lein2 pallet-release push
+- lein pallet-release push
 env:
   global:
     secure: eOBqYhJhOJMtRiMKs9ZgG4pEHFy7YqiBZ5NUEWUYD6qav6sMRHqqR5F04NRI37SmnIupzeTChqfRgX0DOwHeTl4u+QJnwRDH2z3avu75FbtZWgiGrxzE39SESpVj/zsyDrEUzT7ZiMayXKyNa3ObiJ8vBUFT7x/OZyRp/1rJxHU=
