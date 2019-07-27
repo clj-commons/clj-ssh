@@ -1,6 +1,6 @@
 (def agentproxy-version "0.0.9")
 
-(defproject clj-commons/clj-ssh "0.5.15-SNAPSHOT"
+(defproject clj-commons/clj-ssh "0.5.15"
   :description "Library for using SSH from clojure."
   :url "https://github.com/clj-commons/clj-ssh"
   :license {:name "Eclipse Public License"
