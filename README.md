@@ -1,5 +1,5 @@
 
-[![CircleCI](https://circleci.com/gh/clj-commons/clj-ssh.svg?style=svg)](https://circleci.com/gh/clj-commons/clj-ssh)[![Clojars Project](https://img.shields.io/clojars/v/clj-commons/clj-ssh.svg)](https://clojars.org/clj-commons/clj-ssh)
+[![CircleCI](https://circleci.com/gh/clj-commons/clj-ssh.svg?style=svg)](https://circleci.com/gh/clj-commons/clj-ssh) [![Clojars Project](https://img.shields.io/clojars/v/clj-commons/clj-ssh.svg)](https://clojars.org/clj-commons/clj-ssh)
 # clj-ssh
 
 SSH in clojure.  Uses jsch.
