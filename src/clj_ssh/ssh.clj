@@ -139,14 +139,14 @@
 
 (defn ssh-agent
   "Create a ssh-agent. By default a system ssh-agent is preferred."
-  [{:keys [use-system-ssh-agent ^String known-hosts-path]
+  [{:keys [use-system-ssh-agent known-hosts-path]
     :or {use-system-ssh-agent true
          known-hosts-path (str (. System getProperty "user.home")
                                "/.ssh/known_hosts")}}]
   (let [agent (JSch.)]
     (when use-system-ssh-agent
       (agent/connect agent))
-    (when known-hosts-path
+    (when-not (= :no-default-path known-hosts-path)
       (locking hosts-file
         (.setKnownHosts agent known-hosts-path)))
     agent))
