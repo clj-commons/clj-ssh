@@ -39,6 +39,7 @@ jobs:
           key: v1-dependencies-{{ checksum "project.clj" }}
       - run:
           command: |
+             yes y | ssh-keygen -N "" -f ~/.ssh/id_rsa >/dev/null
              cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
              ssh-keygen -f ~/.ssh/clj_ssh -t rsa -C "key for test clj-ssh" -N ""
              ssh-keygen -f ~/.ssh/clj_ssh_pp -t rsa -C "key for test clj-ssh" -N "clj-ssh"
