@@ -45,9 +45,7 @@ jobs:
              ssh-keygen -f ~/.ssh/clj_ssh_pp -t rsa -C "key for test clj-ssh" -N "clj-ssh"
              echo "from=\"127.0.0.1,localhost,0.0.0.0\" $(cat ~/.ssh/clj_ssh.pub)" >> ~/.ssh/authorized_keys
              echo "from=\"127.0.0.1,localhost,0.0.0.0\" $(cat ~/.ssh/clj_ssh_pp.pub)" >> ~/.ssh/authorized_keys
-             eval $(ssh-agent)
-             echo "clj-ssh" > pp
-             chmod +x pp
-             setsid ssh-add ~/.ssh/clj_ssh_pp < pp
+             eval "$(ssh-agent -s)"
+             ssh-add ~/.ssh/clj_ssh_pp 
       # run tests!
       - run: lein test
