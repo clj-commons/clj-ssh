@@ -14,7 +14,7 @@
  :clojure-1.10.2 {:dependencies [[org.clojure/clojure "1.10.2"]]}
  :clojure-1.10.3 {:dependencies [[org.clojure/clojure "1.10.3"]]}
  :clojure-1.11.0 {:dependencies [[org.clojure/clojure "1.11.0"]]}
- :clojure-1.11.1 {:dependencies [[org.clojure/clojure "1.11.01"]]}
+ :clojure-1.11.1 {:dependencies [[org.clojure/clojure "1.11.1"]]}
  
  
  }
