@@ -1,3 +1,17 @@
+## 0.5.16
+
+- Moved jsch to version 0.1.55 
+
+- Moved clojure tools.logging to 1.2.4
+
+- Moved logback-classic to 1.4.7
+
+- Changed ssh/generate-keypair to now match jsch API 
+  (and remove setPassphrase method which is listed as depricated)
+
+- Included section in readme.md regarding RSA header issues and 
+  compatibilities
+
 ## 0.5.14
 
 - Remove println from scp code

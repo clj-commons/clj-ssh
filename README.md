@@ -5,7 +5,8 @@
 
 # clj-ssh
 
-SSH in clojure.  Uses jsch.
+SSH in clojure.  Uses jsch. 
+(See section RSA Private Key format if using openssl generated keys)
 
 ## Usage
 
@@ -144,6 +145,42 @@ works with both a `jump-session` session and a single host session.
 
 [Annotated source](http:/hugoduncan.github.com/clj-ssh/0.5/annotated/uberdoc.html).
 [API](http:/hugoduncan.github.com/clj-ssh/0.5/api/index.html).
+
+## RSA Private Key Format and clj-ssh
+
+There have been changes to the header of RSA Private Keys.  With the upgrade of 
+com.jcraft/jsch to "0.1.55", the older openssh headers work with ssh will throw 
+an authentication failure.
+
+Older format
+```
+-----BEGIN OPENSSH PRIVATE KEY-----`
+```
+
+New RSA format
+```
+-----BEGIN RSA PRIVATE KEY-----
+```
+
+Old private keys can be easily converted to the new format, through the use of
+ssh-keygen's passphrase changing command.  This will change the file in place.
+```
+ssh-keygen -p -f privateKeyFile -m pem -P passphrase -N passphrase
+``` 
+The -m flag will force the file to pem format, fixing the header.  
+The -P (for old passphrase) and -N (new passphrase) can be ommitted to generate
+an interactive query instead.
+(enter "" at either -P or -N to identify no passphrase)
+
+### Note: clj-ssh key generation
+clj-ssh does have the ability to generate the public / private key pairs for both
+RSA and DSA (found in clj-ssh.ssh/generate-keypair).
+
+Unlike ssh-keygen, the RSA passphrase on the private key will be limited to   
+DES-EDE3-CBC DEK format to encrypt/decrypt the passphrase if created within clj-ssh.
+ssh-keygen will likely use what is standard in your operating system's crypto suite, 
+(e.g. AES-128-CBC) 
+
 
 ## FAQ
 
