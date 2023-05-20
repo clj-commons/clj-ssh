@@ -7,12 +7,6 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/tools.logging "1.2.4"
                   :exclusions [org.clojure/clojure]]
-                 [com.jcraft/jsch.agentproxy.usocket-jna ~agentproxy-version]
-                 [com.jcraft/jsch.agentproxy.usocket-nc ~agentproxy-version]
-                 [com.jcraft/jsch.agentproxy.sshagent ~agentproxy-version]
-                 [com.jcraft/jsch.agentproxy.pageant ~agentproxy-version]
-                 [com.jcraft/jsch.agentproxy.core ~agentproxy-version]
-                 [com.jcraft/jsch.agentproxy.jsch ~agentproxy-version]
-                 [com.jcraft/jsch "0.1.55"]]
+                 [com.github.mwiede/jsch "0.2.8"]]
   :jvm-opts ["-Djava.awt.headless=true"]
   :profiles {:provided {:dependencies [[org.clojure/clojure "1.10.1"]]}})
