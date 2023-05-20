@@ -53,6 +53,6 @@ jobs:
              chmod +x pp
              export SSH_ASKPASS=./pp
              export DISPLAY=1
-             setsid ssh-add ~/.ssh/clj_ssh_pp < /dev/null
+             setsid ssh-add ~/.ssh/clj_ssh_pp < /dev/null >/dev/null 2>&1
       # run tests!
       - run: lein test
