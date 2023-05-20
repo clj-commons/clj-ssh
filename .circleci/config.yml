@@ -51,8 +51,8 @@ jobs:
              echo "clj-ssh"
              EOF
              chmod +x pp
-             export SSH_ASKPPAS=./pp
+             export SSH_ASKPASS=./pp
              export DISPLAY=1
-             setsid ssh-add ~/.ssh/clj_ssh_pp < pp
+             setsid ssh-add ~/.ssh/clj_ssh_pp < /dev/null
       # run tests!
       - run: lein test
