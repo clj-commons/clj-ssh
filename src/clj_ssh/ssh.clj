@@ -1107,15 +1107,23 @@ cmd specifies a command to exec.  Valid commands are:
    using the :private-key-path and :public-key-path keys."
   [agent key-type key-size passphrase
    & {:keys [comment private-key-path public-key-path]}]
-  (let [keypair (KeyPair/genKeyPair agent (key-type key-types) key-size)]
-    (when passphrase
-      (.setPassphrase keypair passphrase))
+  (let [keypair (KeyPair/genKeyPair agent (key-type key-types) key-size)
+        write-pub (if (nil? comment)
+                    (fn [x] (.writePublicKey keypair x ""))
+                    (fn [x] (.writePublicKey keypair x comment)))
+        write-pvt (if (nil? passphrase)
+                    (fn [x] (.writePrivateKey keypair x))
+                    (fn [x] (.writePrivateKey keypair x
+                                              (if (= (type passphrase) String)
+                                                (.getBytes passphrase)
+                                                passphrase))))
+        ]
     (when public-key-path
-      (.writePublicKey keypair public-key-path comment))
+      (write-pub public-key-path))
     (when private-key-path
-      (.writePrivateKey keypair private-key-path))
+      (write-pvt private-key-path))
     (let [pub-baos (ByteArrayOutputStream.)
           pri-baos (ByteArrayOutputStream.)]
-      (.writePublicKey keypair pub-baos "")
-      (.writePrivateKey keypair pri-baos)
+      (write-pub pub-baos)
+      (write-pvt pri-baos)
       [(.toByteArray pri-baos) (.toByteArray pub-baos)])))
