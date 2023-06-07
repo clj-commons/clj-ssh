@@ -431,6 +431,7 @@ keys.  All other option key pairs will be passed as SSH config options."
         (disconnect session#)))))
 
 (defn clean-sensitive-data [hosts]
+  "Remove password from hosts vector"
   (map #(dissoc % :password) hosts))
 
 ;;; Jump Hosts
