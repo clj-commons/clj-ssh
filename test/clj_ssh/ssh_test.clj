@@ -636,3 +636,12 @@
                 ":channel not connected")
             (is (zero? (exit-status (:channel proc)))
                 "zero exit status")))))))
+
+(deftest clean-sensitive-data-test
+  (are [?in ?out]
+    (= ?out (clean-sensitive-data ?in))
+    [{:hostname "host", :username "user", :password "pass123", :strict-host-key-checking :no}] [{:hostname "host", :username "user", :strict-host-key-checking :no}]
+    [{:hostname "host", :username "user", :password "pass123"}]  [{:hostname "host", :username "user"}]
+    [{:hostname "host"}]  [{:hostname "host"}]
+    {:some-other-key "some-value"}                                                                      {:some-other-key "some-value"}
+    {:some-key "some-value"} {:some-key "some-value"}))
