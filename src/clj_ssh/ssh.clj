@@ -236,6 +236,7 @@
   (^boolean setPassphrase [_ ^bytes passphrase] (.. kpair (decrypt passphrase)))
   (getPublicKeyBlob [_] (.. kpair getPublicKeyBlob))
   (^bytes getSignature [_ ^bytes data] (.. kpair (getSignature data)))
+  (^bytes getSignature [_ ^bytes data ^String alg] (.. kpair (getSignature data alg)))
   (getAlgName [_]
     (String. (reflect/call-method KeyPair 'getKeyTypeName [] kpair)))
   (getName [_] identity)
