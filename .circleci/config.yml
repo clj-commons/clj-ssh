@@ -1,18 +1,10 @@
-# Clojure CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-clojure/ for more details
-#
-version: 2
+version: 2.1
 jobs:
   build:
-    docker:
-      # specify the version you desire here
-      - image: circleci/clojure:lein-2.7.1
+    machine:
+      image: ubuntu-2004:2023.07.1
 
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
+    resource_class: medium
 
     working_directory: ~/repo
 
@@ -31,22 +23,30 @@ jobs:
             # fallback to using the latest cache if no exact match is found
             - v1-dependencies-
 
-      - run: lein deps
+      - run:
+          name: Setup environment
+          command: sudo apt-get update && sudo apt-get install -y openjdk-8-jdk leiningen
+
+      - run:
+          name: Fetch project dependencies
+          command: lein deps
 
       - save_cache:
           paths:
             - ~/.m2
           key: v1-dependencies-{{ checksum "project.clj" }}
+
       - run:
+          name: Setup tests
           command: |
-             yes y | ssh-keygen -N "" -f ~/.ssh/id_rsa >/dev/null
+             [[ -f ~/.ssh/id_rsa ]] || ssh-keygen -N "" -f ~/.ssh/id_rsa
              cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
              ssh-keygen -f ~/.ssh/clj_ssh -t rsa -C "key for test clj-ssh" -N ""
              ssh-keygen -f ~/.ssh/clj_ssh_pp -t rsa -C "key for test clj-ssh" -N "clj-ssh"
              echo "from=\"127.0.0.1,localhost,0.0.0.0\" $(cat ~/.ssh/clj_ssh.pub)" >> ~/.ssh/authorized_keys
              echo "from=\"127.0.0.1,localhost,0.0.0.0\" $(cat ~/.ssh/clj_ssh_pp.pub)" >> ~/.ssh/authorized_keys
              eval $(ssh-agent)
-             cat << EOF > pp
+             cat \<< EOF > pp
              #!/bin/sh
              echo "clj-ssh"
              EOF
@@ -54,5 +54,7 @@ jobs:
              export SSH_ASKPASS=./pp
              export DISPLAY=1
              setsid ssh-add ~/.ssh/clj_ssh_pp < /dev/null >/dev/null 2>&1
-      # run tests!
-      - run: lein test
+
+      - run:
+          name: Run tests
+          command: lein test
