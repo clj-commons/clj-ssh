@@ -115,7 +115,7 @@ jobs:
          name: Install babashka
          command: |
            curl -s https://raw.githubusercontent.com/borkdude/babashka/master/install -o install.sh
-           bash install.sh
+           sudo bash install.sh
            rm install.sh
       - run:
           name: Install deployment-script
