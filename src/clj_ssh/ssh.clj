@@ -162,9 +162,8 @@
    encrypted."
   [^JSch agent ^String private-key-path ^String public-key-path]
   (logging/tracef "Make identity %s %s" private-key-path public-key-path)
-  (reflect/call-method
-   com.jcraft.jsch.IdentityFile 'newInstance [String String JSch]
-   nil private-key-path public-key-path agent))
+  (.addIdentity agent private-key-path public-key-path nil)
+  (.lastElement (.getIdentities (.getIdentityRepository agent))))
 
 (defn ^KeyPair keypair
   "Return a KeyPair object for the given options.
@@ -238,7 +237,7 @@
   (^bytes getSignature [_ ^bytes data] (.. kpair (getSignature data)))
   (^bytes getSignature [_ ^bytes data ^String alg] (.. kpair (getSignature data alg)))
   (getAlgName [_]
-    (String. (reflect/call-method KeyPair 'getKeyTypeName [] kpair)))
+    (.getKeyTypeString kpair))
   (getName [_] identity)
   (isEncrypted [_] (.. kpair isEncrypted))
   (clear [_] (.. kpair dispose)))
