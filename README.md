@@ -5,7 +5,7 @@
 
 # clj-ssh
 
-SSH in clojure.  Uses jsch. 
+SSH in clojure.  Uses [jsch](https://github.com/mwiede/jsch).
 (See section RSA Private Key format if using openssl generated keys)
 
 ## Usage
@@ -205,7 +205,7 @@ Thanks to [Ryan Stradling](http://github.com/rstradling) for these.
 Via [clojars](http://clojars.org) and
 [Leiningen](http://github.com/technomancy/leiningen).
 
-    :dependencies [clj-ssh "0.5.14"]
+    :dependencies [org.clj-commons/clj-ssh "0.6.2"]
 
 or your favourite maven repository aware tool.
 
