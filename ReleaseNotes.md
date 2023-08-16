@@ -1,3 +1,11 @@
+## 0.6.3
+
+ - Moved jsch to version 0.2.11
+
+## 0.6.2
+
+ - Moved jsch to supported fork from com.github.mwiede/jsch version 0.2.9
+
 ## 0.5.16
 
 - Moved jsch to version 0.1.55 
