@@ -11,7 +11,7 @@
 
   :dependencies [[org.clojure/tools.logging "1.2.4"
                   :exclusions [org.clojure/clojure]]
-                 [com.github.mwiede/jsch "0.2.11"]
+                 [com.github.mwiede/jsch "0.2.12"]
                  [net.java.dev.jna/jna "5.13.0"]
                  [com.kohlschutter.junixsocket/junixsocket-core "2.6.2" :extension "pom"]]
   :jvm-opts ["-Djava.awt.headless=true"]

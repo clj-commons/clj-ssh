@@ -1,3 +1,7 @@
+## 0.6.4
+
+ - Moved jsch to version 0.2.12
+
 ## 0.6.3
 
  - Moved jsch to version 0.2.11
