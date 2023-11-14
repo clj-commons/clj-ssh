@@ -1,5 +1,5 @@
 
-[![Clojars Project](https://img.shields.io/clojars/v/clj-commons/clj-ssh.svg)](https://clojars.org/clj-commons/clj-ssh)
+[![Clojars Project](https://img.shields.io/clojars/v/org.clj-commons/clj-ssh.svg?include_prereleases)](https://clojars.org/org.clj-commons/clj-ssh)
 [![cljdoc badge](https://cljdoc.org/badge/clj-commons/clj-ssh)](https://cljdoc.org/d/clj-commons/clj-ssh/CURRENT)
 [![CircleCI](https://circleci.com/gh/clj-commons/clj-ssh.svg?style=svg)](https://circleci.com/gh/clj-commons/clj-ssh)
 
