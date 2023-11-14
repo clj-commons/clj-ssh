@@ -11,9 +11,9 @@
 
   :dependencies [[org.clojure/tools.logging "1.2.4"
                   :exclusions [org.clojure/clojure]]
-                 [com.github.mwiede/jsch "0.2.12"]
+                 [com.github.mwiede/jsch "0.2.13"]
                  [net.java.dev.jna/jna "5.13.0"]
-                 [com.kohlschutter.junixsocket/junixsocket-core "2.6.2" :extension "pom"]]
+                 [com.kohlschutter.junixsocket/junixsocket-core "2.8.3" :extension "pom"]]
   :jvm-opts ["-Djava.awt.headless=true"]
   :profiles {:provided {:dependencies [[org.clojure/clojure "1.10.1"]]}})
 
