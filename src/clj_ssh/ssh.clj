@@ -430,21 +430,26 @@ keys.  All other option key pairs will be passed as SSH config options."
        (finally
         (disconnect session#)))))
 
+(defn clean-sensitive-data [hosts]
+  "Remove password from hosts vector"
+  (map #(dissoc % :password) hosts))
+
 ;;; Jump Hosts
 (defn- jump-connect [agent hosts sessions timeout]
   (let [host (first hosts)
         s (session agent (:hostname host) (dissoc host :hostname))
         throw-e (fn [e s]
-                  (throw
-                   (ex-info
-                    (str "Failed to connect "
-                         (.getUserName s) "@"
-                         (.getHost s) ":"
-                         (.getPort s)
-                         " " (pr-str (into [] (.getIdentityNames agent)))
-                         " " (pr-str hosts))
-                    {:hosts hosts}
-                    e)))]
+                  (let [clear-hosts (clean-sensitive-data hosts)]
+                    (throw
+                     (ex-info
+                      (str "Failed to connect "
+                           (.getUserName s) "@"
+                           (.getHost s) ":"
+                           (.getPort s)
+                           " " (pr-str (into [] (.getIdentityNames agent)))
+                           " " (pr-str clear-hosts))
+                      {:hosts clear-hosts}
+                      e))))]
     (swap! sessions (fnil conj []) s)
     (try
       (connect s timeout)
