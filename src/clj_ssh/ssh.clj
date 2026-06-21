@@ -431,20 +431,31 @@ keys.  All other option key pairs will be passed as SSH config options."
         (disconnect session#)))))
 
 ;;; Jump Hosts
-(defn- jump-connect [agent hosts sessions timeout]
+(def ^:private sensitive-option-keys
+  "Host/session option keys whose values must never appear in logs or exceptions."
+  #{:password :passphrase})
+
+(defn- redact-hosts
+  "Remove sensitive credentials from a sequence of host option maps so they are
+  safe to include in logs and exceptions. See `sensitive-option-keys`."
+  [hosts]
+  (mapv #(apply dissoc % sensitive-option-keys) hosts))
+
+(defn- jump-connect [^JSch agent hosts sessions timeout]
   (let [host (first hosts)
         s (session agent (:hostname host) (dissoc host :hostname))
-        throw-e (fn [e s]
-                  (throw
-                   (ex-info
-                    (str "Failed to connect "
-                         (.getUserName s) "@"
-                         (.getHost s) ":"
-                         (.getPort s)
-                         " " (pr-str (into [] (.getIdentityNames agent)))
-                         " " (pr-str hosts))
-                    {:hosts hosts}
-                    e)))]
+        throw-e (fn [e ^Session s]
+                  (let [redacted (redact-hosts hosts)]
+                    (throw
+                     (ex-info
+                      (str "Failed to connect "
+                           (.getUserName s) "@"
+                           (.getHost s) ":"
+                           (.getPort s)
+                           " " (pr-str (into [] (.getIdentityNames agent)))
+                           " " (pr-str redacted))
+                      {:hosts redacted}
+                      e))))]
     (swap! sessions (fnil conj []) s)
     (try
       (connect s timeout)
