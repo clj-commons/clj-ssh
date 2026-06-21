@@ -636,3 +636,23 @@
                 ":channel not connected")
             (is (zero? (exit-status (:channel proc)))
                 "zero exit status")))))))
+
+(deftest jump-connect-redacts-credentials-test
+  (testing "credentials do not leak into the jump-connect failure exception"
+    (let [agent (ssh-agent {:use-system-ssh-agent false})
+          password "jump-secret-password"
+          passphrase "jump-secret-passphrase"
+          ;; Port 1 on localhost refuses immediately, so connect fails via
+          ;; jump-connect's exception path without needing a live sshd.
+          hosts [{:hostname "127.0.0.1" :port 1 :username "nobody"
+                  :password password :passphrase passphrase}]
+          session (jump-session agent hosts {:timeout 1000})]
+      (try
+        (connect session)
+        (is false "expected the jump connection to fail")
+        (catch clojure.lang.ExceptionInfo e
+          (let [text (str (.getMessage e) " " (pr-str (ex-data e)))]
+            (is (not (.contains text password))
+                "password must not appear in the exception")
+            (is (not (.contains text passphrase))
+                "passphrase must not appear in the exception")))))))
