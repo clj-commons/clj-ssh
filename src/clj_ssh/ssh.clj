@@ -867,13 +867,33 @@ cmd specifies a command to exec.  Valid commands are:
   (let [buffer-size 1024
         buffer (byte-array buffer-size)]
     (let [cmd (loop [offset 0]
+                (when (>= offset buffer-size)
+                  (throw
+                   (ex-info
+                    "scp: command is too long"
+                    {:type :clj-ssh/scp-failure})))
                 (let [n (.read in buffer offset (- buffer-size offset))]
-                  (logging/tracef
-                   "scp-receive-command: %s"
-                   (String. buffer (int 0) (int (+ offset n))))
-                  (if (= \newline (char (aget buffer (+ offset n -1))))
-                    (String. buffer (int 0) (int (+ offset n)))
-                    (recur (+ offset n)))))]
+                  (cond
+                   (neg? n)
+                   (throw
+                    (ex-info
+                     "scp: unexpected end of stream before command terminator"
+                     {:type :clj-ssh/scp-failure}))
+
+                   (zero? n)
+                   (throw
+                    (ex-info
+                     "scp: input stream returned no command bytes"
+                     {:type :clj-ssh/scp-failure}))
+
+                   :else
+                   (do
+                     (logging/tracef
+                      "scp-receive-command: %s"
+                      (String. buffer (int 0) (int (+ offset n))))
+                     (if (= \newline (char (aget buffer (+ offset n -1))))
+                       (String. buffer (int 0) (int (+ offset n)))
+                       (recur (+ offset n)))))))]
       (logging/tracef "Received command %s" cmd)
       (scp-send-ack out)
       (logging/trace "Sent ACK")

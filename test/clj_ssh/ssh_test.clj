@@ -6,7 +6,8 @@
    [clj-ssh.test-utils
     :only [quiet-ssh-logging sftp-monitor sftp-monitor-done]])
   (:require [clojure.java.io :as io])
-  (:import com.jcraft.jsch.JSch))
+  (:import [com.jcraft.jsch JSch]
+           [java.io ByteArrayInputStream ByteArrayOutputStream]))
 
 (use-fixtures :once quiet-ssh-logging)
 
@@ -115,6 +116,25 @@
     (let [session (session agent "localhost" {:username (username)})]
       (is (instance? com.jcraft.jsch.Session session))
       (is (not (connected? session))))))
+
+(deftest scp-receive-command-test
+  (let [out (ByteArrayOutputStream.)
+        in (ByteArrayInputStream. (.getBytes "C0644 10 file\n"))]
+    (is (= "C0644 10 file\n"
+           (#'clj-ssh.ssh/scp-receive-command out in)))
+    (is (= [0] (seq (.toByteArray out)))))
+  (let [out (ByteArrayOutputStream.)
+        in (ByteArrayInputStream. (.getBytes "C0644 10 file"))]
+    (is (thrown-with-msg?
+         clojure.lang.ExceptionInfo
+         #"unexpected end of stream"
+         (#'clj-ssh.ssh/scp-receive-command out in))))
+  (let [out (ByteArrayOutputStream.)
+        in (ByteArrayInputStream. (byte-array (repeat 1024 (byte 97))))]
+    (is (thrown-with-msg?
+         clojure.lang.ExceptionInfo
+         #"command is too long"
+         (#'clj-ssh.ssh/scp-receive-command out in)))))
 
 (deftest session-connect-test
   (testing "internal agent"
